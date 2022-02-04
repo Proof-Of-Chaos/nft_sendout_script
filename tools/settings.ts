@@ -7,6 +7,7 @@ export const getSettings = () => {
       token: process.env.NETWORK_TOKEN,
     },
     collectionSymbol: process.env.COLLECTION_SYMBOL.toString(),
+    collectionName: process.env.COLLECTION_NAME.toString(),
   };
   return settings;
 };

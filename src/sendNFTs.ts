@@ -29,12 +29,11 @@ const getVotes = async (referendumIndex: BN) => {
 
 export const sendNFTs = async (passed: boolean, referendumIndex: BN) => {
     const votes = await getVotes(referendumIndex);
-    console.log("vle", votes.length)
     //upload file to pinata
     let imagePath;
     try {
-        await fsPromises.readFile(`${process.cwd()}/assets/${referendumIndex}.png`);
-        imagePath = `${referendumIndex}.png`;
+        await fsPromises.readFile(`${process.cwd()}/assets/referenda/${referendumIndex}.png`);
+        imagePath = `referenda/${referendumIndex}.png`;
     }
     catch (e) {
         imagePath = "default.png";
@@ -47,31 +46,71 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN) => {
             description: `Thank you for casting your vote on Referendum ${referendumIndex}.\n\n` +
                 `With your vote you have forever changed ${params.settings.network.name}!\n\n` +
                 `Let's keep shaping our future together.`,
-            properties: {},
         }
     );
+
     const collectionId = Collection.generateId(
         u8aToHex(params.account.publicKey),
         params.settings.collectionSymbol
     );
-    const remarks: string[] = [];
+    const mintRemarks: string[] = [];
     let count = 0;
     for (const vote of votes) {
         const nftProps: INftProps = {
             block: 0,
-            sn: (count++).toString(),
-            owner: encodeAddress(params.account.address, params.settings.network.prefix),
-            transferable: 1,
-            metadata: metadataCid,
             collection: collectionId,
-            symbol: referendumIndex.toString(),
+            name: referendumIndex.toString(),
+            instance: referendumIndex.toString(),
+            transferable: 1,
+            sn: (count++).toString(),
+            metadata: metadataCid,
         };
-        const nft = new NFT(nftProps);
-
-        remarks.push(nft.mint(vote.accountId.toString()));
+        const nft = new NFT(nftProps.block,
+            nftProps.collection,
+            nftProps.name,
+            nftProps.instance,
+            nftProps.transferable,
+            nftProps.sn,
+            nftProps.metadata);
+        mintRemarks.push(nft.mintnft());
     }
-    console.log("remarks", remarks)
-    const { block, success, hash, fee } = await mintAndSend(remarks);
-    console.log(`NFTs sent at block ${block}: ${success} for a total fee of ${fee}`)
-    logger.info(`NFTs sent at block ${block}: ${success} for a total fee of ${fee}`)
+    console.log("mintRemarks", mintRemarks)
+    //mint
+    const { block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks);
+    if (!successMint) {
+        logger.info(`Failure minting NFTS at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
+        return;
+    }
+    //send nfts
+    logger.info(`NFTs minted at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
+    const sendRemarks: string[] = [];
+    count = 0;
+    for (const vote of votes) {
+        const nftProps: INftProps = {
+            block: blockMint,
+            collection: collectionId,
+            name: referendumIndex.toString(),
+            instance: referendumIndex.toString(),
+            transferable: 1,
+            sn: (count++).toString(),
+            metadata: metadataCid,
+        };
+        const nft = new NFT(nftProps.block,
+            nftProps.collection,
+            nftProps.name,
+            nftProps.instance,
+            nftProps.transferable,
+            nftProps.sn,
+            nftProps.metadata);
+        sendRemarks.push(nft.send(vote.accountId.toString()))
+    }
+    console.log("sendRemarks", sendRemarks)
+    //send
+    const { block: blockSend, success: successSend, hash: hashSend, fee: feeSend } = await mintAndSend(sendRemarks);
+    if (!successMint) {
+        logger.info(`Failure minting NFTS at block ${blockSend}: ${successSend} for a total fee of ${feeSend}`)
+        return;
+    }
+    //send nfts
+    logger.info(`NFTs minted at block ${blockSend}: ${successSend} for a total fee of ${feeSend}`)
 }

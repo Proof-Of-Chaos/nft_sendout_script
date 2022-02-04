@@ -5,7 +5,7 @@ import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../pinataUtils.js";
 import { sendAndFinalize } from "../substrateUtils.js";
 
-export const createIncentivizerCollection = async () => {
+export const createRewardsCollection = async () => {
   try {
     const collectionId = Collection.generateId(
       u8aToHex(params.account.publicKey),
@@ -19,13 +19,12 @@ export const createIncentivizerCollection = async () => {
       "GovernanceParticipationRewards - Gen1",
       {
         description: "A project that rewards all referendum voters with NFTs.",
-        external_url: params.settings.externalUrl,
-        properties: {},
       }
     );
 
     const ItemsCollection = new Collection(
       0,
+      params.settings.collectionName,
       0,
       encodeAddress(params.account.address, params.settings.network.prefix),
       params.settings.collectionSymbol,
@@ -34,10 +33,10 @@ export const createIncentivizerCollection = async () => {
     );
 
     const { block } = await sendAndFinalize(
-      params.api.tx.system.remark(ItemsCollection.create()),
+      params.api.tx.system.remark(ItemsCollection.mint()),
       params.account
     );
-    console.log("COLLECTION CREATION REMARK: ", ItemsCollection.create());
+    console.log("COLLECTION CREATION REMARK: ", ItemsCollection.mint());
     console.log("Collection created at block: ", block);
 
     return block;
