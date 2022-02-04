@@ -20,7 +20,9 @@ Create a .env file with the .env-sample structure. Fill in the required fields.
 Create a localStorage.json file with the localStorage-sample.json structure. Fill in the required fields.
 
 ```npm install```
+
 ```tsc```
+
 ```node dist/index.js```
 ### License
 Apache License 2.0
