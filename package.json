@@ -1,0 +1,51 @@
+{
+  "dependencies": {
+    "@pinata/sdk": "^1.1.23",
+    "@polkadot/api": "^7.6.1",
+    "@polkadot/api-augment": "^7.6.1",
+    "@polkadot/api-base": "^7.6.1",
+    "@polkadot/api-derive": "^7.6.1",
+    "@polkadot/keyring": "^8.3.3",
+    "@polkadot/types": "^7.6.1",
+    "@polkadot/util-crypto": "^8.3.3",
+    "dotenv": "^14.3.2",
+    "log4js": "^6.4.1",
+    "lowdb": "^3.0.0",
+    "mongoose": "^6.1.10",
+    "p-limit": "^4.0.0",
+    "rmrk-tools": "^2.0.36"
+  },
+  "type": "module",
+  "license": "Apache-2.0",
+  "name": "nft_incentiviser",
+  "description": "Incentivize network participation.",
+  "keywords": [
+    "substrate",
+    "kusama",
+    "polkadot",
+    "telegram",
+    "nft"
+  ],
+  "exports": "./index.js",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabrieljaegerde/nft_incentiviser.git"
+  },
+  "author": "Gabriel Jaeger",
+  "scripts": {
+    "lint": "eslint . --ext .ts",
+    "lint-and-fix": "eslint . --ext .ts --fix"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.7",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "eslint": "^7.32.0"
+  },
+  "bugs": {
+    "url": "https://github.com/gabrieljaegerde/nft_incentiviser/issues"
+  },
+  "homepage": "https://github.com/gabrieljaegerde/nft_incentiviser#readme",
+  "main": "index.js"
+}
