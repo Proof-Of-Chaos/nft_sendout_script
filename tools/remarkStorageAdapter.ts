@@ -129,7 +129,7 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     // await this.db.write();
     // const collectionDb = await this.getCollectionById(collection.id);
     // return collectionDb;
-    return null;
+    return;
   }
 
   public async updateCollectionIssuer(
