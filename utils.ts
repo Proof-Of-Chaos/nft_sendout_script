@@ -3,7 +3,8 @@ import { DeriveReferendumVote } from "@polkadot/api-derive/types";
 import { ApiDecoration } from "@polkadot/api/types";
 import { AccountId, VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
 import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
-import type { BN } from '@polkadot/util';
+import { BN } from '@polkadot/util';
+import { params } from "./config.js";
 
 export const getApi = async (): Promise<ApiPromise> => {
     const wsNodeUri = process.env.WS_NODE_URI || "ws://127.0.0.1:9944/";
@@ -64,3 +65,12 @@ export const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN)
     });
     return votes;
 }
+
+export const amountToHumanString = (amount: string, afterCommas?: number): string => {
+    const decimals = parseInt(params.settings.network.decimals);
+    const token = params.settings.network.token;
+    const value = new BN(amount.toString())
+        .div(new BN("1e" + decimals));
+    const tokenString = token ? " " + token : "";
+    return value + tokenString;
+};

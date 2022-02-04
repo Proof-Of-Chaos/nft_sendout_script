@@ -3,19 +3,23 @@ import { params, getLocalStorage } from "./config.js";
 import { getSettings } from "./tools/settings.js";
 import { BlockCountAdapter } from "./tools/blockCountAdapter.js";
 import dotenv from "dotenv";
-import { getApi } from "./tools/substrateUtils.js";
+import { getApi, initAccount } from "./tools/substrateUtils.js";
 import { ApiPromise } from "@polkadot/api";
 import { Low } from "lowdb/lib";
-import mongoose from "mongoose";
 import { BlockListener } from "./src/blockListener.js";
 import pinataSDK from "@pinata/sdk";
+import { KeyringPair } from "@polkadot/keyring/types";
+import { Consolidator, RemarkListener } from "rmrk-tools";
+import { RemarkStorageAdapter } from "./tools/remarkStorageAdapter.js";
+import { createIncentivizerCollection } from "./tools/startScripts/createIncentivizerCollection.js";
 
 dotenv.config();
 
-class VoteReader {
+class Incentivizer {
   settings: any;
   api: ApiPromise;
   localStorage: Low;
+  account: KeyringPair;
   /**
    * Create VoteReader instance
    * @param config - SubstrateBot config
@@ -26,16 +30,19 @@ class VoteReader {
    */
   constructor({
     settings,
-    api
+    api,
+    account
   }) {
     this.settings = settings;
     this.api = api;
+    this.account = account;
     this.localStorage = getLocalStorage();
   }
 
   async run() {
     params.api = this.api;
     params.localStorage = this.localStorage;
+    params.account = this.account
     const networkProperties = await this.api.rpc.system.properties();
     if (!this.settings.network.prefix && networkProperties.ss58Format) {
       this.settings.network.prefix = networkProperties.ss58Format.toString();
@@ -49,37 +56,61 @@ class VoteReader {
     ) {
       this.settings.network.token = networkProperties.tokenSymbol.toString();
     }
-    //setup pinata
-    params.pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET);
     params.settings = this.settings;
     params.blockCountAdapter = new BlockCountAdapter(params.localStorage, "headerBlock");
     params.blockListener = new BlockListener(params.api,
       params.blockCountAdapter);
-  }
+    //setup remark listener for minting listener
+    const consolidateFunction = async (remarks) => {
+      const consolidator = new Consolidator(2, new RemarkStorageAdapter(params.localStorage));
+      return consolidator.consolidate(remarks);
+    };
 
-  async stop() {
-    await mongoose.connection.close(false);
-    console.log('MongoDb connection closed.');
-    process.exit(0);
+    const startListening = async () => {
+      const listener = new RemarkListener({
+        polkadotApi: params.api,
+        prefixes: ['0x726d726b', '0x524d524b'],
+        consolidateFunction,
+        storageProvider: new BlockCountAdapter(params.localStorage, "remarkBlock")
+      });
+      const subscriber = listener.initialiseObservable();
+      subscriber.subscribe(async (val) => {
+        // if (val.invalid && val.invalid.length > 0) {
+        //   await botParams.bot.api
+        //     .sendMessage(botParams.settings.adminChatId, `Invalid Remark: ${JSON.stringify(val.invalid)}`);
+        // }
+      });
+    };
+    await startListening();
+
+    //setup pinata
+    params.pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET);
+    try {
+      const result = await params.pinata.testAuthentication();
+      console.log(result);
+    }
+    catch (err) {
+      //handle error here
+      console.log(err);
+    }
+    if (process.env.SETUP_COMPLETE !== "true") {
+      await createIncentivizerCollection();
+      process.exit();
+    }
   }
 }
 
-let substrateBot;
+let incentivizer;
 async function main() {
   const settings = getSettings();
   const api = await getApi();
-  substrateBot = new VoteReader({
+  const account = initAccount();
+  incentivizer = new Incentivizer({
     settings,
-    api
+    api,
+    account
   });
-  await substrateBot.run();
-
-  process.once('SIGINT', () => {
-    substrateBot.stop();
-  });
-  process.once('SIGTERM', () => {
-    substrateBot.stop();
-  });
+  await incentivizer.run();
 }
 
 main();

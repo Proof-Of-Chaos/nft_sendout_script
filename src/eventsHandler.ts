@@ -3,23 +3,23 @@ import { u8aToHex } from "@polkadot/util";
 import { logger } from "../tools/logger.js";
 import { handleDemocracyEventWithoutExtrinsic } from "./handleDemocracyEventWithoutExtrinsic.js";
 
-async function handleEventWithExtrinsic(
-  blockIndexer,
-  event,
-  eventSort,
-  extrinsic,
-  extrinsicIndex,
-  blockEvents
-) {
-  const indexer = {
-    ...blockIndexer,
-    eventIndex: eventSort,
-    extrinsicIndex,
-  };
+// async function handleEventWithExtrinsic(
+//   blockIndexer,
+//   event,
+//   eventSort,
+//   extrinsic,
+//   extrinsicIndex,
+//   blockEvents
+// ) {
+//   const indexer = {
+//     ...blockIndexer,
+//     eventIndex: eventSort,
+//     extrinsicIndex,
+//   };
 
-  // await handleVoteEvent(event, extrinsic, indexer);
-  // await handleDemocracyEvent(event, extrinsic, indexer);
-}
+//   // await handleVoteEvent(event, extrinsic, indexer);
+//   // await handleDemocracyEvent(event, extrinsic, indexer);
+// }
 
 async function handleEventWithoutExtrinsic(
   blockIndexer,

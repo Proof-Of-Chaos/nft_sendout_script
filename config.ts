@@ -3,6 +3,7 @@ import { ApiPromise } from "@polkadot/api";
 import { BlockCountAdapter } from './tools/blockCountAdapter.js';
 import { BlockListener } from './src/blockListener.js';
 import { PinataClient } from '@pinata/sdk';
+import { KeyringPair } from '@polkadot/keyring/types';
 
 type Params = {
   api: ApiPromise,
@@ -11,6 +12,7 @@ type Params = {
   blockCountAdapter: BlockCountAdapter,
   blockListener: BlockListener,
   pinata: PinataClient,
+  account: KeyringPair,
 };
 
 export const params: Params = {
@@ -20,6 +22,7 @@ export const params: Params = {
   blockCountAdapter: null,
   blockListener: null,
   pinata: null,
+  account: null,
 };
 
 export const getLocalStorage = (): Low => {

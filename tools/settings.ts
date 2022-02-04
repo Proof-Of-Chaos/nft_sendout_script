@@ -5,7 +5,8 @@ export const getSettings = () => {
       prefix: process.env.NETWORK_PREFIX,
       decimals: process.env.NETWORK_DECIMALS,
       token: process.env.NETWORK_TOKEN,
-    }
+    },
+    collectionSymbol: process.env.COLLECTION_SYMBOL.toString(),
   };
   return settings;
 };

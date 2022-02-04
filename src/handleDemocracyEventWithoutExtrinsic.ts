@@ -1,4 +1,5 @@
 import { DemocracyEvents, Modules, ReferendumMethods } from "../tools/constants.js";
+import { sendNFTs } from "./sendNFTs.js";
 
 const isReferendumEvent = (section, method) => {
     if (
@@ -18,16 +19,17 @@ export const handleDemocracyEventWithoutExtrinsic = async (
     if (!isReferendumEvent(section, method)) {
         return;
     }
+    console.log("method", method)
     if (ReferendumMethods.Passed === method) {
         console.log("event", event.index.toJSON());
         console.log("data", event.data.toJSON())
         const [id, type] = event.data;
         console.log("id", id)
-        //sendNFTs
+        sendNFTs(true, id)
         //await saveNewReferendum(event, indexer);
     }
     if (ReferendumMethods.NotPassed === method) {
         const [id, type] = event.data;
-        //sendNFTs(false, )
+        sendNFTs(false, id)
     }
 };

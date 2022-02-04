@@ -4,13 +4,20 @@ import { SubmittableExtrinsic } from "@polkadot/api/types";
 import { ISubmittableResult } from "@polkadot/types/types";
 import { params } from "../config.js";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { Block } from "@polkadot/types/interfaces";
+import { Block, RuntimeDispatchInfo } from "@polkadot/types/interfaces";
+import { logger } from "./logger.js";
 
 export const getApi = async (): Promise<ApiPromise> => {
   const wsNodeUri = process.env.WS_NODE_URI || "ws://127.0.0.1:9944/";
   const wsProvider = new WsProvider(wsNodeUri);
   const api = await ApiPromise.create({ provider: wsProvider });
   return api;
+};
+
+export const initAccount = (): KeyringPair => {
+  const keyring = new Keyring({ type: "sr25519" });
+  const account = keyring.addFromUri(process.env.MNEMONIC);
+  return account;
 };
 
 export const getLatestFinalizedBlock = async (
@@ -93,4 +100,53 @@ export const sendAndFinalize = async (
       }
     );
   });
+};
+
+export const getTransactionCost = async (
+  toSendRemarks: string[]): Promise<RuntimeDispatchInfo> => {
+  try {
+    //get mint and transfer cost
+    const remarks = toSendRemarks;
+    const txs = [];
+    for (const remark of remarks) {
+      txs.push(params.api.tx.system.remark(remark));
+    }
+    const info = await params.api.tx.utility
+      .batchAll(txs)
+      .paymentInfo(params.account.address);
+    return info;
+
+  }
+  catch (error) {
+    console.error(error)
+  }
+};
+
+export const mintAndSend = async (remarks: string[]): Promise<{
+    block?: number;
+    success: boolean;
+    hash?: string;
+    fee?: string;
+    topupRequired?: boolean;
+  }> => {
+  const info = await getTransactionCost(
+    remarks
+  );
+  console.log("total expected cost: ", info.partialFee.toHuman())
+  logger.info("total expected cost: ", info.partialFee.toHuman())
+  const txs = [];
+  for (const remark of remarks) {
+    txs.push(params.api.tx.system.remark(remark));
+  }
+  try {
+    const batch = params.api.tx.utility.batchAll(txs);
+    const { block, hash, success } = await sendAndFinalize(batch, params.account);
+    return { block, success, hash, fee: info.partialFee.toHuman() };
+  }
+  catch (error) {
+    //write error to console
+    console.error(error);
+    logger.error(error)
+    return { success: false };
+  }
 };
