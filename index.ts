@@ -9,10 +9,9 @@ import { Low } from "lowdb/lib";
 import { BlockListener } from "./src/blockListener.js";
 import pinataSDK from "@pinata/sdk";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { Collection, Consolidator, RemarkListener } from "rmrk-tools";
+import { Consolidator, RemarkListener } from "rmrk-tools";
 import { RemarkStorageAdapter } from "./tools/remarkStorageAdapter.js";
 import { createRewardsCollection } from "./tools/startScripts/createRewardsCollection.js";
-import { u8aToHex } from "@polkadot/util";
 
 dotenv.config();
 
@@ -100,11 +99,6 @@ class Incentivizer {
     if (process.env.SETUP_COMPLETE !== "true") {
       await createRewardsCollection();
     }
-    const collectionId = Collection.generateId(
-      u8aToHex(params.account.publicKey),
-      params.settings.collectionSymbol
-    );
-    console.log("collectionId", collectionId)
   }
 }
 
