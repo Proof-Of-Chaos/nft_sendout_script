@@ -71,7 +71,7 @@ export class BlockListener {
     };
 
     private async initialiseListener() {
-        const headSubscriber = this.apiPromise.rpc.chain.subscribeNewHeads;
+        const headSubscriber = this.apiPromise.rpc.chain.subscribeFinalizedHeads;
 
         headSubscriber(async (header) => {
             const blockNumber = header.number.toNumber();
