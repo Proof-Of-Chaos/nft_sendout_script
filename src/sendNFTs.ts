@@ -111,9 +111,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN) => {
     //send
     const { block: blockSend, success: successSend, hash: hashSend, fee: feeSend } = await mintAndSend(sendRemarks);
     if (!successMint) {
-        logger.info(`Failure minting NFTS at block ${blockSend}: ${successSend} for a total fee of ${feeSend}`)
+        logger.info(`Failure sending NFTS at block ${blockSend}: ${successSend} for a total fee of ${feeSend}`)
         return;
     }
     //send nfts
-    logger.info(`NFTs minted at block ${blockSend}: ${successSend} for a total fee of ${feeSend}`)
+    logger.info(`NFTs sent at block ${blockSend}: ${successSend} for a total fee of ${feeSend}`)
 }

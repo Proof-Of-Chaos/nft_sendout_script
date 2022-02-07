@@ -6,10 +6,9 @@ This project is open-source and your contributions more than welcome!!!
 
 My goal with this project is to drive up community participance in governance. If you would like to support this and future projects:
 
-KSM: Hgcdd6sjp37KD1cKrAbwMZ6sBZTAVwb6v2GTssv9L2w1oN3
+KSM: FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic
 
 Much appreciated!
-
 
 ## Installation
 
