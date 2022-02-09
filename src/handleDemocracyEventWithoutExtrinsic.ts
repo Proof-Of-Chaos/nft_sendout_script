@@ -20,11 +20,9 @@ export const handleDemocracyEventWithoutExtrinsic = async (
         return;
     }
     console.log("method", method)
+    console.log("block", indexer.blockHeight)
     if (ReferendumMethods.Passed === method) {
-        console.log("event", event.index.toJSON());
-        console.log("data", event.data.toJSON())
         const [id, type] = event.data;
-        console.log("id", id)
         sendNFTs(true, id)
         //await saveNewReferendum(event, indexer);
     }

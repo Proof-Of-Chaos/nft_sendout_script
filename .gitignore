@@ -4,4 +4,4 @@ node_modules/
 dist/
 log/
 localStorage/localStorage.json
-assets
+assets/referenda

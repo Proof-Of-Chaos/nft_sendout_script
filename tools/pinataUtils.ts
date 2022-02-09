@@ -78,7 +78,7 @@ export const pinSingleMetadata = async (
             throw new Error('No image file');
         }
         const stream: StreamPinata = Readable.from(buffer);
-        stream.path = "treasure_file.png";
+        stream.path = "nft_file.png";
         const imageCid = await pinFileStreamToIpfs(stream, name);
         console.log(`NFT ${name} IMAGE CID: `, imageCid);
         const metadata: NFTMetadata = { ...metadataBase, name, image: `ipfs://ipfs/${imageCid}` };

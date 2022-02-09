@@ -11,7 +11,7 @@ import pinataSDK from "@pinata/sdk";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { Consolidator, RemarkListener } from "rmrk-tools";
 import { RemarkStorageAdapter } from "./tools/remarkStorageAdapter.js";
-import { createIncentivizerCollection } from "./tools/startScripts/createIncentivizerCollection.js";
+import { createRewardsCollection } from "./tools/startScripts/createRewardsCollection.js";
 
 dotenv.config();
 
@@ -57,9 +57,11 @@ class Incentivizer {
       this.settings.network.token = networkProperties.tokenSymbol.toString();
     }
     params.settings = this.settings;
-    params.blockCountAdapter = new BlockCountAdapter(params.localStorage, "headerBlock");
-    params.blockListener = new BlockListener(params.api,
-      params.blockCountAdapter);
+    if (process.env.SETUP_COMPLETE === "true") {
+      params.blockCountAdapter = new BlockCountAdapter(params.localStorage, "headerBlock");
+      params.blockListener = new BlockListener(params.api,
+        params.blockCountAdapter);
+    }
     //setup remark listener for minting listener
     const consolidateFunction = async (remarks) => {
       const consolidator = new Consolidator(2, new RemarkStorageAdapter(params.localStorage));
@@ -75,10 +77,6 @@ class Incentivizer {
       });
       const subscriber = listener.initialiseObservable();
       subscriber.subscribe(async (val) => {
-        // if (val.invalid && val.invalid.length > 0) {
-        //   await botParams.bot.api
-        //     .sendMessage(botParams.settings.adminChatId, `Invalid Remark: ${JSON.stringify(val.invalid)}`);
-        // }
       });
     };
     await startListening();
@@ -94,8 +92,7 @@ class Incentivizer {
       console.log(err);
     }
     if (process.env.SETUP_COMPLETE !== "true") {
-      await createIncentivizerCollection();
-      process.exit();
+      await createRewardsCollection();
     }
   }
 }

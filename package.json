@@ -9,6 +9,7 @@
     "@polkadot/types": "^7.6.1",
     "@polkadot/util-crypto": "^8.3.3",
     "dotenv": "^14.3.2",
+    "lodash": "^4.17.21",
     "log4js": "^6.4.1",
     "lowdb": "^3.0.0",
     "p-limit": "^4.0.0",

@@ -9,6 +9,7 @@ import { u8aToHex } from "@polkadot/util";
 import { INftProps } from "../types.js";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { getTransactionCost, mintAndSend } from "../tools/substrateUtils.js";
+import { sleep } from "../tools/utils.js";
 
 const fsPromises = fs.promises;
 
@@ -28,13 +29,15 @@ const getVotes = async (referendumIndex: BN) => {
 }
 
 export const sendNFTs = async (passed: boolean, referendumIndex: BN) => {
+    //wait a bit since blocks after will be pretty full
+    await sleep(10000);
     const votes = await getVotes(referendumIndex);
     console.log("vle", votes.length)
     //upload file to pinata
     let imagePath;
     try {
-        await fsPromises.readFile(`${process.cwd()}/assets/${referendumIndex}.png`);
-        imagePath = `${referendumIndex}.png`;
+        await fsPromises.readFile(`${process.cwd()}/assets/referenda/${referendumIndex}.png`);
+        imagePath = `referenda/${referendumIndex}.png`;
     }
     catch (e) {
         imagePath = "default.png";
@@ -50,6 +53,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN) => {
             properties: {},
         }
     );
+    if (!metadataCid) {
+        logger.error(`metadataCid is null: ${metadataCid}. exiting.`)
+        return;
+    }
     const collectionId = Collection.generateId(
         u8aToHex(params.account.publicKey),
         params.settings.collectionSymbol
@@ -72,6 +79,5 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN) => {
     }
     console.log("remarks", remarks)
     const { block, success, hash, fee } = await mintAndSend(remarks);
-    console.log(`NFTs sent at block ${block}: ${success} for a total fee of ${fee}`)
     logger.info(`NFTs sent at block ${block}: ${success} for a total fee of ${fee}`)
 }
