@@ -52,6 +52,11 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN) => {
         }
     );
 
+    if (!metadataCid){
+        logger.error(`metadataCid is null: ${metadataCid}. exiting.`)
+        return;
+    }
+
     const collectionId = Collection.generateId(
         u8aToHex(params.account.publicKey),
         params.settings.collectionSymbol
