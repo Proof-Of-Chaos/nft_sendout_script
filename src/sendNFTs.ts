@@ -48,7 +48,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN) => {
         {
             description: `Thank you for casting your vote on Referendum ${referendumIndex}.\n\n` +
                 `With your vote you have forever changed ${params.settings.network.name}!\n\n` +
-                `Let's keep shaping our future together.`,
+                `Let's keep shaping our future together.\n\nGet alerted as soon as a new referendum `+
+                `is up for vote: https://t.me/referendumAlertKusamaBot`,
         }
     );
 

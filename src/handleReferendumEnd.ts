@@ -1,4 +1,4 @@
-import { DemocracyEvents, Modules, ReferendumMethods } from "../tools/constants.js";
+import { Modules, ReferendumMethods } from "../tools/constants.js";
 import { sendNFTs } from "./sendNFTs.js";
 
 const isReferendumEvent = (section, method) => {
@@ -11,7 +11,7 @@ const isReferendumEvent = (section, method) => {
     return ReferendumMethods.hasOwnProperty(method);
 };
 
-export const handleDemocracyEventWithoutExtrinsic = async (
+export const handleReferendumEnd = async (
     event,
     indexer // this indexer doesn't have extrinsic index
 ) => {
