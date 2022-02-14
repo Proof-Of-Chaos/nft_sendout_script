@@ -1,7 +1,4 @@
 import { MongoClient } from "mongodb";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const getDbName = () => {
     const dbName = process.env.MONGO_DB_NAME;
@@ -16,6 +13,7 @@ const referendumCollectionName = "referendum";
 
 let client = null;
 let db = null;
+console.log("mongo_uri", process.env.MONGO_URI)
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017";
 let referendumCol = null;
 
