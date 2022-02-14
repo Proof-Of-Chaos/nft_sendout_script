@@ -4,6 +4,7 @@ import { logger } from "../tools/logger.js";
 import { createKeyMulti, encodeAddress } from "@polkadot/util-crypto";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { Modules, MultisigMethods, ProxyMethods, UtilityMethods } from "./constants.js";
+import { BN } from '@polkadot/util';
 
 export const asyncFilter = async (arr, predicate) => {
   const results = await Promise.all(arr.map(predicate));
@@ -186,3 +187,12 @@ export const getBlockHash = async (height) => {
 export const isExtrinsicSuccess = (events) => {
   return events.some((e) => e.event.method === "ExtrinsicSuccess");
 }
+
+export const amountToHumanString = (amount: string, afterCommas?: number): string => {
+  const decimals = parseInt(params.settings.network.decimals);
+  const token = params.settings.network.token;
+  const value = new BN(amount.toString())
+      .div(new BN("1e" + decimals));
+  const tokenString = token ? " " + token : "";
+  return value + tokenString;
+};

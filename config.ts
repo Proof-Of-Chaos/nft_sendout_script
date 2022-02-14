@@ -4,6 +4,7 @@ import { BlockCountAdapter } from './tools/blockCountAdapter.js';
 import { BlockListener } from './src/blockListener.js';
 import { PinataClient } from '@pinata/sdk';
 import { KeyringPair } from '@polkadot/keyring/types';
+import { initDb } from './src/mongo/index.js';
 
 type Params = {
   api: ApiPromise,
@@ -23,6 +24,10 @@ export const params: Params = {
   blockListener: null,
   pinata: null,
   account: null,
+};
+
+export const getDb = async (): Promise<void> => {
+  await initDb();
 };
 
 export const getLocalStorage = (): Low => {
