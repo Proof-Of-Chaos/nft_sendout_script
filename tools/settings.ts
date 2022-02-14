@@ -7,6 +7,10 @@ export const getSettings = () => {
       token: process.env.NETWORK_TOKEN,
     },
     collectionSymbol: process.env.COLLECTION_SYMBOL.toString(),
+    collectionName: process.env.COLLECTION_NAME.toString(),
+    parentHeight: 13,
+    parentWidth: 13,
+    parentNFTSymbol: process.env.PARENT_NFT_SYMBOL.toString(),
   };
   return settings;
 };

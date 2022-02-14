@@ -4,7 +4,7 @@ export interface IStorageProvider {
   get(): Promise<number>;
 }
 
-export class BlockCountAdapter implements IStorageProvider {
+export class CountAdapter implements IStorageProvider {
   readonly storageKey: string;
   private db: any;
   public constructor(db: any, storageKey?: string) {
@@ -12,14 +12,14 @@ export class BlockCountAdapter implements IStorageProvider {
     this.db = db;
   }
 
-  public async set(latestBlock: number): Promise<void> {
-    this.db.data[this.storageKey] = String(latestBlock);
+  public async set(counterValue: number): Promise<void> {
+    this.db.data[this.storageKey] = String(counterValue);
     await this.db.write();
   }
 
   public async get(): Promise<number> {
     await this.db.read();
-    const latestBlockString = this.db.data[this.storageKey];
-    return latestBlockString ? parseInt(latestBlockString) : 0;
+    const counterValueString = this.db.data[this.storageKey];
+    return counterValueString ? parseInt(counterValueString) : 0;
   }
 }

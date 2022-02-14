@@ -39,6 +39,7 @@ const extractVotes = (mapped: [AccountId, PalletDemocracyVoteVoting][], referend
 
 export const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
     const allVoting = await api.query.democracy.votingOf.entries()
+    //console.log("allVoting", allVoting)
     const mapped = allVoting.map(([{ args: [accountId] }, voting]): [AccountId, PalletDemocracyVoteVoting] => [accountId, voting]);
     const votes: DeriveReferendumVote[] = extractVotes(mapped, referendumId);
     const delegations = mapped

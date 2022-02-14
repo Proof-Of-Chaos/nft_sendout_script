@@ -1,18 +1,22 @@
 import { Low, JSONFile } from 'lowdb';
 import { ApiPromise } from "@polkadot/api";
-import { BlockCountAdapter } from './tools/blockCountAdapter.js';
+import { CountAdapter } from './tools/countAdapter.js';
 import { BlockListener } from './src/blockListener.js';
 import { PinataClient } from '@pinata/sdk';
 import { KeyringPair } from '@polkadot/keyring/types';
+import { RemarkStorageAdapter } from './tools/remarkStorageAdapter.js';
 
 type Params = {
   api: ApiPromise,
   localStorage: Low,
   settings: any,
-  blockCountAdapter: BlockCountAdapter,
+  blockCountAdapter: CountAdapter,
   blockListener: BlockListener,
+  tileCountAdapter: CountAdapter,
   pinata: PinataClient,
   account: KeyringPair,
+  remarkStorageAdapter: RemarkStorageAdapter,
+  remarkBlockCountAdapter: CountAdapter
 };
 
 export const params: Params = {
@@ -21,8 +25,11 @@ export const params: Params = {
   settings: null,
   blockCountAdapter: null,
   blockListener: null,
+  tileCountAdapter: null,
   pinata: null,
   account: null,
+  remarkStorageAdapter: null,
+  remarkBlockCountAdapter: null,
 };
 
 export const getLocalStorage = (): Low => {

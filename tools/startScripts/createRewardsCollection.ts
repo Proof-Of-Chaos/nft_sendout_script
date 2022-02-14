@@ -16,9 +16,9 @@ export const createRewardsCollection = async () => {
     const collectionMetadataCid = await pinSingleMetadataFromDir(
       "/assets",
       "GPR.png",
-      "GovernanceParticipationRewards - Gen1",
+      "Mosaic",
       {
-        description: "A project that rewards all referendum voters with NFTs.",
+        description: "Trade tiles to create your canvas. Tiles are distributed to all referendum voters.",
         external_url: params.settings.externalUrl,
         properties: {},
       }

@@ -1,6 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { params } from "../config.js";
-import { BlockCountAdapter } from "../tools/blockCountAdapter.js";
+import { CountAdapter } from "../tools/countAdapter.js";
 import { handleEvents } from "./eventsHandler.js";
 import { getBlockIndexer } from "../tools/substrateUtils.js";
 import { logger } from "../tools/logger.js";
@@ -33,7 +33,7 @@ export class BlockListener {
         this.missingBlockEventsFetched = false;
         this.currentBlockNumber = 0;
         this.storageProvider =
-            storageProvider || new BlockCountAdapter(params.localStorage, "headerBlock");
+            storageProvider || new CountAdapter(params.localStorage, "headerBlock");
         this.initialize();
     }
 

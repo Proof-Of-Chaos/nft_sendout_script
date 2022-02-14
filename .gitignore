@@ -4,4 +4,6 @@ node_modules/
 dist/
 log/
 localStorage/localStorage.json
-assets/referenda
+assets/referendaImageFiles/[0-9]*.png
+assets/referendaSettings/[0-9]*.json
+assets/mosaic/*
