@@ -16,7 +16,6 @@ const referendumCollectionName = "referendum";
 
 let client = null;
 let db = null;
-console.log("mongo_uri", process.env.MONGO_URI)
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017";
 let referendumCol = null;
 
