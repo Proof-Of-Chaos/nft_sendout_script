@@ -1,5 +1,5 @@
 import "@polkadot/api-augment";
-import { params, getLocalStorage } from "./config.js";
+import { params, getLocalStorage, getDb } from "./config.js";
 import { getSettings } from "./tools/settings.js";
 import { CountAdapter } from "./tools/countAdapter.js";
 import dotenv from "dotenv";
@@ -22,14 +22,7 @@ class Incentivizer {
   api: ApiPromise;
   localStorage: Low;
   account: KeyringPair;
-  /**
-   * Create VoteReader instance
-   * @param config - SubstrateBot config
-   * @param config.settings - main bot settings, should contain substrate network params (name, prefix, decimals, token),
-   * telegram bot token, start & validators messages, links (governance, common), list of group alerts. See sample in examples
-   * @param config.api - polkadot-api instance for connect to node
-   * @param config.getNetworkStats - external function for getting substrate network stats
-   */
+
   constructor({
     settings,
     api,
@@ -42,6 +35,7 @@ class Incentivizer {
   }
 
   async run() {
+    await getDb();
     params.api = this.api;
     params.localStorage = this.localStorage;
     params.account = this.account

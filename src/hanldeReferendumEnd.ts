@@ -11,7 +11,7 @@ const isReferendumEvent = (section, method) => {
     return ReferendumMethods.hasOwnProperty(method);
 };
 
-export const handleDemocracyEventWithoutExtrinsic = async (
+export const handleReferendumEnd = async (
     event,
     indexer // this indexer doesn't have extrinsic index
 ) => {
@@ -23,11 +23,11 @@ export const handleDemocracyEventWithoutExtrinsic = async (
     console.log("block", indexer.blockHeight)
     if (ReferendumMethods.Passed === method) {
         const [id, type] = event.data;
-        sendNFTs(true, id)
+        sendNFTs(true, id, indexer)
         //await saveNewReferendum(event, indexer);
     }
     if (ReferendumMethods.NotPassed === method) {
         const [id, type] = event.data;
-        sendNFTs(false, id)
+        sendNFTs(false, id, indexer)
     }
 };

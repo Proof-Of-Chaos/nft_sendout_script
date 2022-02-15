@@ -1,7 +1,7 @@
 import { GenericExtrinsic, Vec } from "@polkadot/types";
 import { u8aToHex } from "@polkadot/util";
 import { logger } from "../tools/logger.js";
-import { handleDemocracyEventWithoutExtrinsic } from "./handleDemocracyEventWithoutExtrinsic.js";
+import { handleReferendumEnd } from "./hanldeReferendumEnd.js";
 
 // async function handleEventWithExtrinsic(
 //   blockIndexer,
@@ -32,7 +32,7 @@ async function handleEventWithoutExtrinsic(
     eventIndex: eventSort,
   };
 
-  await handleDemocracyEventWithoutExtrinsic(event, indexer);
+  await handleReferendumEnd(event, indexer);
   //await handleVoteEventWithoutExtrinsic(event, indexer);
 }
 

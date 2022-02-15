@@ -4,7 +4,7 @@ import { logger } from "../tools/logger.js";
 import { createKeyMulti, encodeAddress } from "@polkadot/util-crypto";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { Modules, MultisigMethods, ProxyMethods, UtilityMethods } from "./constants.js";
-import type { BN } from '@polkadot/util';
+import { BN } from '@polkadot/util';
 import fs from "fs";
 
 const fsPromises = fs.promises;
@@ -203,3 +203,12 @@ export const getSettingsFile = async (referendumId: BN) => {
       return await fsPromises.readFile(`${process.cwd()}/assets/defaultSettings.json`, 'utf8');
   }
 }
+
+export const amountToHumanString = (amount: string, afterCommas?: number): string => {
+  const decimals = parseInt(params.settings.network.decimals);
+  const token = params.settings.network.token;
+  const value = new BN(amount.toString())
+      .div(new BN("1e" + decimals));
+  const tokenString = token ? " " + token : "";
+  return value + tokenString;
+};
