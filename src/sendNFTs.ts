@@ -7,7 +7,7 @@ import { Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { INftProps } from "../types.js";
 import { mintAndSend } from "../tools/substrateUtils.js";
-import { sleep } from "../tools/utils.js";
+import { getSettingsFile, sleep } from "../tools/utils.js";
 import { DeriveReferendumVote } from "@polkadot/api-derive/types";
 import { AccountId, VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
 import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
@@ -103,7 +103,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     catch (e) {
         imagePath = "default.png";
     }
-
+    let settingsFile = await getSettingsFile(referendumIndex);
+    let settings = await JSON.parse(settingsFile);
     const metadataCid = await pinSingleMetadataFromDir("/assets",
         imagePath,
         `Referendum ${referendumIndex}`,
@@ -111,7 +112,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             description: `Thank you for casting your vote on Referendum ${referendumIndex}.\n\n` +
                 `With your vote you have forever changed ${params.settings.network.name}!\n\n` +
                 `Let's keep shaping our future together.\n\nGet notified as soon as a new referendum ` +
-                `is up for vote: https://t.me/referendumAlertKusamaBot`,
+                `is up for vote: https://t.me/referendumAlertKusamaBot .\n\n` +
+                settings.text,
         }
     );
 

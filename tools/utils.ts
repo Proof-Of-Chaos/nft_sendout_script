@@ -5,6 +5,9 @@ import { createKeyMulti, encodeAddress } from "@polkadot/util-crypto";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { Modules, MultisigMethods, ProxyMethods, UtilityMethods } from "./constants.js";
 import { BN } from '@polkadot/util';
+import fs from "fs";
+
+const fsPromises = fs.promises;
 
 export const asyncFilter = async (arr, predicate) => {
   const results = await Promise.all(arr.map(predicate));
@@ -196,3 +199,16 @@ export const amountToHumanString = (amount: string, afterCommas?: number): strin
   const tokenString = token ? " " + token : "";
   return value + tokenString;
 };
+
+export const getSettingsFile = async (referendumId: BN) => {
+  try {
+
+      const settings = await fsPromises.readFile(`${process.cwd()}/assets/referendaSettings/${referendumId}.json`, 'utf8');
+      logger.info(`reading settings from /assets/referendaSettings/${referendumId}.json`);
+      return settings
+  }
+  catch (e) {
+      logger.info(`reading settings from /assets/defaultSettings.json`);
+      return await fsPromises.readFile(`${process.cwd()}/assets/defaultSettings.json`, 'utf8');
+  }
+}
