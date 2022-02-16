@@ -190,7 +190,42 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         while (block <= await params.remarkBlockCountAdapter.get()) {
             await sleep(3000);
         }
+        //add base resource to parent nfts
+        const addBaseRemarks: string[] = [];
+        //get base
+        const bases = params.remarkStorageAdapter.getAllBases();
+        const BASE_ID = bases[0].getId();
+        count = 0;
+        for (const account of accountsWithoutParent) {
+            const nftProps: INftProps = {
+                block: block,
+                sn: (count).toString(),
+                owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                transferable: 1,
+                metadata: parentMetadataCid,
+                collection: collectionId,
+                symbol: params.settings.parentNFTSymbol,
+            };
+            const nft = new NFT(nftProps);
+
+            addBaseRemarks.push(
+                nft.resadd({
+                    base: BASE_ID,
+                    id: (count++).toString(),
+                    parts: [
+                        `chunky_body_${sn}`,
+                        `chunky_head_${sn}`,
+                        `chunky_hand_${sn}`,
+                        "chunky_objectLeft",
+                        "chunky_objectRight",
+                    ],
+                    thumb: `ipfs://ipfs/${ASSETS_CID}/Chunky%20Preview.png`,
+                })
+            );
+        }
     }
+
+
 
     //check if specific settings file
     let settingsFile = await getSettingsFile(referendumIndex);

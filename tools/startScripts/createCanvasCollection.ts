@@ -5,7 +5,7 @@ import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../pinataUtils.js";
 import { sendAndFinalize } from "../substrateUtils.js";
 
-export const createRewardsCollection = async () => {
+export const createCanvasCollection = async () => {
   try {
     const collectionId = Collection.generateId(
       u8aToHex(params.account.publicKey),

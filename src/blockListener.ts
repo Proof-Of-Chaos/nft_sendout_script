@@ -88,24 +88,21 @@ export class BlockListener {
                     await this.fetchMissingBlockEvents(latestBlock, blockNumber - 1);
                     this.missingBlockEventsFetched = true;
                 }
-                this.fetchEventsAtBlock(blockNumber);
+                await this.fetchEventsAtBlock(blockNumber);
+                // Update local db latestBlock
+                if (
+                    this.missingBlockEventsFetched
+                ) {
+                    if (this.currentBlockNumber < blockNumber) this.currentBlockNumber = blockNumber;
+                    await this.storageProvider.set(this.currentBlockNumber);
+                }
             } catch (e: any) {
                 console.error(e);
                 return;
             }
 
 
-            // Update local db latestBlock
-            if (
-                this.missingBlockEventsFetched
-            ) {
-                try {
-                    if (this.currentBlockNumber < blockNumber) this.currentBlockNumber = blockNumber;
-                    await this.storageProvider.set(this.currentBlockNumber);
-                } catch (e: any) {
-                    console.error(e);
-                }
-            }
+
         });
 
         return;

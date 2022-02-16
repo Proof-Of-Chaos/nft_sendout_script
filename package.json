@@ -15,7 +15,7 @@
     "lowdb": "^3.0.0",
     "mongodb": "^4.3.1",
     "p-limit": "^4.0.0",
-    "rmrk-tools": "^2.0.36"
+    "rmrk-tools": "^2.0.43"
   },
   "type": "module",
   "license": "Apache-2.0",

@@ -75,15 +75,16 @@ export const createMosaicTiles = async (referendumId: BN): Promise<string[]> => 
     let settings = await JSON.parse(settingsFile);
     logger.info(`settings:\n${settings.colors}`)
     let tileId = await params.tileCountAdapter.get()
+    const pixelCoords = `(${tileId % params.settings.parentWidth},${Math.floor(tileId / params.settings.parentWidth)})`
     try {
-        await fsPromises.readdir(`${process.cwd()}/assets/mosaic/${tileId}-${referendumId}`)
-        logger.info(`directory /assets/mosaic/${tileId}-${referendumId} already exists. 
+        await fsPromises.readdir(`${process.cwd()}/assets/mosaic/${pixelCoords}-${referendumId}`)
+        logger.info(`directory /assets/mosaic/${pixelCoords}-${referendumId} already exists. 
             Delete this directory first if you would like to create new tiles`)
         return ["-1", "-1"];
     }
     catch (e) {
-        logger.info(`creating directory /assets/mosaic/${tileId}-${referendumId}`)
-        fsPromises.mkdir(`${process.cwd()}/assets/mosaic/${tileId}-${referendumId}`)//, { recursive: true })
+        logger.info(`creating directory /assets/mosaic/${pixelCoords}-${referendumId}`)
+        fsPromises.mkdir(`${process.cwd()}/assets/mosaic/${pixelCoords}-${referendumId}`)//, { recursive: true })
         for (const color of settings.colors) {
             const colorInt = Jimp.rgbaToInt(color[0], color[1], color[2], color[3]);
             logger.info(`creating tile for color ${color} -> ${colorInt}`)
@@ -93,9 +94,9 @@ export const createMosaicTiles = async (referendumId: BN): Promise<string[]> => 
             console.log("x", tileId % params.settings.parentWidth)
             console.log("y", Math.floor(tileId / params.settings.parentWidth))
             image.setPixelColor(colorInt, tileId % params.settings.parentWidth, Math.floor(tileId / params.settings.parentWidth))
-            let file = `assets/mosaic/${tileId}-${referendumId}/${colorInt}.png`;
+            let file = `assets/mosaic/${pixelCoords}-${referendumId}/${colorInt}.png`;
             await image.writeAsync(file);
-            logger.info(`file created assets/mosaic/${tileId}-${referendumId}/${colorInt}.png`)
+            logger.info(`file created assets/mosaic/${pixelCoords}-${referendumId}/${colorInt}.png`)
         }
         await params.tileCountAdapter.set(++tileId)
         return [tileId.toString(), referendumId.toString()];

@@ -11,9 +11,11 @@ import pinataSDK from "@pinata/sdk";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { Consolidator, RemarkListener } from "rmrk-tools";
 import { RemarkStorageAdapter } from "./tools/remarkStorageAdapter.js";
-import { createRewardsCollection } from "./tools/startScripts/createRewardsCollection.js";
+import { createCanvasCollection } from "./tools/startScripts/createCanvasCollection.js";
 import { sendNFTs } from "./src/sendNFTs.js";
 import { BN } from '@polkadot/util';
+import { createTileCollections } from "./tools/startScripts/createTileCollections.js";
+import { createBase } from "./tools/startScripts/createBase.js";
 
 dotenv.config();
 
@@ -91,7 +93,9 @@ class Incentivizer {
       console.log(err);
     }
     if (process.env.SETUP_COMPLETE !== "true") {
-      await createRewardsCollection();
+      await createCanvasCollection();
+      await createTileCollections();
+      //add base to canvas?
     }
     const parentRemarks = [
       'RMRK::MINT::2.0.0::%7B%22collection%22%3A%2280ebf328035cf41a36-GPR1%22%2C%22symbol%22%3A%22CANVAS%22%2C%22transferable%22%3A1%2C%22sn%22%3A%221%22%2C%22metadata%22%3A%22ipfs%3A%2F%2Fipfs%2Fbafkreih2jcezqxfg2vvmad537ai3hgq5mxisbbc6hbaq6tagrnceu7mf2a%22%7D::J1PBYXPBJxJx1TJgEY7tuc1X8hJ8EuKHMHQEn47JBeqrVq7',
