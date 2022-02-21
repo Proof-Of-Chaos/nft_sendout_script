@@ -117,6 +117,7 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   }
 
   public async updateNftResadd(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
+    console.log("in here")
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
     nftDb = {

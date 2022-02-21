@@ -9,14 +9,14 @@ export const createCanvasCollection = async () => {
   try {
     const collectionId = Collection.generateId(
       u8aToHex(params.account.publicKey),
-      params.settings.collectionSymbol
+      params.settings.parentCollectionSymbol
     );
     console.log("collection Id: ", collectionId);
 
     const collectionMetadataCid = await pinSingleMetadataFromDir(
       "/assets",
       "GPR.png",
-      "Mosaic",
+      "Canvas",
       {
         description: "Trade tiles to create your canvas. Tiles are distributed to all referendum voters.",
         external_url: params.settings.externalUrl,
@@ -24,20 +24,20 @@ export const createCanvasCollection = async () => {
       }
     );
 
-    const ItemsCollection = new Collection(
+    const parentCollection = new Collection(
       0,
       0,
       encodeAddress(params.account.address, params.settings.network.prefix),
-      params.settings.collectionSymbol,
+      params.settings.parentCollectionSymbol,
       collectionId,
       collectionMetadataCid
     );
 
     const { block } = await sendAndFinalize(
-      params.api.tx.system.remark(ItemsCollection.create()),
+      params.api.tx.system.remark(parentCollection.create()),
       params.account
     );
-    console.log("COLLECTION CREATION REMARK: ", ItemsCollection.create());
+    console.log("CANVAS COLLECTION CREATION REMARK: ", parentCollection.create());
     console.log("Collection created at block: ", block);
 
     return block;
