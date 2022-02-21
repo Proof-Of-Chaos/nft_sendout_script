@@ -132,7 +132,6 @@ export const mintAndSend = async (remarks: string[]): Promise<{
   const info = await getTransactionCost(
     remarks
   );
-  console.log("total expected cost: ", info.partialFee.toHuman())
   logger.info("total expected cost: ", info.partialFee.toHuman())
   const txs = [];
   for (const remark of remarks) {
@@ -145,7 +144,6 @@ export const mintAndSend = async (remarks: string[]): Promise<{
   }
   catch (error) {
     //write error to console
-    console.error(error);
     logger.error(error)
     return { success: false };
   }

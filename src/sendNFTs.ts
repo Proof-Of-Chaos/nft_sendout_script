@@ -127,40 +127,40 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     );
     const mintRemarks: string[] = [];
     let count = 0;
-    for (const vote of votes) {
-        const nftProps: INftProps = {
-            block: 0,
-            collection: collectionId,
-            name: referendumIndex.toString(),
-            instance: referendumIndex.toString(),
-            transferable: 1,
-            sn: (count++).toString(),
-            metadata: metadataCid,
-        };
-        const nft = new NFT(nftProps.block,
-            nftProps.collection,
-            nftProps.name,
-            nftProps.instance,
-            nftProps.transferable,
-            nftProps.sn,
-            nftProps.metadata);
-        mintRemarks.push(nft.mintnft());
-    }
-    console.log("mintRemarks", mintRemarks)
-    //mint
-    const { block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks);
-    if (!successMint) {
-        logger.info(`Failure minting NFTS at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
-        return;
-    }
-    logger.info(`NFTs minted at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
-    await sleep(10000);
+    // for (const vote of votes) {
+    //     const nftProps: INftProps = {
+    //         block: 0,
+    //         collection: collectionId,
+    //         name: referendumIndex.toString(),
+    //         instance: referendumIndex.toString(),
+    //         transferable: 1,
+    //         sn: (count++).toString(),
+    //         metadata: metadataCid,
+    //     };
+    //     const nft = new NFT(nftProps.block,
+    //         nftProps.collection,
+    //         nftProps.name,
+    //         nftProps.instance,
+    //         nftProps.transferable,
+    //         nftProps.sn,
+    //         nftProps.metadata);
+    //     mintRemarks.push(nft.mintnft());
+    // }
+    // console.log("mintRemarks", mintRemarks)
+    // //mint
+    // const { block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks);
+    // if (!successMint) {
+    //     logger.info(`Failure minting NFTS at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
+    //     return;
+    // }
+    // logger.info(`NFTs minted at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
+    // await sleep(10000);
     //send nfts
     const sendRemarks: string[] = [];
     count = 0;
     for (const vote of votes) {
         const nftProps: INftProps = {
-            block: blockMint,
+            block: 11504571,
             collection: collectionId,
             name: referendumIndex.toString(),
             instance: referendumIndex.toString(),
@@ -180,7 +180,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     console.log("sendRemarks", sendRemarks)
     //send
     const { block: blockSend, success: successSend, hash: hashSend, fee: feeSend } = await mintAndSend(sendRemarks);
-    if (!successMint) {
+    if (!successSend) {
         logger.info(`Failure sending NFTS at block ${blockSend}: ${successSend} for a total fee of ${feeSend}`)
         return;
     }
