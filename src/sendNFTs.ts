@@ -109,11 +109,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         imagePath,
         `Referendum ${referendumIndex}`,
         {
-            description: `Thank you for casting your vote on Referendum ${referendumIndex}.\n\n` +
+            description: settings.text + `Thank you for casting your vote on Referendum ${referendumIndex}.\n\n` +
                 `With your vote you have forever changed ${params.settings.network.name}!\n\n` +
                 `Let's keep shaping our future together.\n\nGet notified as soon as a new referendum ` +
-                `is up for vote: https://t.me/referendumAlertKusamaBot .\n\n` +
-                settings.text,
+                `is up for vote: https://t.me/referendumAlertKusamaBot .`,
         }
     );
 
