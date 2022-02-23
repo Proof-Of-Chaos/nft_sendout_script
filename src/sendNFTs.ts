@@ -46,9 +46,7 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
     const mapped = allVoting.map(([{ args: [accountId] }, voting]): [AccountId, PalletDemocracyVoteVoting] => [accountId, voting]);
     const votes: DeriveReferendumVote[] = extractVotes(mapped, referendumId);
     const delegations = mapped
-        .filter(([, voting]) => {
-            voting.isDelegating
-        })
+        .filter(([, voting]) => voting.isDelegating)
         .map(([accountId, voting]): [AccountId, VotingDelegating] => [accountId, voting.asDelegating]);
 
     // add delegations
@@ -127,7 +125,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     );
     const mintRemarks: string[] = [];
     let count = 0;
-    for (const vote of votes) {
+    const directVotes = votes.filter((vote) => !vote.isDelegating)
+    for (const vote of directVotes) {
         const nftProps: INftProps = {
             block: 0,
             collection: collectionId,
@@ -158,7 +157,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     //send nfts
     const sendRemarks: string[] = [];
     count = 0;
-    for (const vote of votes) {
+    for (const vote of directVotes) {
         const nftProps: INftProps = {
             block: blockMint,
             collection: collectionId,
