@@ -99,7 +99,7 @@ export const createMosaicTiles = async (referendumId: BN): Promise<string[]> => 
             logger.info(`file created assets/mosaic/${pixelCoords}-${referendumId}/${colorInt}.png`)
         }
         await params.tileCountAdapter.set(++tileId)
-        return [tileId.toString(), referendumId.toString()];
+        return [pixelCoords.toString(), referendumId.toString()];
     }
 
 

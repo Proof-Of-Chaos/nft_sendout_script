@@ -1,12 +1,12 @@
 {
   "dependencies": {
     "@pinata/sdk": "^1.1.23",
-    "@polkadot/api": "^7.8.1",
-    "@polkadot/api-augment": "^7.8.1",
-    "@polkadot/api-base": "^7.8.1",
-    "@polkadot/api-derive": "^7.8.1",
+    "@polkadot/api": "^7.9.1",
+    "@polkadot/api-augment": "^7.9.1",
+    "@polkadot/api-base": "^7.9.1",
+    "@polkadot/api-derive": "^7.9.1",
     "@polkadot/keyring": "^8.4.1",
-    "@polkadot/types": "^7.8.1",
+    "@polkadot/types": "^7.9.1",
     "@polkadot/util-crypto": "^8.4.1",
     "dotenv": "^14.3.2",
     "jimp": "^0.16.1",
@@ -15,7 +15,7 @@
     "lowdb": "^3.0.0",
     "mongodb": "^4.3.1",
     "p-limit": "^4.0.0",
-    "rmrk-tools": "^2.0.44"
+    "rmrk-tools": "^2.0.50"
   },
   "type": "module",
   "license": "Apache-2.0",

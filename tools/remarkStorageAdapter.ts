@@ -2,7 +2,7 @@ import { Collection, NFT, Base } from "rmrk-tools";
 import { AcceptEntityType } from "rmrk-tools/dist/classes/accept";
 import { IConsolidatorAdapter } from "rmrk-tools/dist/tools/consolidator/adapters/types";
 import { BaseConsolidated, CollectionConsolidated, NFTConsolidated } from "rmrk-tools/dist/tools/consolidator/consolidator";
-
+import _ from "lodash";
 //@ts-ignore
 BigInt.prototype.toJSON = function () {
   return this.toString();
@@ -16,26 +16,27 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
 
   public async getAllNFTs() {
     await this.db.read();
-    return this.db.nfts;
+    return this.db.data.nfts;
   }
 
   public async getAllCollections() {
     await this.db.read();
-    return this.db.collections;
+    return this.db.data.collections;
   }
 
   public async getAllBases() {
     await this.db.read();
-    return this.db.bases;
+    return this.db.data.bases;
   }
 
   public async updateNFTEmote(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       reactions: nft?.reactions,
-    };
+    }).value();
     await this.db.write();
   }
 
@@ -45,51 +46,56 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   ): Promise<void> {
     await this.db.read();
     let baseDb: BaseConsolidated = this.db.data.bases.find(({ id }) => id === consolidatedBase.id);
-    baseDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("bases").find(({ id }) => id === consolidatedBase.id).assign({
       ...baseDb,
       parts: base?.parts,
-    };
+    }).value();
     await this.db.write();
   }
 
   public async updateNFTList(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       forsale: nft?.forsale,
       changes: nft?.changes,
-    };
+    }).value();
     await this.db.write();
   }
 
   public async updateEquip(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       children: nft.children,
-    };
+    }).value();
     await this.db.write();
   }
 
   public async updateSetPriority(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       priority: nft.priority,
-    };
+    }).value();
     await this.db.write();
   }
 
   public async updateSetAttribute(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       properties: nft.properties,
-    };
+    }).value();
     await this.db.write();
   }
 
@@ -100,31 +106,32 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   ): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
+    this.db.chain = _.chain(this.db.data)
     if (entity == "NFT") {
-      nftDb = {
+      this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
         ...nftDb,
         children: nft?.children,
         priority: nft?.priority || nftDb.priority,
-      };
+      }).value();
     } else if (entity === "RES") {
-      nftDb = {
+      this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
         ...nftDb,
         resources: nft?.resources,
         priority: nft?.priority || nftDb.priority,
-      };
+      }).value();
     }
     await this.db.write();
   }
 
   public async updateNftResadd(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
-    console.log("in here")
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       resources: nft?.resources,
       priority: nft?.priority || nftDb.priority,
-    };
+    }).value();
     await this.db.write();
   }
 
@@ -147,39 +154,43 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
             (level || 1) + 1
           );
         }
-        nftDb = {
+        this.db.chain = _.chain(this.db.data)
+        this.db.chain.get("nfts").find(({ id }) => id === child.id).assign({
           ...nftDb,
           forsale: BigInt(0),
           rootowner: rootowner || nft.rootowner,
-        };
+        }).value();
       });
-      await this.db.write();
       await Promise.all(promises);
+      await this.db.write();
     }
   }
 
   public async updateNFTBuy(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       owner: nft?.owner,
       changes: nft?.changes,
       forsale: nft?.forsale,
-    };
+    }).value();
     await this.db.write();
   }
 
   public async updateNFTSend(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       changes: nft?.changes,
       owner: nft?.owner,
       rootowner: nft?.rootowner,
       forsale: BigInt(0),
-    };
+      pending: nft?.pending,
+    }).value();
     await this.db.write();
   }
 
@@ -189,12 +200,14 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   ): Promise<void> {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
-    nftDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       burned: nft?.burned,
       changes: nft?.changes,
+      equipped: "",
       forsale: BigInt(nft.forsale) > BigInt(0) ? BigInt(0) : nft.forsale,
-    };
+    }).value();
     await this.db.write();
   }
 
@@ -214,7 +227,6 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     await this.db.write();
     const collectionDb = await this.getCollectionById(collection.id);
     return collectionDb
-    return;
   }
 
   public async updateCollectionDestroy(collection: CollectionConsolidated) {
@@ -222,29 +234,38 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     const index = this.db.data.collections.indexOf(collection);
     this.db.data.collections.splice(index, 1);
     await this.db.write();
-    return;
   }
 
-  public async updateCollectionLock(collection: CollectionConsolidated) {
-    const nfts = await this.getNFTsByCollection(collection.id);
-    let collectionDb: CollectionConsolidated = this.db.data.collections.find(({ id }) => id === collection.id);
-    collectionDb = {
+  public async updateCollectionLock(consolidatedCollection: CollectionConsolidated) {
+    const nfts = await this.getNFTsByCollection(consolidatedCollection.id);
+    let collectionDb: CollectionConsolidated = this.db.data.collections.find(({ id }) => id === consolidatedCollection.id);
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("collections").find(({ id }) => id === consolidatedCollection.id).assign({
       ...collectionDb,
       max: (nfts || []).filter((nft) => nft.burned === "").length,
-    };
+    }).value();
     await this.db.write();
     return;
   }
-
 
   public async updateBase(base: Base): Promise<BaseConsolidated> {
     await this.db.read();
-    this.db.data.bases.push({
-      ...base,
-      id: base.getId(),
-    });
+    let baseDb: BaseConsolidated = this.db.data.bases.find(({ id }) => id === base.getId());
+    if (!baseDb) {
+      this.db.data.bases.push({
+        ...base,
+        id: base.getId(),
+      });
+    }
+    else {
+      this.db.chain = _.chain(this.db.data)
+      this.db.chain.get("bases").find(({ id }) => id === base.getId()).assign({
+        ...baseDb,
+        id: base.getId(),
+      }).value();
+    }
     await this.db.write();
-    const baseDb = await this.getBaseById(base.getId());
+    baseDb = await this.getBaseById(base.getId());
     return baseDb
   }
 
@@ -254,10 +275,11 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   ): Promise<void> {
     await this.db.read();
     let baseDb: BaseConsolidated = this.db.data.bases.find(({ id }) => id === consolidatedBase.id);
-    baseDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("bases").find(({ id }) => id === consolidatedBase.id).assign({
       ...baseDb,
       themes: base?.themes,
-    };
+    }).value();
     await this.db.write();
   }
 
@@ -267,11 +289,12 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   ): Promise<void> {
     await this.db.read();
     let collectionDb: CollectionConsolidated = this.db.data.collections.find(({ id }) => id === consolidatedCollection.id);
-    collectionDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("collections").find(({ id }) => id === consolidatedCollection.id).assign({
       ...collectionDb,
       issuer: collection?.issuer,
       changes: collection?.changes,
-    };
+    }).value();
     await this.db.write();
   }
 
@@ -281,11 +304,12 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   ): Promise<void> {
     await this.db.read();
     let baseDb: BaseConsolidated = this.db.data.bases.find(({ id }) => id === consolidatedBase.id);
-    baseDb = {
+    this.db.chain = _.chain(this.db.data)
+    this.db.chain.get("bases").find(({ id }) => id === consolidatedBase.id).assign({
       ...baseDb,
       issuer: base?.issuer,
       changes: base?.changes,
-    };
+    }).value();
     await this.db.write();
   }
 
