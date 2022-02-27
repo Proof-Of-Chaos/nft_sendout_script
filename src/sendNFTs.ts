@@ -97,13 +97,15 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     try {
         await fsPromises.readFile(`${process.cwd()}/assets/referenda/${referendumIndex}.png`);
         imagePath = `referenda/${referendumIndex}.png`;
+        logger.info(`using referenda/${referendumIndex}.png`)
     }
     catch (e) {
         imagePath = "default.png";
+        logger.info(`using default.png`)
     }
     let settingsFile = await getSettingsFile(referendumIndex);
     let settings = await JSON.parse(settingsFile);
-    const metadataCid = await pinSingleMetadataFromDir("/assets",
+    const metadataCidDirect = await pinSingleMetadataFromDir("/assets",
         imagePath,
         `Referendum ${referendumIndex}`,
         {
@@ -114,8 +116,19 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         }
     );
 
-    if (!metadataCid) {
-        logger.error(`metadataCid is null: ${metadataCid}. exiting.`)
+    const metadataCidDelegated = await pinSingleMetadataFromDir("/assets",
+        imagePath,
+        `Referendum ${referendumIndex}`,
+        {
+            description: settings.text + `Thank you for casting your delegated vote on Referendum ${referendumIndex}.\n\n` +
+                `With your vote you have forever changed ${params.settings.network.name}!\n\n` +
+                `Let's keep shaping our future together.\n\nGet notified as soon as a new referendum ` +
+                `is up for vote: https://t.me/referendumAlertKusamaBot .`,
+        }
+    );
+
+    if (!metadataCidDirect || !metadataCidDelegated) {
+        logger.error(`one of metadataCids is null: dir: ${metadataCidDirect} del: ${metadataCidDelegated}. exiting.`)
         return;
     }
 
@@ -126,7 +139,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     const mintRemarks: string[] = [];
     let count = 0;
     const directVotes = votes.filter((vote) => !vote.isDelegating)
-    for (const vote of directVotes) {
+    for (const vote of votes) {
         const nftProps: INftProps = {
             block: 0,
             collection: collectionId,
@@ -134,7 +147,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             instance: referendumIndex.toString(),
             transferable: 1,
             sn: (count++).toString(),
-            metadata: metadataCid,
+            metadata: vote.isDelegating ? metadataCidDelegated : metadataCidDirect,
         };
         const nft = new NFT(nftProps.block,
             nftProps.collection,
@@ -145,7 +158,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             nftProps.metadata);
         mintRemarks.push(nft.mintnft());
     }
-    console.log("mintRemarks", mintRemarks)
+    logger.info("mintRemarks", mintRemarks)
     //mint
     const { block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks);
     if (!successMint) {
@@ -157,7 +170,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     //send nfts
     const sendRemarks: string[] = [];
     count = 0;
-    for (const vote of directVotes) {
+    for (const vote of votes) {
         const nftProps: INftProps = {
             block: blockMint,
             collection: collectionId,
@@ -165,7 +178,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             instance: referendumIndex.toString(),
             transferable: 1,
             sn: (count++).toString(),
-            metadata: metadataCid,
+            metadata: vote.isDelegating ? metadataCidDelegated : metadataCidDirect,
         };
         const nft = new NFT(nftProps.block,
             nftProps.collection,
