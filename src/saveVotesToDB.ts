@@ -8,13 +8,14 @@ export const saveVotesToDB = async (referendumIndex: BN,
     totalIssuance: String,
     passed: boolean,
     indexer) => {
-    const formattedVotes = votes.map(({ balance, accountId, vote }) => ({
+    const formattedVotes = votes.map(({ balance, accountId, vote, isDelegating }) => ({
         balance: balance.toString(),
         accountId: accountId.toString(),
         createdAt: vote?.createdAtHash,
         conviction: vote.conviction.toString(),
         isAye: vote.isAye,
         isNay: vote.isNay,
+        isDelegating: isDelegating,
         isEmpty: vote.isEmpty
     }))
     const referendum = {

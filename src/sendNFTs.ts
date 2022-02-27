@@ -162,7 +162,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     //mint
     const { block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks);
     if (!successMint) {
-        logger.info(`Failure minting NFTS at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
+        logger.info(`Failure minting NFTs at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
         return;
     }
     logger.info(`NFTs minted at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
