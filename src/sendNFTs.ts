@@ -68,6 +68,27 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
     return votes;
 }
 
+const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[], totalIssuance: BN): Promise<DeriveReferendumVote[]> => {
+    let settingsFile = await getSettingsFile(referendumId);
+    let settings = await JSON.parse(settingsFile);
+    const minVote = BN.max(new BN(settings.min), new BN("0"));
+    const maxVote = BN.min(new BN(settings.max), new BN(totalIssuance));
+    console.log("min", minVote);
+    console.log("max", maxVote);
+    let filtered = votes.filter((vote) => {
+        return (new BN(vote.balance).gte(minVote) &&
+            new BN(vote.balance).lte(maxVote))
+    })
+    if (settings.first !== "-1") {
+        return filtered.slice(0, parseInt(settings.first))
+    }
+    // if (settings.top !== "-1") {
+    //     const sorted = filtered.sort((a, b) => (new BN(a.balance).gt(new BN(b.balance))) ? 1 : ((new BN(b.balance).gt(new BN(a.balance))) ? -1 : 0))
+    //     return sorted.slice(0, parseInt(settings.top))
+    // }
+    return filtered
+}
+
 const getVotesAndIssuance = async (referendumIndex: BN): Promise<[String, DeriveReferendumVote[]]> => {
     const info = await params.api.query.democracy.referendumInfoOf(referendumIndex);
     let blockNumber: BN;
@@ -139,6 +160,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     const mintRemarks: string[] = [];
     let count = 0;
     const directVotes = votes.filter((vote) => !vote.isDelegating)
+    const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance)
     for (const vote of votes) {
         const nftProps: INftProps = {
             block: 0,
