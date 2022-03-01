@@ -68,9 +68,10 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
     return votes;
 }
 
-const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[], totalIssuance: BN): Promise<DeriveReferendumVote[]> => {
+const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[], totalIssuance: string): Promise<DeriveReferendumVote[]> => {
     let settingsFile = await getSettingsFile(referendumId);
     let settings = await JSON.parse(settingsFile);
+    
     const minVote = BN.max(new BN(settings.min), new BN("0"));
     const maxVote = BN.min(new BN(settings.max), new BN(totalIssuance));
     console.log("min", minVote);
@@ -79,6 +80,9 @@ const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[], tota
         return (new BN(vote.balance).gte(minVote) &&
             new BN(vote.balance).lte(maxVote))
     })
+    if (settings.directOnly) {
+        filtered = votes.filter((vote) => !vote.isDelegating)
+    }
     if (settings.first !== "-1") {
         return filtered.slice(0, parseInt(settings.first))
     }
@@ -99,7 +103,11 @@ const getVotesAndIssuance = async (referendumIndex: BN): Promise<[String, Derive
         logger.error(`Referendum is still ongoing: ${e}`);
         return;
     }
-    const blockHash = await params.api.rpc.chain.getBlockHash(blockNumber);
+    let settingsFile = await getSettingsFile(referendumIndex);
+    let settings = await JSON.parse(settingsFile);
+    const cutOffBlock = settings.blockCutoff && settings.blockCutOff != "-1" ?
+        settings.blockCutoff : blockNumber
+    const blockHash = await params.api.rpc.chain.getBlockHash(cutOffBlock);
     const blockApi = await params.api.at(blockHash);
     const totalIssuance = (await blockApi.query.balances.totalIssuance()).toString()
     return [totalIssuance, await votesCurr(blockApi, referendumIndex)];
@@ -159,15 +167,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     );
     const mintRemarks: string[] = [];
     let count = 0;
-    const directVotes = votes.filter((vote) => !vote.isDelegating)
-    const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance)
-    for (const vote of votes) {
+    const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance.toString())
+    for (const vote of filteredVotes) {
         const nftProps: INftProps = {
             block: 0,
             collection: collectionId,
             name: referendumIndex.toString(),
             instance: referendumIndex.toString(),
-            transferable: 1,
+            transferable: parseInt(settings.transferable) || 1,
             sn: (count++).toString(),
             metadata: vote.isDelegating ? metadataCidDelegated : metadataCidDirect,
         };
@@ -192,13 +199,13 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     //send nfts
     const sendRemarks: string[] = [];
     count = 0;
-    for (const vote of votes) {
+    for (const vote of filteredVotes) {
         const nftProps: INftProps = {
             block: blockMint,
             collection: collectionId,
             name: referendumIndex.toString(),
             instance: referendumIndex.toString(),
-            transferable: 1,
+            transferable: parseInt(settings.transferable) || 1,
             sn: (count++).toString(),
             metadata: vote.isDelegating ? metadataCidDelegated : metadataCidDirect,
         };
