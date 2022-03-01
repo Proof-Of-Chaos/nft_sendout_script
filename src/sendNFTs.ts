@@ -83,10 +83,10 @@ const getVotesAndIssuance = async (referendumIndex: BN): Promise<[String, Derive
         logger.error(`Referendum is still ongoing: ${e}`);
         return;
     }
-    // let settingsFile = await getSettingsFile(referendumIndex);
-    // let settings = await JSON.parse(settingsFile);
-    const cutOffBlock = params.settings.blockCutoff && params.settings.blockCutOff != "-1" ?
-        params.settings.blockCutoff : blockNumber
+    let settingsFile = await getSettingsFile(referendumIndex);
+    let settings = await JSON.parse(settingsFile);
+    const cutOffBlock = settings.blockCutoff && settings.blockCutOff != "-1" ?
+        settings.blockCutoff : blockNumber
     const blockHash = await params.api.rpc.chain.getBlockHash(cutOffBlock);
     const blockApi = await params.api.at(blockHash);
     const totalIssuance = (await blockApi.query.balances.totalIssuance()).toString()
