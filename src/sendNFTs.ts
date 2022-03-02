@@ -104,6 +104,9 @@ const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[]): Pro
         return (new BN(vote.balance).gte(minVote) &&
             new BN(vote.balance).lte(maxVote))
     })
+    if (settings.directOnly) {
+        filtered = votes.filter((vote) => !vote.isDelegating)
+    }
     if (settings.first !== "-1") {
         return filtered.slice(0, parseInt(settings.first))
     }
@@ -154,89 +157,90 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     if (filteredVotes.length === 0) {
         return;
     }
-    // await createParentCanvas();
-    // //upload parent canvas to pinata
-    // const parentMetadataCid = await pinSingleMetadataFromDir("/assets",
-    //     "mosaic/parent.png",
-    //     `Your Canvas`,
-    //     {
-    //         description: `With each vote on a referendum, this canvas will get filled up more. Give your creativity free reign.`,
-    //         properties: {},
-    //     }
-    // );
-    // if (!parentMetadataCid) {
-    //     logger.error(`parentMetadataCid is null: ${parentMetadataCid}. exiting.`)
-    //     return;
-    // }
+    await createParentCanvas();
+    //upload parent canvas to pinata
+    const [parentMetadataCid, parentImageCid, parentThumbCid] = await pinSingleWithThumbMetadataFromDir("/assets",
+        "mosaic/parent.png",
+        `Your Canvas`,
+        {
+            description: `With each vote on a referendum, this canvas will get filled up more. Give your creativity free reign.`,
+            properties: {},
+        }
+    );
+    if (!parentMetadataCid) {
+        logger.error(`parentMetadataCid is null: ${parentMetadataCid}. exiting.`)
+        return;
+    }
+    //get base
+    const bases = await params.remarkStorageAdapter.getAllBases();
+    console.log("bases", bases)
+    const baseId = bases.find(({ issuer, symbol }) => {
+        //issuer === params.account &&
+        return symbol === params.settings.baseSymbol
+    }).id
+    console.log("base", baseId)
     //check which wallets don't have the parent nft
     const accountsWithoutParent: AccountId[] = await getParentlessAccounts(filteredVotes, parentCollectionId)
     //send parent canvas to wallets that don't have one yet
     if (accountsWithoutParent.length > 0) {
         const parentRemarks: string[] = [];
         let count = 0
-        // for (const account of accountsWithoutParent) {
-        //     const nftProps: INftProps = {
-        //         block: 0,
-        //         sn: (count++).toString(),
-        //         owner: encodeAddress(params.account.address, params.settings.network.prefix),
-        //         transferable: 1,
-        //         metadata: parentMetadataCid,
-        //         collection: parentCollectionId,
-        //         symbol: params.settings.parentNFTSymbol,
-        //     };
-        //     const nft = new NFT(nftProps);
+        for (const account of accountsWithoutParent) {
+            const nftProps: INftProps = {
+                block: 0,
+                sn: (count++).toString(),
+                owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                transferable: 0,
+                metadata: parentMetadataCid,
+                collection: parentCollectionId,
+                symbol: params.settings.parentNFTSymbol,
+            };
+            const nft = new NFT(nftProps);
 
-        //     parentRemarks.push(nft.mint()); //account.toString()
-        // }
-        // console.log("parentRemarks", parentRemarks)
-        // const { block, success, hash, fee } = await mintAndSend(parentRemarks);
-        // logger.info(`Parent NFTs sent at block ${block}: ${success} for a total fee of ${fee}`)
-        // //wait until remark block has caught up with block
-        // while (block <= await params.remarkBlockCountAdapter.get()) {
-        //     await sleep(3000);
-        // }
+            parentRemarks.push(nft.mint()); //account.toString()
+        }
+        console.log("parentRemarks", parentRemarks)
+        const { block, success, hash, fee } = await mintAndSend(parentRemarks);
+        logger.info(`Parent NFTs sent at block ${block}: ${success} for a total fee of ${fee}`)
+        //wait until remark block has caught up with block
+        while (block <= await params.remarkBlockCountAdapter.get()) {
+            await sleep(3000);
+        }
 
-        //add base resource to parent nfts
-        // const addBaseAndSendRemarks: string[] = [];
-        // //get base
-        // const bases = await params.remarkStorageAdapter.getAllBases();
-        // console.log("bases", bases)
-        // //const BASE_ID = bases[0].getId();
-        // const baseId = bases.find(({ issuer, symbol }) => {
-        //     //issuer === params.account &&
-        //         return symbol === params.settings.baseSymbol
-        // }).id
-        // console.log("base", baseId)
-        // count = 0;
-        // for (const account of accountsWithoutParent) {
-        //     const nftProps: INftProps = {
-        //         block: 199, //block
-        //         sn: (count).toString(),
-        //         owner: encodeAddress(params.account.address, params.settings.network.prefix),
-        //         transferable: 1,
-        //         metadata: parentMetadataCid,
-        //         collection: parentCollectionId,
-        //         symbol: params.settings.parentNFTSymbol,
-        //     };
-        //     const nft = new NFT(nftProps);
-        //     let parts = [];
-        //     for (let i = 1; i <= params.settings.parentHeight * params.settings.parentWidth; i++) {
-        //         parts.push(`(${Math.floor(i / params.settings.parentWidth)},${i % params.settings.parentWidth})`)
-        //     }
-        //     addBaseAndSendRemarks.push(
-        //         nft.resadd({
-        //             base: baseId,
-        //             id: (count++).toString(),
-        //             parts: parts,
-        //             //thumb: `ipfs://ipfs/${ASSETS_CID}/Chunky%20Preview.png`,
-        //         })
-        //     );
-        //     addBaseAndSendRemarks.push(nft.send(account.toString()))
-        // }
-        // console.log("addBaseAndSendRemarks: ", addBaseAndSendRemarks)
-        // //split remarks into sets of 100?
-        // const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addBaseAndSendRemarks);
-        // logger.info(`NFTs sent at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
+        // add base resource to parent nfts
+        const addBaseAndSendRemarks: string[] = [];
+
+        count = 0;
+        for (const account of accountsWithoutParent) {
+            const nftProps: INftProps = {
+                block: 199, //block
+                sn: (count).toString(),
+                owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                transferable: 0,
+                metadata: parentMetadataCid,
+                collection: parentCollectionId,
+                symbol: params.settings.parentNFTSymbol,
+            };
+            const nft = new NFT(nftProps);
+            let parts = [];
+            for (let i = 1; i <= params.settings.parentHeight * params.settings.parentWidth; i++) {
+                parts.push(`(${Math.floor(i / params.settings.parentWidth)},${i % params.settings.parentWidth})`)
+            }
+            addBaseAndSendRemarks.push(
+                nft.resadd({
+                    base: baseId,
+                    id: (count++).toString(),
+                    parts: parts,
+                    thumb: `ipfs://ipfs/${parentThumbCid}`,
+                    src: `ipfs://ipfs/${parentImageCid}`
+                })
+            );
+            addBaseAndSendRemarks.push(nft.send(account.toString()))
+        }
+        console.log("addBaseAndSendRemarks: ", addBaseAndSendRemarks)
+        //split remarks into sets of 100?
+        const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addBaseAndSendRemarks);
+        logger.info(`NFTs sent at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
     }
 
     //check if specific settings file
@@ -251,9 +255,11 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         console.log("indeces", indeces)
         let filePaths = await fsPromises.readdir(`${process.cwd()}/assets/mosaic/${indeces[0]}-${indeces[1]}`);
         let metadataCids: string[] = [];
+        let imageCids: string[] = [];
+        let thumbCids: string[] = [];
         for (const filePath of filePaths) {
             console.log("filePath", filePath)
-            const metadataCid = await pinSingleWithThumbMetadataFromDir(`/assets/mosaic/${indeces[0]}-${indeces[1]}`,
+            const [metadataCid, imageCid, thumbCid] = await pinSingleWithThumbMetadataFromDir(`/assets/mosaic/${indeces[0]}-${indeces[1]}`,
                 filePath,
                 `${indeces[0]}-${filePath.split(".")[0]}`,
                 {
@@ -264,6 +270,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 }
             );
             metadataCids.push(metadataCid);
+            imageCids.push(imageCid);
+            thumbCids.push(thumbCid);
         }
         if (metadataCids.length < 1) {
             logger.error(`metadataCids array is null: ${metadataCids}. exiting.`)
@@ -272,33 +280,27 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         const nftRemarks: string[] = [];
         let count = 0;
         const usedMetadataCids: string[] = [];
+        const usedImageCids: string[] = [];
+        const usedThumbCids: string[] = [];
         for (const vote of votes) {
             //get a random metadataCid
             //add probabilities to randomness
-            let metadataCid = metadataCids[Math.floor(Math.random() * metadataCids.length)];
+            const randomNum = Math.floor(Math.random() * metadataCids.length)
+            let metadataCid = metadataCids[randomNum];
             const nftProps: INftProps = {
                 block: 0,
                 sn: (count++).toString(),
                 owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                transferable: 1,
-                metadata: metadataCid, 
+                transferable: parseInt(settings.transferable) || 1,
+                metadata: metadataCid,
                 collection: tileCollectionId,
                 symbol: referendumIndex.toString(),
             };
+            usedMetadataCids.push(metadataCid);
+            usedImageCids.push(imageCids[randomNum]);
+            usedThumbCids.push(thumbCids[randomNum]);
             const nft = new NFT(nftProps);
-            //get the parent nft
-            let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection("d43593c715a56da27d-GPR1") //(parentCollectionId);
-
-            const accountParent = allNFTs.find(({ owner, rootowner, symbol }) => {
-                //console.log("vote.accountId.toString()",vote.accountId.toString())
-                return owner === vote.accountId.toString() //&&
-                //rootowner === params.account &&
-                //symbol === params.settings.parentNFTSymbol
-            })
-            //console.log("accountParent", accountParent)
-            if (accountParent) {
-                nftRemarks.push(nft.mint(accountParent.id));
-            }
+            nftRemarks.push(nft.mint())
         }
         console.log("remarks", nftRemarks)
         //split remarks into sets of 100?
@@ -311,13 +313,13 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         // add res to nft
         count = 0;
         const addResAndSendRemarks: string[] = [];
-        for (const vote of votes) {
+        for (let i = 0; i < votes.length; i++) {
             const nftProps: INftProps = {
                 block,
                 sn: (count++).toString(),
                 owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                transferable: 1,
-                metadata: metadataCid, //need to get right metadataCid
+                transferable: parseInt(settings.transferable) || 1,
+                metadata: usedMetadataCids[i], //need to get right metadataCid
                 collection: tileCollectionId,
                 symbol: referendumIndex.toString(),
             };
@@ -328,21 +330,30 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             }
             addResAndSendRemarks.push(
                 nft.resadd({
-                    src: `ipfs://ipfs/${ASSETS_CID}/Chunky Items/${resource}`,
-                    thumb: `ipfs://ipfs/${ASSETS_CID}/Chunky Items/${item.thumb}`,
+                    src: `ipfs://ipfs/${usedImageCids[i]}`,
+                    thumb: `ipfs://ipfs/${usedThumbCids[i]}`,
                     id: nanoid(8),
-                    slot: resource.includes("left")
-                        ? `${baseEntity.getId()}.chunky_objectLeft`
-                        : `${baseEntity.getId()}.chunky_objectRight`,
+                    slot: `${baseId}.${indeces[0]}`,
                 })
             );
-            addResAndSendRemarks.push(nft.send(account.toString()))
-        }
-        console.log("addBaseAndSendRemarks: ", addBaseAndSendRemarks)
-        //split remarks into sets of 100?
-        const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addBaseAndSendRemarks);
-        logger.info(`NFTs sent at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
+            //get the parent nft
+            let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection("d43593c715a56da27d-GPR1") //(parentCollectionId);
 
-        
+            const accountParent = allNFTs.find(({ owner, rootowner, symbol }) => {
+                //console.log("vote.accountId.toString()",vote.accountId.toString())
+                return owner === votes[i].accountId.toString() //&&
+                //rootowner === params.account &&
+                //symbol === params.settings.parentNFTSymbol
+            })
+            //console.log("accountParent", accountParent)
+            if (accountParent) {
+                addResAndSendRemarks.push(nft.send(accountParent.toString()))
+            }
+            
+        }
+        console.log("addResAndSendRemarks: ", addResAndSendRemarks)
+        //split remarks into sets of 100?
+        const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addResAndSendRemarks);
+        logger.info(`NFTs sent at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
     }
 }

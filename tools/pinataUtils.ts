@@ -74,7 +74,7 @@ export const pinSingleWithThumbMetadataFromDir = async (
     name: string,
     metadataBase: Partial<Metadata>,
     pathThumb?: string,
-): Promise<string> => {
+): Promise<string[]> => {
     try {
         const mainMedia = await fsPromises.readFile(`${process.cwd()}${dir}/${pathMedia}`);
         if (!mainMedia) {
@@ -99,15 +99,15 @@ export const pinSingleWithThumbMetadataFromDir = async (
             thumbCid = await pinFileStreamToIpfs(stream, name);
             console.log(`NFT ${pathThumb} Thumb CID: `, thumbCid);
         }
-        const metadata: Metadata = { ...metadataBase, name, mediaUri: `ipfs://ipfs/${mainCid}`, thumbnailUri: thumbCid};
+        const metadata: Metadata = { ...metadataBase, name, mediaUri: `ipfs://ipfs/${mainCid}`, thumbnailUri: `ipfs://ipfs/${thumbCid || mainCid}` };
         const metadataCid = await uploadAndPinIpfsMetadata(metadata);
         await sleep(500);
         console.log(`NFT ${name} METADATA: `, metadataCid);
-        return metadataCid;
+        return [metadataCid, mainCid, thumbCid || mainCid];
     } catch (error) {
         console.log(error);
         console.log(JSON.stringify(error));
-        return '';
+        return [];
     }
 };
 
