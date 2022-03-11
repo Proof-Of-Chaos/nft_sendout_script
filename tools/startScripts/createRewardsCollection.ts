@@ -4,6 +4,7 @@ import { u8aToHex } from "@polkadot/util";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../pinataUtils.js";
 import { sendAndFinalize } from "../substrateUtils.js";
+import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
 
 export const createRewardsCollection = async () => {
   try {
@@ -13,30 +14,42 @@ export const createRewardsCollection = async () => {
     );
     console.log("collection Id: ", collectionId);
 
+    const royaltyProperty: IRoyaltyAttribute = {
+      type: "royalty",
+      value: {
+        receiver: encodeAddress(params.account.address, params.settings.network.prefix),
+        royaltyPercentFloat: 5
+      }
+    }
+
     const collectionMetadataCid = await pinSingleMetadataFromDir(
       "/assets",
       "GPR.png",
-      "GovernanceParticipationRewards - Gen1",
+      "GovernanceParticipationRewards",
       {
         description: "A project that rewards all referendum voters with NFTs.",
+        properties: {
+          royalty: {
+            ...royaltyProperty
+          }
+        },
       }
     );
 
-    const ItemsCollection = new Collection(
+    const rewardsCollection = new Collection(
       0,
-      params.settings.collectionName,
       0,
       encodeAddress(params.account.address, params.settings.network.prefix),
-      params.settings.collectionSymbol,
+      params.settings.parentCollectionSymbol,
       collectionId,
       collectionMetadataCid
     );
 
     const { block } = await sendAndFinalize(
-      params.api.tx.system.remark(ItemsCollection.mint()),
+      params.api.tx.system.remark(rewardsCollection.create()),
       params.account
     );
-    console.log("COLLECTION CREATION REMARK: ", ItemsCollection.mint());
+    console.log("COLLECTION CREATION REMARK: ", rewardsCollection.create());
     console.log("Collection created at block: ", block);
 
     return block;
