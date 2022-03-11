@@ -164,22 +164,25 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         params.settings.collectionSymbol
     );
     const mintRemarks: string[] = [];
+    let usedMetadataCids: string[] = [];
     let count = 0;
     const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance.toString())
     console.log("Number of votes after filter: ", filteredVotes.length)
     for (const vote of filteredVotes) {
+        let metadataCid = vote.isDelegating ? metadataCidDelegated : metadataCidDirect
         const nftProps: INftProps = {
             block: 0,
             sn: (count++).toString(),
             owner: encodeAddress(params.account.address, params.settings.network.prefix),
             transferable: parseInt(settings.transferable) || 1,
-            metadata: vote.isDelegating ? metadataCidDelegated : metadataCidDirect,
+            metadata: metadataCid,
             collection: collectionId,
             symbol: params.settings.parentNFTSymbol,
         };
+        usedMetadataCids.push(metadataCid);
         const nft = new NFT(nftProps);
 
-        mintRemarks.push(nft.mint()); //vote.accountId.toString()
+        mintRemarks.push(nft.mint());
 
     }
     logger.info("mintRemarks: ", mintRemarks)
@@ -190,8 +193,39 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         return;
     }
     logger.info(`NFTs minted at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
-    //add resources
-
-    //send
-
+    while (blockMint <= await params.remarkBlockCountAdapter.get()) {
+        await sleep(3000);
+    }
+    // add res to nft
+    count = 0;
+    const addResAndSendRemarks: string[] = [];
+    for (const vote of filteredVotes) {
+        const nftProps: INftProps = {
+            block: blockMint,
+            sn: (count++).toString(),
+            owner: encodeAddress(params.account.address, params.settings.network.prefix),
+            transferable: parseInt(settings.transferable) || 1,
+            metadata: usedMetadataCids[i],
+            collection: collectionId,
+            symbol: referendumIndex.toString(),
+        };
+        const nft = new NFT(nftProps);
+        for (let i = 0; i < settings.resources.length; i++) {
+            let resource = settings.resources[i]
+            
+            addResAndSendRemarks.push(
+                nft.resadd({
+                    src: `ipfs://ipfs/${usedImageCids[i]}`,
+                    thumb: `ipfs://ipfs/${usedThumbCids[i]}`,
+                    id: nanoid(8),
+                    slot: `${resource.slot}`,
+                })
+            );
+        }
+        addResAndSendRemarks.push(nft.send(vote.accountId.toString()))
+    }
+    console.log("addResAndSendRemarks: ", addResAndSendRemarks)
+    //split remarks into sets of 100?
+    const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addResAndSendRemarks);
+    logger.info(`NFTs sent at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
 }
