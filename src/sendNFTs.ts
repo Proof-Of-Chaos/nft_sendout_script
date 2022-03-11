@@ -71,11 +71,11 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
 const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[], totalIssuance: string): Promise<DeriveReferendumVote[]> => {
     let settingsFile = await getSettingsFile(referendumId);
     let settings = await JSON.parse(settingsFile);
-    
+
     const minVote = BN.max(new BN(settings.min), new BN("0"));
     const maxVote = BN.min(new BN(settings.max), new BN(totalIssuance));
-    console.log("min", minVote);
-    console.log("max", maxVote);
+    console.log("min", minVote.toString());
+    console.log("max", maxVote.toString());
     let filtered = votes.filter((vote) => {
         return (new BN(vote.balance).gte(minVote) &&
             new BN(vote.balance).lte(maxVote))
@@ -86,10 +86,6 @@ const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[], tota
     if (settings.first !== "-1") {
         return filtered.slice(0, parseInt(settings.first))
     }
-    // if (settings.top !== "-1") {
-    //     const sorted = filtered.sort((a, b) => (new BN(a.balance).gt(new BN(b.balance))) ? 1 : ((new BN(b.balance).gt(new BN(a.balance))) ? -1 : 0))
-    //     return sorted.slice(0, parseInt(settings.top))
-    // }
     return filtered
 }
 
@@ -105,8 +101,9 @@ const getVotesAndIssuance = async (referendumIndex: BN): Promise<[String, Derive
     }
     let settingsFile = await getSettingsFile(referendumIndex);
     let settings = await JSON.parse(settingsFile);
-    const cutOffBlock = settings.blockCutoff && settings.blockCutOff != "-1" ?
-        settings.blockCutoff : blockNumber
+    const cutOffBlock = settings.blockCutOff && settings.blockCutOff !== "-1" ?
+        settings.blockCutOff : blockNumber
+    console.log("Cut-off Block: ", cutOffBlock.toString())
     const blockHash = await params.api.rpc.chain.getBlockHash(cutOffBlock);
     const blockApi = await params.api.at(blockHash);
     const totalIssuance = (await blockApi.query.balances.totalIssuance()).toString()
@@ -123,17 +120,17 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     await saveVotesToDB(referendumIndex, votes, totalIssuance, passed, indexer);
     // upload file to pinata
     let imagePath;
+    let settingsFile = await getSettingsFile(referendumIndex);
+    let settings = await JSON.parse(settingsFile);
     try {
-        await fsPromises.readFile(`${process.cwd()}/assets/referenda/${referendumIndex}.png`);
-        imagePath = `referenda/${referendumIndex}.png`;
-        logger.info(`using referenda/${referendumIndex}.png`)
+        await fsPromises.readFile(`${process.cwd()}/assets/referenda/${referendumIndex}.${settings.fileType}`);
+        imagePath = `referenda/${referendumIndex}.${settings.fileType}`;
+        logger.info(`using referenda/${referendumIndex}.${settings.fileType}`)
     }
     catch (e) {
         imagePath = "default.png";
         logger.info(`using default.png`)
     }
-    let settingsFile = await getSettingsFile(referendumIndex);
-    let settings = await JSON.parse(settingsFile);
     const metadataCidDirect = await pinSingleMetadataFromDir("/assets",
         imagePath,
         `Referendum ${referendumIndex}`,
@@ -168,6 +165,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     const mintRemarks: string[] = [];
     let count = 0;
     const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance.toString())
+    console.log("Number of votes after filter: ", filteredVotes.length)
     for (const vote of filteredVotes) {
         const nftProps: INftProps = {
             block: 0,

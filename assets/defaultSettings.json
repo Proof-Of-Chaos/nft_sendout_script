@@ -1,3 +1,9 @@
 {
+    "min": "0",
+    "max": "100000000000000000000000000000000000",
+    "first": "-1", 
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "fileType": "png",
     "text": ""
 }
