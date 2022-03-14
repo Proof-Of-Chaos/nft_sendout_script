@@ -6,7 +6,7 @@ import { pinSingleMetadataFromDir } from "../pinataUtils.js";
 import { sendAndFinalize } from "../substrateUtils.js";
 import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
 
-export const createRewardsCollection = async () => {
+export const createShelfCollection = async () => {
   try {
     const collectionId = Collection.generateId(
       u8aToHex(params.account.publicKey),
@@ -36,7 +36,7 @@ export const createRewardsCollection = async () => {
       }
     );
 
-    const rewardsCollection = new Collection(
+    const ShelfCollection = new Collection(
       0,
       0,
       encodeAddress(params.account.address, params.settings.network.prefix),
@@ -46,10 +46,10 @@ export const createRewardsCollection = async () => {
     );
 
     const { block } = await sendAndFinalize(
-      params.api.tx.system.remark(rewardsCollection.create()),
+      params.api.tx.system.remark(ShelfCollection.create()),
       params.account
     );
-    console.log("COLLECTION CREATION REMARK: ", rewardsCollection.create());
+    console.log("COLLECTION CREATION REMARK: ", ShelfCollection.create());
     console.log("Collection created at block: ", block);
 
     return block;

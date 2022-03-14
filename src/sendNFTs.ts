@@ -1,7 +1,7 @@
 import { params } from "../config.js";
 import { BN } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
-import { pinSingleFileFromDir, pinSingleMetadataFromDir } from "../tools/pinataUtils.js";
+import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleWithThumbMetadataFromDir } from "../tools/pinataUtils.js";
 import fs from 'fs';
 import { Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
@@ -15,6 +15,7 @@ import { ApiDecoration } from "@polkadot/api/types";
 import { saveVotesToDB } from "./saveVotesToDB.js";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { nanoid } from "nanoid";
+import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
 
 const fsPromises = fs.promises;
 
@@ -112,6 +113,21 @@ const getVotesAndIssuance = async (referendumIndex: BN): Promise<[String, Derive
     return [totalIssuance, await votesCurr(blockApi, referendumIndex)];
 }
 
+const getShelflessAccounts = async (votes: DeriveReferendumVote[], collectionId): Promise<AccountId[]> => {
+    let accounts: AccountId[] = [];
+    for (const vote of votes) {
+        let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(collectionId);
+        if (!allNFTs.find(({ owner, rootowner, symbol }) => {
+            owner === vote.accountId &&
+                rootowner === params.account &&
+                symbol === params.settings.shelfNFTSymbol
+        })) {
+            accounts.push(vote.accountId)
+        }
+    }
+    return accounts;
+}
+
 export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) => {
     //wait a bit since blocks after will be pretty full
     await sleep(10000);
@@ -120,6 +136,112 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex);
     console.log("Number of votes: ", votes.length)
     await saveVotesToDB(referendumIndex, votes, totalIssuance, passed, indexer);
+    const royaltyProperty: IRoyaltyAttribute = {
+        type: "royalty",
+        value: {
+            receiver: encodeAddress(params.account.address, params.settings.network.prefix),
+            royaltyPercentFloat: 5
+        }
+    }
+    const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance.toString())
+    console.log("Number of votes after filter: ", filteredVotes.length)
+
+    const shelfCollectionId = Collection.generateId(
+        u8aToHex(params.account.publicKey),
+        params.settings.shelfCollectionSymbol
+    );
+
+    //check which wallets don't have the shelf nft
+    const accountsWithoutShelf: AccountId[] = await getShelflessAccounts(filteredVotes, shelfCollectionId)
+    //send trophy shelf to wallets that don't have one yet
+    if (accountsWithoutShelf.length > 0) {
+        //upload shelf to pinata
+        const [shelfMetadataCid, shelfImageCid, shelfThumbCid] = await pinSingleWithThumbMetadataFromDir("/assets",
+            "trophy/shelf.png",
+            `Your Trophy Shelf`,
+            {
+                description: `With each vote on a referendum, this shelf will get filled up more.`,
+                properties: {
+                    royalty: {
+                        ...royaltyProperty
+                    }
+                },
+            },
+            "trophy/shelf_thumb.png"
+        );
+        if (!shelfMetadataCid) {
+            logger.error(`parentMetadataCid is null: ${shelfMetadataCid}. exiting.`)
+            return;
+        }
+        //get base
+        const bases = await params.remarkStorageAdapter.getAllBases();
+        console.log("bases", bases)
+        const baseId = bases.find(({ issuer, symbol }) => {
+            //issuer === params.account &&
+            return symbol === params.settings.baseSymbol
+        }).id
+        console.log("base", baseId)
+
+        const shelfRemarks: string[] = [];
+        let count = 0
+        for (const account of accountsWithoutShelf) {
+            const nftProps: INftProps = {
+                block: 0,
+                sn: (count++).toString(),
+                owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                transferable: 0,
+                metadata: shelfMetadataCid,
+                collection: shelfCollectionId,
+                symbol: params.settings.shelfNFTSymbol,
+            };
+            const nft = new NFT(nftProps);
+
+            shelfRemarks.push(nft.mint()); //account.toString()
+        }
+        console.log("shelfRemarks", shelfRemarks)
+        const { block, success, hash, fee } = await mintAndSend(shelfRemarks);
+        logger.info(`Shelf NFTs sent at block ${block}: ${success} for a total fee of ${fee}`)
+        //wait until remark block has caught up with block
+        while (block <= await params.remarkBlockCountAdapter.get()) {
+            await sleep(3000);
+        }
+
+        // add base resource to shelf nfts
+        const addBaseAndSendRemarks: string[] = [];
+
+        count = 0;
+        for (const account of accountsWithoutShelf) {
+            const nftProps: INftProps = {
+                block: block,
+                sn: (count).toString(),
+                owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                transferable: 0,
+                metadata: shelfMetadataCid,
+                collection: shelfCollectionId,
+                symbol: params.settings.shelfNFTSymbol,
+            };
+            const nft = new NFT(nftProps);
+            let parts = [];
+            for (let i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.trophyCount; i++) {
+                parts.push(`${i.toString()}`)
+            }
+            addBaseAndSendRemarks.push(
+                nft.resadd({
+                    base: baseId,
+                    id: (count++).toString(),
+                    parts: parts,
+                    thumb: `ipfs://ipfs/${shelfThumbCid}`,
+                    src: `ipfs://ipfs/${shelfImageCid}`
+                })
+            );
+            addBaseAndSendRemarks.push(nft.send(account.toString()))
+        }
+        console.log("addBaseAndSendRemarks: ", addBaseAndSendRemarks)
+        //split remarks into sets of 100?
+        const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addBaseAndSendRemarks);
+        logger.info(`NFTs sent at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
+    }
+
     // upload file to pinata
     let imagePath;
     let settingsFile = await getSettingsFile(referendumIndex);
@@ -167,8 +289,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     const mintRemarks: string[] = [];
     let usedMetadataCids: string[] = [];
     let count = 0;
-    const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance.toString())
-    console.log("Number of votes after filter: ", filteredVotes.length)
     for (const vote of filteredVotes) {
         let metadataCid = vote.isDelegating ? metadataCidDelegated : metadataCidDirect
         const nftProps: INftProps = {
@@ -178,7 +298,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             transferable: parseInt(settings.transferable) || 1,
             metadata: metadataCid,
             collection: collectionId,
-            symbol: params.settings.parentNFTSymbol,
+            symbol: params.settings.shelfNFTSymbol,
         };
         usedMetadataCids.push(metadataCid);
         const nft = new NFT(nftProps);

@@ -5,6 +5,7 @@ import { BlockListener } from './src/blockListener.js';
 import { PinataClient } from '@pinata/sdk';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { initDb } from './src/mongo/index.js';
+import { RemarkStorageAdapter } from './tools/remarkStorageAdapter.js';
 
 type Params = {
   api: ApiPromise,
@@ -15,6 +16,7 @@ type Params = {
   pinata: PinataClient,
   account: KeyringPair,
   remarkBlockCountAdapter: CountAdapter,
+  remarkStorageAdapter: RemarkStorageAdapter,
 };
 
 export const params: Params = {
@@ -26,6 +28,7 @@ export const params: Params = {
   pinata: null,
   account: null,
   remarkBlockCountAdapter: null,
+  remarkStorageAdapter: null,
 };
 
 export const getDb = async (): Promise<void> => {

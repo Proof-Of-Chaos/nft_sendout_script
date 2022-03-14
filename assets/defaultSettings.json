@@ -1,10 +1,25 @@
 {
     "min": "0",
     "max": "100000000000000000000000000000000000",
-    "first": "-1", 
+    "first": "-1",
     "blockCutOff": "-1",
     "directOnly": false,
     "fileType": "png",
     "transferable": 1,
-    "text": ""
+    "text": "",
+    "royaly": 5,
+    "resources": [
+        {
+            "name": "reousrce 1",
+            "mainMedia": "177.png",
+            "thumb": "177.png",
+            "slot": "123.asdf"
+        },
+        {
+            "name": "reousrce 2",
+            "mediaUri": "178.png",
+            "thumb": "179.png",
+            "slot": "asdf.asdfas"
+        }
+    ]
 }

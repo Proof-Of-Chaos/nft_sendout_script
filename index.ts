@@ -11,7 +11,9 @@ import pinataSDK from "@pinata/sdk";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { Consolidator, RemarkListener } from "rmrk-tools";
 import { RemarkStorageAdapter } from "./tools/remarkStorageAdapter.js";
-import { createRewardsCollection } from "./tools/startScripts/createRewardsCollection.js";
+import { createShelfCollection } from "./tools/startScripts/createShelfCollection.js";
+import { createBase } from "./tools/startScripts/createBase.js";
+import { createTrophyCollection } from "./tools/startScripts/createTrophyCollection.js";
 
 dotenv.config();
 
@@ -58,8 +60,9 @@ class Incentivizer {
         params.blockCountAdapter);
     }
     //setup remark listener for minting listener
+    params.remarkStorageAdapter = new RemarkStorageAdapter(params.localStorage);
     const consolidateFunction = async (remarks) => {
-      const consolidator = new Consolidator(2, new RemarkStorageAdapter(params.localStorage));
+      const consolidator = new Consolidator(2, params.remarkStorageAdapter);
       return consolidator.consolidate(remarks);
     };
     params.remarkBlockCountAdapter = new CountAdapter(params.localStorage, "remarkBlock")
@@ -91,7 +94,9 @@ class Incentivizer {
       console.log(err);
     }
     if (process.env.SETUP_COMPLETE !== "true") {
-      await createRewardsCollection();
+      await createShelfCollection();
+      await createTrophyCollection();
+      await createBase();
     }
   }
 }
