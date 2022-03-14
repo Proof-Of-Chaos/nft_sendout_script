@@ -1,6 +1,6 @@
 import { ApiPromise } from "@polkadot/api";
 import { params } from "../config.js";
-import { BlockCountAdapter } from "../tools/blockCountAdapter.js";
+import { BlockCountAdapter } from "../tools/countAdapter.js";
 import { handleEvents } from "./eventsHandler.js";
 import { getBlockIndexer } from "../tools/substrateUtils.js";
 import { logger } from "../tools/logger.js";

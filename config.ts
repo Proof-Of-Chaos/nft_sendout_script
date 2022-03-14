@@ -1,6 +1,6 @@
 import { Low, JSONFile } from 'lowdb';
 import { ApiPromise } from "@polkadot/api";
-import { BlockCountAdapter } from './tools/blockCountAdapter.js';
+import { CountAdapter } from './tools/countAdapter.js';
 import { BlockListener } from './src/blockListener.js';
 import { PinataClient } from '@pinata/sdk';
 import { KeyringPair } from '@polkadot/keyring/types';
@@ -10,10 +10,11 @@ type Params = {
   api: ApiPromise,
   localStorage: Low,
   settings: any,
-  blockCountAdapter: BlockCountAdapter,
+  blockCountAdapter: CountAdapter,
   blockListener: BlockListener,
   pinata: PinataClient,
   account: KeyringPair,
+  remarkBlockCountAdapter: CountAdapter,
 };
 
 export const params: Params = {
@@ -24,6 +25,7 @@ export const params: Params = {
   blockListener: null,
   pinata: null,
   account: null,
+  remarkBlockCountAdapter: null,
 };
 
 export const getDb = async (): Promise<void> => {

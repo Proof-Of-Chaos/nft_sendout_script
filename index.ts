@@ -1,7 +1,7 @@
 import "@polkadot/api-augment";
 import { params, getLocalStorage, getDb } from "./config.js";
 import { getSettings } from "./tools/settings.js";
-import { BlockCountAdapter } from "./tools/blockCountAdapter.js";
+import { CountAdapter } from "./tools/countAdapter.js";
 import dotenv from "dotenv";
 import { getApi, initAccount } from "./tools/substrateUtils.js";
 import { ApiPromise } from "@polkadot/api";
@@ -53,7 +53,7 @@ class Incentivizer {
     params.settings = this.settings;
 
     if (process.env.SETUP_COMPLETE === "true") {
-      params.blockCountAdapter = new BlockCountAdapter(params.localStorage, "headerBlock");
+      params.blockCountAdapter = new CountAdapter(params.localStorage, "headerBlock");
       params.blockListener = new BlockListener(params.api,
         params.blockCountAdapter);
     }
@@ -62,13 +62,13 @@ class Incentivizer {
       const consolidator = new Consolidator(2, new RemarkStorageAdapter(params.localStorage));
       return consolidator.consolidate(remarks);
     };
-
+    params.remarkBlockCountAdapter = new CountAdapter(params.localStorage, "remarkBlock")
     const startListening = async () => {
       const listener = new RemarkListener({
         polkadotApi: params.api,
         prefixes: ['0x726d726b', '0x524d524b'],
         consolidateFunction,
-        storageProvider: new BlockCountAdapter(params.localStorage, "remarkBlock")
+        storageProvider: params.remarkBlockCountAdapter
       });
       const subscriber = listener.initialiseObservable();
       subscriber.subscribe(async (val) => {
