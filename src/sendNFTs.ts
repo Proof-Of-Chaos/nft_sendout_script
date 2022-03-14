@@ -1,7 +1,7 @@
 import { params } from "../config.js";
 import { BN } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
-import { pinSingleMetadataFromDir } from "../tools/pinataUtils.js";
+import { pinSingleFileFromDir, pinSingleMetadataFromDir } from "../tools/pinataUtils.js";
 import fs from 'fs';
 import { Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
@@ -183,7 +183,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         const nft = new NFT(nftProps);
 
         mintRemarks.push(nft.mint());
-
     }
     logger.info("mintRemarks: ", mintRemarks)
     //mint
@@ -212,11 +211,16 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         const nft = new NFT(nftProps);
         for (let i = 0; i < settings.resources.length; i++) {
             let resource = settings.resources[i]
-            
+            let imageCid = pinSingleFileFromDir("/assets",
+                resource.main,
+                resource.name)
+            let thumbCid = pinSingleFileFromDir("/assets",
+                resource.thumb,
+                resource.name + "_thumb")
             addResAndSendRemarks.push(
                 nft.resadd({
-                    src: `ipfs://ipfs/${usedImageCids[i]}`,
-                    thumb: `ipfs://ipfs/${usedThumbCids[i]}`,
+                    src: `ipfs://ipfs/${imageCid}`,
+                    thumb: `ipfs://ipfs/${thumbCid}`,
                     id: nanoid(8),
                     slot: `${resource.slot}`,
                 })
