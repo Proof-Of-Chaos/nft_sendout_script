@@ -14,6 +14,7 @@ import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
 import { saveVotesToDB } from "./saveVotesToDB.js";
 import { encodeAddress } from "@polkadot/util-crypto";
+import { nanoid } from "nanoid";
 
 const fsPromises = fs.promises;
 
@@ -198,13 +199,13 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     // add res to nft
     count = 0;
     const addResAndSendRemarks: string[] = [];
-    for (const vote of filteredVotes) {
+    for (const [index, vote] of filteredVotes.entries()) {
         const nftProps: INftProps = {
             block: blockMint,
             sn: (count++).toString(),
             owner: encodeAddress(params.account.address, params.settings.network.prefix),
             transferable: parseInt(settings.transferable) || 1,
-            metadata: usedMetadataCids[i],
+            metadata: usedMetadataCids[index],
             collection: collectionId,
             symbol: referendumIndex.toString(),
         };
