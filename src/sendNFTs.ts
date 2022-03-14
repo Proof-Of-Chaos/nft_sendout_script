@@ -16,6 +16,7 @@ import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
 import { saveVotesToDB } from "./saveVotesToDB.js";
 import { nextTick } from "process";
+import { nanoid } from "nanoid";
 
 const fsPromises = fs.promises;
 
