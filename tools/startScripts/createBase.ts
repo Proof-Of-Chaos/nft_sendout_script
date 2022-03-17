@@ -8,7 +8,7 @@ import { sendAndFinalize } from "../../tools/substrateUtils.js";
 export const createBase = async () => {
     try {
         let baseParts: IBasePart[] = [];
-        const collectionId = Collection.generateId(
+        const trophyCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
             params.settings.trophyCollectionSymbol
         );
@@ -16,20 +16,21 @@ export const createBase = async () => {
             const basePart: IBasePart = {
                 id: i.toString(),
                 type: "slot",
-                equippable: [collectionId],
+                equippable: [trophyCollectionId],
                 //unequip?: "unequip" | "burn";
                 z: i
                 //src?: string;
             }
             baseParts.push(basePart);
         }
-        //console.log("baseParts", baseParts)
+        console.log("baseParts", baseParts)
 
         const base = new Base(0,
             params.settings.baseSymbol,
             encodeAddress(params.account.address, params.settings.network.prefix),
             "png",
             baseParts)
+
         const { block } = await sendAndFinalize(
             params.api.tx.system.remark(base.base()),
             params.account

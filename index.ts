@@ -94,8 +94,8 @@ class Incentivizer {
       console.log(err);
     }
     if (process.env.SETUP_COMPLETE !== "true") {
-      await createShelfCollection();
-      await createTrophyCollection();
+      //await createShelfCollection();
+      //await createTrophyCollection();
       await createBase();
     }
   }

@@ -173,6 +173,7 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       owner: nft?.owner,
+      rootowner: nft?.rootowner,
       changes: nft?.changes,
       forsale: nft?.forsale,
     }).value();

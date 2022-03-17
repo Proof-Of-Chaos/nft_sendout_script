@@ -10,7 +10,7 @@ export const createShelfCollection = async () => {
   try {
     const collectionId = Collection.generateId(
       u8aToHex(params.account.publicKey),
-      params.settings.collectionSymbol
+      params.settings.shelfCollectionSymbol
     );
     console.log("collection Id: ", collectionId);
 
@@ -23,8 +23,8 @@ export const createShelfCollection = async () => {
     }
 
     const collectionMetadataCid = await pinSingleMetadataFromDir(
-      "/assets",
-      "GPR.png",
+      "/assets/collections",
+      "shelf.png",
       "GovernanceParticipationRewards",
       {
         description: "A project that rewards all referendum voters with NFTs.",
@@ -40,7 +40,7 @@ export const createShelfCollection = async () => {
       0,
       0,
       encodeAddress(params.account.address, params.settings.network.prefix),
-      params.settings.parentCollectionSymbol,
+      params.settings.shelfCollectionSymbol,
       collectionId,
       collectionMetadataCid
     );

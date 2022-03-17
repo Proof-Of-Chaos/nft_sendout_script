@@ -161,12 +161,11 @@ export const pinSingleMetadata = async (
 };
 
 export const pinSingleMetadataWithoutFile = async (
-    imageCid: string,
     name: string,
     metadataBase: Partial<Metadata>,
 ): Promise<string> => {
     try {
-        const metadata: Metadata = { ...metadataBase, name, mediaUri: `ipfs://ipfs/${imageCid}` };
+        const metadata: Metadata = { ...metadataBase, name };
         const metadataCid = await uploadAndPinIpfsMetadata(metadata);
         await sleep(500);
         console.log(`NFT ${name} METADATA: `, metadataCid);

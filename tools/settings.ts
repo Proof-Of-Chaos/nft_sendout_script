@@ -10,7 +10,9 @@ export const getSettings = () => {
     startReferendum: parseInt(process.env.START_REFERENDUM),
     shelfCollectionSymbol: process.env.SHELF_COLLECTION_SYMBOL.toString(),
     trophyCollectionSymbol: process.env.TROPHY_COLLECTION_SYMBOL.toString(),
-    shelfNFTSymbol: process.env.SHELF_NFT_SYMBOL.toString()
+    baseSymbol: process.env.BASE_SYMBOL.toString(),
+    shelfNFTSymbol: process.env.SHELF_NFT_SYMBOL.toString(),
+    saveDB: process.env.SAVE_DB.toString()
   };
   return settings;
 };
