@@ -5,14 +5,15 @@ import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../pinataUtils.js";
 import { sendAndFinalize } from "../substrateUtils.js";
 import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
+import { logger } from "../logger.js";
 
-export const createTrophyCollection = async () => {
+export const createItemCollection = async () => {
     try {
-        const collectionId = Collection.generateId(
+        const itemCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
-            params.settings.trophyCollectionSymbol
+            params.settings.itemCollectionSymbol
         );
-        console.log(`Trophy Collection Id: `, collectionId);
+        logger.info(`Item Collection Id: `, itemCollectionId);
 
         const royaltyProperty: IRoyaltyAttribute = {
             type: "royalty",
@@ -23,36 +24,35 @@ export const createTrophyCollection = async () => {
         }
 
         const collectionMetadataCid = await pinSingleMetadataFromDir(
-            "/assets/collections",
-            `trophy.png`,
-            `Trophies`,
+            "/assets/shelf/collections",
+            `item.png`,
+            `Shelf Items`,
             {
-                description: `A collection of trophies with which to fill up your shelf.\n\n` +
-                    `The only way to get these tiles to participate in referendum voting!`,
+                description: `A collection of items with which to fill up your shelf.`,
                 external_url: params.settings.externalUrl,
                 properties: {
-                    royalty: {
+                    royaltyInfo: {
                         ...royaltyProperty
                     }
                 },
             }
         );
 
-        const TrophyCollection = new Collection(
+        const ItemCollection = new Collection(
             0,
             0,
             encodeAddress(params.account.address, params.settings.network.prefix),
-            params.settings.trophyCollectionSymbol,
-            collectionId,
+            params.settings.itemCollectionSymbol,
+            itemCollectionId,
             collectionMetadataCid
         );
 
         const { block } = await sendAndFinalize(
-            params.api.tx.system.remark(TrophyCollection.create()),
+            params.api.tx.system.remark(ItemCollection.create()),
             params.account
         );
-        console.log("COLLECTION CREATION REMARK: ", TrophyCollection.create());
-        console.log("Collection created at block: ", block);
+        logger.info("COLLECTION CREATION REMARK: ", ItemCollection.create());
+        logger.info("Collection created at block: ", block);
 
     } catch (error: any) {
         console.error(error);

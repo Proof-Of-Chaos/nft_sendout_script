@@ -13,7 +13,8 @@ import { Consolidator, RemarkListener } from "rmrk-tools";
 import { RemarkStorageAdapter } from "./tools/remarkStorageAdapter.js";
 import { createShelfCollection } from "./tools/startScripts/createShelfCollection.js";
 import { createBase } from "./tools/startScripts/createBase.js";
-import { createTrophyCollection } from "./tools/startScripts/createTrophyCollection.js";
+import { createItemCollection } from "./tools/startScripts/createItemCollection.js";
+import { logger } from "./tools/logger.js";
 
 dotenv.config();
 
@@ -87,15 +88,15 @@ class Incentivizer {
     params.pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET);
     try {
       const result = await params.pinata.testAuthentication();
-      console.log(result);
+      logger.info(result);
     }
     catch (err) {
       //handle error here
-      console.log(err);
+      logger.info(err);
     }
     if (process.env.SETUP_COMPLETE !== "true") {
-      //await createShelfCollection();
-      //await createTrophyCollection();
+      await createShelfCollection();
+      await createItemCollection();
       await createBase();
     }
   }

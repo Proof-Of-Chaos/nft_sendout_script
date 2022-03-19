@@ -5,6 +5,7 @@ import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../pinataUtils.js";
 import { sendAndFinalize } from "../substrateUtils.js";
 import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
+import { logger } from "../logger.js";
 
 export const createShelfCollection = async () => {
   try {
@@ -12,7 +13,7 @@ export const createShelfCollection = async () => {
       u8aToHex(params.account.publicKey),
       params.settings.shelfCollectionSymbol
     );
-    console.log("collection Id: ", collectionId);
+    logger.info("collection Id: ", collectionId);
 
     const royaltyProperty: IRoyaltyAttribute = {
       type: "royalty",
@@ -23,13 +24,13 @@ export const createShelfCollection = async () => {
     }
 
     const collectionMetadataCid = await pinSingleMetadataFromDir(
-      "/assets/collections",
+      "/assets/shelf/collections",
       "shelf.png",
-      "GovernanceParticipationRewards",
+      "Shelves",
       {
-        description: "A project that rewards all referendum voters with NFTs.",
+        description: "A collection of shelves.",
         properties: {
-          royalty: {
+          royaltyInfo: {
             ...royaltyProperty
           }
         },
@@ -49,8 +50,8 @@ export const createShelfCollection = async () => {
       params.api.tx.system.remark(ShelfCollection.create()),
       params.account
     );
-    console.log("COLLECTION CREATION REMARK: ", ShelfCollection.create());
-    console.log("Collection created at block: ", block);
+    logger.info("COLLECTION CREATION REMARK: ", ShelfCollection.create());
+    logger.info("Collection created at block: ", block);
 
     return block;
   } catch (error: any) {

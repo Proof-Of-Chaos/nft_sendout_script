@@ -1,5 +1,6 @@
 import { Modules, ReferendumMethods } from "../tools/constants.js";
 import { sendNFTs } from "./sendNFTs.js";
+import { logger } from "../tools/logger.js";
 
 const isReferendumEvent = (section, method) => {
     if (
@@ -19,8 +20,8 @@ export const handleReferendumEnd = async (
     if (!isReferendumEvent(section, method)) {
         return;
     }
-    console.log("method", method)
-    console.log("block", indexer.blockHeight)
+    logger.info("method", method)
+    logger.info("block", indexer.blockHeight)
     if (ReferendumMethods.Passed === method) {
         const [id, type] = event.data;
         sendNFTs(true, id, indexer)

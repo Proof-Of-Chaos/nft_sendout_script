@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
+import { logger } from "../../tools/logger.js";
 
 dotenv.config();
 
@@ -23,7 +24,7 @@ export async function initDb() {
     client = await MongoClient.connect(mongoUri);
 
     const dbName = getDbName();
-    console.log('dbName:', dbName);
+    logger.info('dbName:', dbName);
     db = client.db(dbName);
     referendumCol = db.collection(referendumCollectionName);
     await _createIndexes();

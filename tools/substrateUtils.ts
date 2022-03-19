@@ -73,19 +73,19 @@ export const sendAndFinalize = async (
       account,
       async ({ events = [], status, dispatchError }) => {
         if (status.isInBlock) {
-          console.log(`status: ${status}`);
+          logger.info(`status: ${status}`);
 
           success = dispatchError ? false : true;
-          console.log(
+          logger.info(
             `📀 Transaction ${tx.meta.name} included at blockHash ${status.asInBlock} [success = ${success}]`
           );
           const signedBlock = await params.api.rpc.chain.getBlock(status.asInBlock);
           block = signedBlock.block.header.number.toNumber();
           included = [...events];
         } else if (status.isBroadcast) {
-          console.log(`🚀 Transaction broadcasted.`);
+          logger.info(`🚀 Transaction broadcasted.`);
         } else if (status.isFinalized) {
-          console.log(
+          logger.info(
             `💯 Transaction ${tx.meta.name}(..) Finalized at blockHash ${status.asFinalized}`
           );
           finalized = [...events];
@@ -95,7 +95,7 @@ export const sendAndFinalize = async (
         } else if (status.isReady) {
           // let's not be too noisy..
         } else {
-          console.log(`🤷 Other status ${status}`);
+          logger.info(`🤷 Other status ${status}`);
         }
       }
     );

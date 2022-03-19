@@ -222,12 +222,12 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     await this.db.write();
   }
 
-  public async updateCollectionMint(collection: CollectionConsolidated): Promise<CollectionConsolidated> {
-    await this.db.read();
-    this.db.data.collections.push(collection);
-    await this.db.write();
-    const collectionDb = await this.getCollectionById(collection.id);
-    return collectionDb
+  public async updateCollectionMint(collection: CollectionConsolidated) { //: Promise<CollectionConsolidated>
+    // await this.db.read();
+    // this.db.data.collections.push(collection);
+    // await this.db.write();
+    // const collectionDb = await this.getCollectionById(collection.id);
+    // return collectionDb
   }
 
   public async updateCollectionDestroy(collection: CollectionConsolidated) {
@@ -253,10 +253,10 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     await this.db.read();
     let baseDb: BaseConsolidated = this.db.data.bases.find(({ id }) => id === base.getId());
     if (!baseDb) {
-      this.db.data.bases.push({
-        ...base,
-        id: base.getId(),
-      });
+      // this.db.data.bases.push({
+      //   ...base,
+      //   id: base.getId(),
+      // });
     }
     else {
       this.db.chain = _.chain(this.db.data)

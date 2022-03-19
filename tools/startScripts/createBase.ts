@@ -4,26 +4,51 @@ import { IBasePart } from "rmrk-tools/dist/classes/base"
 import { encodeAddress } from "@polkadot/util-crypto";
 import { u8aToHex } from "@polkadot/util";
 import { sendAndFinalize } from "../../tools/substrateUtils.js";
+import { pinSingleFileFromDir } from "../../tools/pinataUtils.js";
+import { logger } from "../logger.js";
 
 export const createBase = async () => {
     try {
         let baseParts: IBasePart[] = [];
-        const trophyCollectionId = Collection.generateId(
+        const backgroundCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
-            params.settings.trophyCollectionSymbol
+            params.settings.backgroundCollectionSymbol
         );
-        for (let i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.trophyCount; i++) {            
+        const itemCollectionId = Collection.generateId(
+            u8aToHex(params.account.publicKey),
+            params.settings.itemCollectionSymbol
+        );
+
+        const backgroundPart: IBasePart = {
+            id: "background",
+            type: "slot",
+            equippable: [backgroundCollectionId],
+            z: 0
+        }
+        baseParts.push(backgroundPart);
+
+        let shelfCid = await pinSingleFileFromDir("/assets/shelf",
+            "shelf.png",
+            `Your Shelf`)
+
+        const shelfPart: IBasePart = {
+            id: "shelf",
+            type: "fixed",
+            z: 1,
+            src: `ipfs://ipfs/${shelfCid}`
+        }
+        baseParts.push(shelfPart);
+
+        for (let i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.itemCount; i++) {
             const basePart: IBasePart = {
-                id: i.toString(),
+                id: `REFERENDUM_${i.toString()}`,
                 type: "slot",
-                equippable: [trophyCollectionId],
-                //unequip?: "unequip" | "burn";
+                equippable: [itemCollectionId],
                 z: i
-                //src?: string;
             }
             baseParts.push(basePart);
         }
-        console.log("baseParts", baseParts)
+        logger.info("baseParts", baseParts)
 
         const base = new Base(0,
             params.settings.baseSymbol,
@@ -35,8 +60,8 @@ export const createBase = async () => {
             params.api.tx.system.remark(base.base()),
             params.account
         );
-        console.log("BASE CREATION REMARK: ", base.base());
-        console.log("Base created at block: ", block);
+        logger.info("BASE CREATION REMARK: ", base.base());
+        logger.info("Base created at block: ", block);
 
     } catch (error: any) {
         console.error(error);

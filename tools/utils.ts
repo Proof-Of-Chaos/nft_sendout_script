@@ -203,12 +203,12 @@ export const amountToHumanString = (amount: string, afterCommas?: number): strin
 export const getSettingsFile = async (referendumId: BN) => {
   try {
 
-      const settings = await fsPromises.readFile(`${process.cwd()}/assets/referendaSettings/${referendumId}.json`, 'utf8');
-      logger.info(`reading settings from /assets/referendaSettings/${referendumId}.json`);
+      const settings = await fsPromises.readFile(`${process.cwd()}/assets/shelf/referendaSettings/${referendumId}.json`, 'utf8');
+      logger.info(`reading settings from /assets/shelf/referendaSettings/${referendumId}.json`);
       return settings
   }
   catch (e) {
-      logger.info(`reading settings from /assets/defaultSettings.json`);
-      return await fsPromises.readFile(`${process.cwd()}/assets/defaultSettings.json`, 'utf8');
+      logger.info(`No settings file specified. Exiting.`);
+      return "";
   }
 }
