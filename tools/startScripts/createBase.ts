@@ -14,6 +14,10 @@ export const createBase = async () => {
             u8aToHex(params.account.publicKey),
             params.settings.backgroundCollectionSymbol
         );
+        const foregroundCollectionId = Collection.generateId(
+            u8aToHex(params.account.publicKey),
+            params.settings.foregroundCollectionSymbol
+        );
         const itemCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
             params.settings.itemCollectionSymbol
@@ -38,8 +42,8 @@ export const createBase = async () => {
             src: `ipfs://ipfs/${shelfCid}`
         }
         baseParts.push(shelfPart);
-
-        for (let i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.itemCount; i++) {
+        let i;
+        for (i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.itemCount; i++) {
             const basePart: IBasePart = {
                 id: `REFERENDUM_${i.toString()}`,
                 type: "slot",
@@ -48,6 +52,16 @@ export const createBase = async () => {
             }
             baseParts.push(basePart);
         }
+
+        const foregroundPart: IBasePart = {
+            id: "foreground",
+            type: "slot",
+            equippable: [foregroundCollectionId],
+            z: i
+        }
+
+        baseParts.push(foregroundPart);
+
         logger.info("baseParts", baseParts)
 
         const base = new Base(0,

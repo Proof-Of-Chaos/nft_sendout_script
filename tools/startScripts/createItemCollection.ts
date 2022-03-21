@@ -26,9 +26,9 @@ export const createItemCollection = async () => {
         const collectionMetadataCid = await pinSingleMetadataFromDir(
             "/assets/shelf/collections",
             `item.png`,
-            `Shelf Items`,
+            `Items`,
             {
-                description: `A collection of items with which to fill up your shelf.`,
+                description: `A collection of items airdropped to Kusama referendum voters.`,
                 external_url: params.settings.externalUrl,
                 properties: {
                     royaltyInfo: {

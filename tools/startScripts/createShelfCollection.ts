@@ -26,9 +26,10 @@ export const createShelfCollection = async () => {
     const collectionMetadataCid = await pinSingleMetadataFromDir(
       "/assets/shelf/collections",
       "shelf.png",
-      "Shelves",
+      "Shelf",
       {
-        description: "A collection of shelves.",
+        description: "A collection of shelves on which Kusama referendum voters can showcase their collected items.",
+        external_url: params.settings.externalUrl,
         properties: {
           royaltyInfo: {
             ...royaltyProperty

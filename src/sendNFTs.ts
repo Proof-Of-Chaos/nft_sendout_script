@@ -162,7 +162,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             "shelf/shelf.png",
             `Your Shelf`,
             {
-                description: `With each vote on a referendum, this shelf will get filled up more.`,
+                description: `Each time you vote on a referendum, a new item will be added to this shelf.`,
                 properties: {},
             },
             "shelf/shelf_thumb.png"
@@ -235,6 +235,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 for (let i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.itemCount; i++) {
                     parts.push(`REFERENDUM_${i.toString()}`)
                 }
+                parts.push("foreground");
                 addBaseAndSendRemarks.push(
                     nft.resadd({
                         base: baseId,
@@ -256,7 +257,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         }
     }
 
-    
+
 
     // upload file to pinata
     // let imagePath;
