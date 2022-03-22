@@ -76,10 +76,9 @@ class Incentivizer {
       });
       const subscriber = listener.initialiseObservable();
       subscriber.subscribe(async (val) => {
-        // if (val.invalid && val.invalid.length > 0) {
-        //   await params.bot.api
-        //     .sendMessage(params.settings.adminChatId, `Invalid Remark: ${JSON.stringify(val.invalid)}`);
-        // }
+        if (val.invalid.length > 0){
+          logger.info("invalid", val.invalid)
+        }
       });
     };
     await startListening();

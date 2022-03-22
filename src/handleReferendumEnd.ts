@@ -1,6 +1,7 @@
 import { Modules, ReferendumMethods } from "../tools/constants.js";
 import { sendNFTs } from "./sendNFTs.js";
 import { logger } from "../tools/logger.js";
+import { sleep } from "../tools/utils.js";
 
 const isReferendumEvent = (section, method) => {
     if (
@@ -24,11 +25,13 @@ export const handleReferendumEnd = async (
     logger.info("block", indexer.blockHeight)
     if (ReferendumMethods.Passed === method) {
         const [id, type] = event.data;
-        sendNFTs(true, id, indexer)
+        sendNFTs(true, id, indexer);
+        await sleep(10000);
         //await saveNewReferendum(event, indexer);
     }
     if (ReferendumMethods.NotPassed === method) {
         const [id, type] = event.data;
-        sendNFTs(false, id, indexer)
+        sendNFTs(false, id, indexer);
+        await sleep(10000);
     }
 };

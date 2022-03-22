@@ -14,6 +14,10 @@ export const createBase = async () => {
             u8aToHex(params.account.publicKey),
             params.settings.backgroundCollectionSymbol
         );
+        const decorationCollectionId = Collection.generateId(
+            u8aToHex(params.account.publicKey),
+            params.settings.decorationCollectionSymbol
+        );
         const foregroundCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
             params.settings.foregroundCollectionSymbol
@@ -42,6 +46,15 @@ export const createBase = async () => {
             src: `ipfs://ipfs/${shelfCid}`
         }
         baseParts.push(shelfPart);
+
+        const decorationPart: IBasePart = {
+            id: "decoration",
+            type: "slot",
+            equippable: [decorationCollectionId],
+            z: 2
+        }
+        baseParts.push(decorationPart);
+
         let i;
         for (i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.itemCount; i++) {
             const basePart: IBasePart = {

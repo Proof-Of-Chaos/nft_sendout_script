@@ -11,6 +11,7 @@ export const getSettings = () => {
     shelfCollectionSymbol: process.env.SHELF_COLLECTION_SYMBOL.toString(),
     itemCollectionSymbol: process.env.ITEM_COLLECTION_SYMBOL.toString(),
     backgroundCollectionSymbol: process.env.BACKGROUND_COLLECTION_SYMBOL.toString(),
+    decorationCollectionSymbol: process.env.DECORATION_COLLECTION_SYMBOL.toString(),
     foregroundCollectionSymbol: process.env.FOREGROUND_COLLECTION_SYMBOL.toString(),
     baseSymbol: process.env.BASE_SYMBOL.toString(),
     shelfNFTSymbol: process.env.SHELF_NFT_SYMBOL.toString(),

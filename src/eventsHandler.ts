@@ -1,6 +1,3 @@
-import { GenericExtrinsic, Vec } from "@polkadot/types";
-import { u8aToHex } from "@polkadot/util";
-import { logger } from "../tools/logger.js";
 import { handleReferendumEnd } from "./handleReferendumEnd.js";
 
 // async function handleEventWithExtrinsic(

@@ -7,5 +7,5 @@ localStorage/localStorage.json
 assets/mosaic/*
 assets/referenda
 assets/referendaSettings
-assets/shelf/referenda/*
-assets/shelf/referendaSettings/*
+# assets/shelf/referenda/*
+# assets/shelf/referendaSettings/*

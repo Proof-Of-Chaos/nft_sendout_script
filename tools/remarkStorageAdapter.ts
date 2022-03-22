@@ -66,7 +66,7 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     await this.db.write();
   }
 
-  public async updateEquip(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
+  public async updateEquip(nft: NFT, consolidatedNFT: NFTConsolidated) {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
     this.db.chain = _.chain(this.db.data)
@@ -103,7 +103,7 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     nft: NFT,
     consolidatedNFT: NFTConsolidated,
     entity: AcceptEntityType
-  ): Promise<void> {
+  ) {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
     this.db.chain = _.chain(this.db.data)
@@ -223,11 +223,11 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   }
 
   public async updateCollectionMint(collection: CollectionConsolidated) { //: Promise<CollectionConsolidated>
-    // await this.db.read();
-    // this.db.data.collections.push(collection);
-    // await this.db.write();
-    // const collectionDb = await this.getCollectionById(collection.id);
-    // return collectionDb
+    await this.db.read();
+    this.db.data.collections.push(collection);
+    await this.db.write();
+    const collectionDb = await this.getCollectionById(collection.id);
+    return collectionDb
   }
 
   public async updateCollectionDestroy(collection: CollectionConsolidated) {
@@ -253,10 +253,10 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     await this.db.read();
     let baseDb: BaseConsolidated = this.db.data.bases.find(({ id }) => id === base.getId());
     if (!baseDb) {
-      // this.db.data.bases.push({
-      //   ...base,
-      //   id: base.getId(),
-      // });
+      this.db.data.bases.push({
+        ...base,
+        id: base.getId(),
+      });
     }
     else {
       this.db.chain = _.chain(this.db.data)
