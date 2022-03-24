@@ -76,9 +76,9 @@ class Incentivizer {
       });
       const subscriber = listener.initialiseObservable();
       subscriber.subscribe(async (val) => {
-        if (val.invalid.length > 0){
-          logger.info("invalid", val.invalid)
-        }
+        // if (val.invalid.length > 0){
+        //   logger.info("invalid", val.invalid)
+        // }
       });
     };
     await startListening();
