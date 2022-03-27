@@ -18,6 +18,10 @@ log4js.configure({
       appender: "errorFile",
     },
     out: { type: "stdout" },
+    // all: {
+    //   type: "file",
+    //   filename: "log/all.log"
+    // }
   },
   categories: {
     default: {

@@ -16,7 +16,8 @@ export const getSettings = () => {
     baseSymbol: process.env.BASE_SYMBOL.toString(),
     shelfNFTSymbol: process.env.SHELF_NFT_SYMBOL.toString(),
     saveDB: process.env.SAVE_DB.toString(),
-    externalUrl: process.env.EXTERNAL_URL.toString()
+    externalUrl: process.env.EXTERNAL_URL.toString(),
+    chunkSize: parseInt(process.env.CHUNK_SIZE)
   };
   return settings;
 };
