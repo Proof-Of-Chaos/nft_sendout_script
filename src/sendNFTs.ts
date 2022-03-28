@@ -221,23 +221,23 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 //remove this
                 // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                 //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
-                const nftProps: INftProps = {
-                    block: 0,
-                    sn: ((chunkCount * chunkSize) + count++).toString(),
-                    owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                    transferable: 1,
-                    metadata: shelfMetadataCid,
-                    collection: shelfCollectionId,
-                    symbol: params.settings.shelfNFTSymbol,
-                    properties: {
-                        royaltyInfo: {
-                            ...shelfRoyaltyProperty
+                    const nftProps: INftProps = {
+                        block: 0,
+                        sn: ((chunkCount * chunkSize) + count++).toString(),
+                        owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                        transferable: 1,
+                        metadata: shelfMetadataCid,
+                        collection: shelfCollectionId,
+                        symbol: params.settings.shelfNFTSymbol,
+                        properties: {
+                            royaltyInfo: {
+                                ...shelfRoyaltyProperty
+                            }
                         }
-                    }
-                };
-                const nft = new NFT(nftProps);
+                    };
+                    const nft = new NFT(nftProps);
 
-                shelfRemarks.push(nft.mint());
+                    shelfRemarks.push(nft.mint());
                 // }
             }
             logger.info("shelfRemarks", JSON.stringify(shelfRemarks))
@@ -248,6 +248,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 while ((await params.remarkBlockCountAdapter.get()) < block) {
                     await sleep(3000);
                 }
+                await sleep(60000);
                 // add base resource to shelf nfts
                 const addBaseRemarks: string[] = [];
 
@@ -256,32 +257,32 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                     // //remove this
                     // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                     //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
-                    const nftProps: INftProps = {
-                        block: block,
-                        sn: ((chunkCount * chunkSize) + count++).toString(),
-                        owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                        transferable: 1,
-                        metadata: shelfMetadataCid,
-                        collection: shelfCollectionId,
-                        symbol: params.settings.shelfNFTSymbol,
-                    };
-                    const nft = new NFT(nftProps);
-                    let parts = [];
-                    parts.push("background");
-                    parts.push("shelf");
-                    parts.push("decoration");
-                    for (let i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.itemCount; i++) {
-                        parts.push(`REFERENDUM_${i.toString()}`)
-                    }
-                    parts.push("foreground");
-                    addBaseRemarks.push(
-                        nft.resadd({
-                            base: baseId,
-                            id: nanoid(16),
-                            parts: parts,
-                            thumb: `ipfs://ipfs/${shelfThumbCid}`,
-                        })
-                    );
+                        const nftProps: INftProps = {
+                            block: block,
+                            sn: ((chunkCount * chunkSize) + count++).toString(),
+                            owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                            transferable: 1,
+                            metadata: shelfMetadataCid,
+                            collection: shelfCollectionId,
+                            symbol: params.settings.shelfNFTSymbol,
+                        };
+                        const nft = new NFT(nftProps);
+                        let parts = [];
+                        parts.push("background");
+                        parts.push("shelf");
+                        parts.push("decoration");
+                        for (let i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.itemCount; i++) {
+                            parts.push(`REFERENDUM_${i.toString()}`)
+                        }
+                        parts.push("foreground");
+                        addBaseRemarks.push(
+                            nft.resadd({
+                                base: baseId,
+                                id: nanoid(16),
+                                parts: parts,
+                                thumb: `ipfs://ipfs/${shelfThumbCid}`,
+                            })
+                        );
                     // }
                 }
                 logger.info("addBaseRemarks: ", JSON.stringify(addBaseRemarks))
@@ -297,17 +298,17 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                     // //remove this
                     // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                     //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
-                    const nftProps: INftProps = {
-                        block: block,
-                        sn: ((chunkCount * chunkSize) + count++).toString(),
-                        owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                        transferable: 1,
-                        metadata: shelfMetadataCid,
-                        collection: shelfCollectionId,
-                        symbol: params.settings.shelfNFTSymbol,
-                    };
-                    const nft = new NFT(nftProps);
-                    sendRemarks.push(nft.send(account.toString()))
+                        const nftProps: INftProps = {
+                            block: block,
+                            sn: ((chunkCount * chunkSize) + count++).toString(),
+                            owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                            transferable: 1,
+                            metadata: shelfMetadataCid,
+                            collection: shelfCollectionId,
+                            symbol: params.settings.shelfNFTSymbol,
+                        };
+                        const nft = new NFT(nftProps);
+                        sendRemarks.push(nft.send(account.toString()))
                     // }
                 }
 
@@ -405,38 +406,38 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             // //remove this
             // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
             //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
-            let metadataCid = vote.isDelegating ? selectedMetadata[1] : selectedMetadata[0]
+                let metadataCid = vote.isDelegating ? selectedMetadata[1] : selectedMetadata[0]
 
-            const randRoyaltyInRange = Math.floor(Math.random() * (selectedOption.royalty[1] - selectedOption.royalty[0] + 1) + selectedOption.royalty[0])
-            const itemRoyaltyProperty: IRoyaltyAttribute = {
-                type: "royalty",
-                value: {
-                    receiver: encodeAddress(params.account.address, params.settings.network.prefix),
-                    royaltyPercentFloat: randRoyaltyInRange
-                }
-            }
-            if (!metadataCid) {
-                logger.error(`metadataCid is null. exiting.`)
-                return;
-            }
-            const nftProps: INftProps = {
-                block: 0,
-                sn: ((chunkCount * chunkSize) + count++).toString(),
-                owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                transferable: 1, //parseInt(selectedOption.transferable)
-                metadata: metadataCid,
-                collection: itemCollectionId,
-                symbol: referendumIndex.toString(),
-                properties: {
-                    royaltyInfo: {
-                        ...itemRoyaltyProperty
+                const randRoyaltyInRange = Math.floor(Math.random() * (selectedOption.royalty[1] - selectedOption.royalty[0] + 1) + selectedOption.royalty[0])
+                const itemRoyaltyProperty: IRoyaltyAttribute = {
+                    type: "royalty",
+                    value: {
+                        receiver: encodeAddress(params.account.address, params.settings.network.prefix),
+                        royaltyPercentFloat: randRoyaltyInRange
                     }
-                },
-            };
-            usedMetadataCids.push(metadataCid);
-            const nft = new NFT(nftProps);
+                }
+                if (!metadataCid) {
+                    logger.error(`metadataCid is null. exiting.`)
+                    return;
+                }
+                const nftProps: INftProps = {
+                    block: 0,
+                    sn: ((chunkCount * chunkSize) + count++).toString(),
+                    owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                    transferable: 1, //parseInt(selectedOption.transferable)
+                    metadata: metadataCid,
+                    collection: itemCollectionId,
+                    symbol: referendumIndex.toString(),
+                    properties: {
+                        royaltyInfo: {
+                            ...itemRoyaltyProperty
+                        }
+                    },
+                };
+                usedMetadataCids.push(metadataCid);
+                const nft = new NFT(nftProps);
 
-            mintRemarks.push(nft.mint());
+                mintRemarks.push(nft.mint());
             // }
         }
         logger.info("selectedOptions: ", JSON.stringify(selectedOptions))
@@ -444,24 +445,22 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         logger.info("mintRemarks: ", JSON.stringify(mintRemarks))
         //mint
         if (mintRemarks.length > 0) {
-            let blockMint, successMint, hashMint, feeMint;
-            if (chunkCount > 0) {
-                ({ block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks));
-                if (!successMint) {
-                    logger.info(`Failure minting NFTs at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
-                    return;
-                }
-                logger.info(`NFTs minted at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
-                while ((await params.remarkBlockCountAdapter.get()) < blockMint) {
-                    await sleep(3000);
-                }
-                // add res to nft
-                count = 0;
-                const addResRemarks: string[] = [];
-                for (const [index, vote] of chunk.entries()) {
-                    // //remove this
-                    // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                    //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+            const { block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks);
+            if (!successMint) {
+                logger.info(`Failure minting NFTs at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
+                return;
+            }
+            logger.info(`NFTs minted at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
+            while ((await params.remarkBlockCountAdapter.get()) < blockMint) {
+                await sleep(3000);
+            }
+            // add res to nft
+            count = 0;
+            const addResRemarks: string[] = [];
+            for (const [index, vote] of chunk.entries()) {
+                // //remove this
+                // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
                     const selectedOption = selectedOptions[index]
                     const nftProps: INftProps = {
                         block: blockMint,
@@ -498,16 +497,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                     // logger.info("idParent", accountShelfNFTId)
                     // addResAndSendRemarks.push(nft.send(accountShelfNFTId.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
                     //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
-                    // }
-                }
-                logger.info("addResRemarks: ", JSON.stringify(addResRemarks))
-                const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addResRemarks);
-                logger.info(`Resource(s) added to NFTs at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
-                while ((await params.remarkBlockCountAdapter.get()) < resAddBlock) {
-                    await sleep(3000);
-                }
+                // }
             }
-
+            logger.info("addResRemarks: ", JSON.stringify(addResRemarks))
+            const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addResRemarks);
+            logger.info(`Resource(s) added to NFTs at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
+            while ((await params.remarkBlockCountAdapter.get()) < resAddBlock) {
+                await sleep(3000);
+            }
 
             count = 0;
             const sendRemarks: string[] = [];
@@ -515,33 +512,33 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 // //remove this
                 // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                 //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
-                const selectedOption = selectedOptions[index]
-                const nftProps: INftProps = {
-                    block: chunkCount == 0 ? 11996488 : blockMint,
-                    sn: ((chunkCount * chunkSize) + count++).toString(),
-                    owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                    transferable: 1, //parseInt(selectedOption.transferable)
-                    metadata: usedMetadataCids[index],
-                    collection: itemCollectionId,
-                    symbol: referendumIndex.toString(),
-                };
-                const nft = new NFT(nftProps);
-                //get the parent nft
-                let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
+                    const selectedOption = selectedOptions[index]
+                    const nftProps: INftProps = {
+                        block: blockMint,
+                        sn: ((chunkCount * chunkSize) + count++).toString(),
+                        owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                        transferable: 1, //parseInt(selectedOption.transferable)
+                        metadata: usedMetadataCids[index],
+                        collection: itemCollectionId,
+                        symbol: referendumIndex.toString(),
+                    };
+                    const nft = new NFT(nftProps);
+                    //get the parent nft
+                    let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
 
-                const accountShelfNFTId = allNFTs.find(({ owner, rootowner, symbol, burned }) => {
-                    return rootowner === vote.accountId.toString() &&
-                        symbol === params.settings.shelfNFTSymbol &&
-                        burned === ""
-                })
+                    const accountShelfNFTId = allNFTs.find(({ owner, rootowner, symbol, burned }) => {
+                        return rootowner === vote.accountId.toString() &&
+                            symbol === params.settings.shelfNFTSymbol &&
+                            burned === ""
+                    })
 
-                if (!accountShelfNFTId) {
-                    logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
-                }
-                // add emergency send shelf command here in case shelf was sent away in process?
-                logger.info("idParent", accountShelfNFTId.id)
-                sendRemarks.push(nft.send(accountShelfNFTId.id.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
-                //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
+                    if (!accountShelfNFTId) {
+                        logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
+                    }
+                    // add emergency send shelf command here in case shelf was sent away in process?
+                    logger.info("idParent", accountShelfNFTId.id)
+                    sendRemarks.push(nft.send(accountShelfNFTId.id.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
+                    //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
                 // }
             }
             logger.info("sendRemarks: ", JSON.stringify(sendRemarks))

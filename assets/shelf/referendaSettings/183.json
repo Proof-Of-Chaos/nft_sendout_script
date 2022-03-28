@@ -1,0 +1,43 @@
+{
+    "min": "0",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "options": [
+        {
+            "probability": 0.25,
+            "transferable": 1,
+            "text": "'Chaos #183'\n\nThe canary comes flying in for runtime upgrades.\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "183/option1/resource1/main.png",
+                    "thumb": "183/option1/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_183"
+                }
+            ]
+        },
+        {
+            "probability": 0.75,
+            "transferable": 1,
+            "text": "'Squeaky Chaos #183'\n\nThe duck comes floating around for runtime upgrades.\n\n",
+            "royalty": [
+                10,
+                20
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "183/option2/resource1/main.png",
+                    "thumb": "183/option2/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_183"
+                }
+            ]
+        }
+    ]
+}
