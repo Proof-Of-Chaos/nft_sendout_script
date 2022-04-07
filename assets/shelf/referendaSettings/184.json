@@ -6,7 +6,7 @@
     "directOnly": false,
     "default": {
         "transferable": 1,
-        "text": "'Cactus v800'\n\nThe Statemine parachain is well rooted into the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
+        "text": "'Cactus v800'\n\nThe Statemine parachain is well rooted within the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
         "royalty": [
             15,
             25
@@ -24,7 +24,7 @@
         {
             "probability": 0.25,
             "transferable": 1,
-            "text": "'Bonsai v800'\n\nThe Statemine parachain is well rooted into the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
+            "text": "'Bonsai v800'\n\nThe Statemine parachain is well rooted within the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
             "royalty": [
                 20,
                 30
@@ -41,7 +41,7 @@
         {
             "probability": 0.75,
             "transferable": 1,
-            "text": "'Cactus v800'\n\nThe Statemine parachain is well rooted into the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
+            "text": "'Cactus v800'\n\nThe Statemine parachain is well rooted within the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
             "royalty": [
                 15,
                 25
