@@ -1,5 +1,5 @@
 import "@polkadot/api-augment";
-import { params, getLocalStorage, getDb } from "./config.js";
+import { params, getLocalStorage, getDb, getRemarkStorage } from "./config.js";
 import { getSettings } from "./tools/settings.js";
 import { CountAdapter } from "./tools/countAdapter.js";
 import dotenv from "dotenv";
@@ -22,8 +22,8 @@ class Incentivizer {
   settings: any;
   api: ApiPromise;
   localStorage: Low;
+  remarkStorage: Low;
   account: KeyringPair;
-
   constructor({
     settings,
     api,
@@ -33,12 +33,14 @@ class Incentivizer {
     this.api = api;
     this.account = account;
     this.localStorage = getLocalStorage();
+    this.remarkStorage = getRemarkStorage();
   }
 
   async run() {
     await getDb();
     params.api = this.api;
     params.localStorage = this.localStorage;
+    params.remarkStorage = this.remarkStorage;
     params.account = this.account
     const networkProperties = await this.api.rpc.system.properties();
     if (!this.settings.network.prefix && networkProperties.ss58Format) {
@@ -61,7 +63,7 @@ class Incentivizer {
         params.blockCountAdapter);
     }
     //setup remark listener for minting listener
-    params.remarkStorageAdapter = new RemarkStorageAdapter(params.localStorage);
+    params.remarkStorageAdapter = new RemarkStorageAdapter(params.remarkStorage);
     const consolidateFunction = async (remarks) => {
       const consolidator = new Consolidator(2, params.remarkStorageAdapter);
       return consolidator.consolidate(remarks);

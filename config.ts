@@ -10,6 +10,7 @@ import { RemarkStorageAdapter } from './tools/remarkStorageAdapter.js';
 type Params = {
   api: ApiPromise,
   localStorage: Low,
+  remarkStorage: Low,
   settings: any,
   blockCountAdapter: CountAdapter,
   blockListener: BlockListener,
@@ -22,6 +23,7 @@ type Params = {
 export const params: Params = {
   api: null,
   localStorage: null,
+  remarkStorage: null,
   settings: null,
   blockCountAdapter: null,
   blockListener: null,
@@ -37,6 +39,11 @@ export const getDb = async (): Promise<void> => {
 
 export const getLocalStorage = (): Low => {
   const db = new Low(new JSONFile(process.env.LOCAL_STORAGE_DB_FILE_PATH));
+  return db;
+};
+
+export const getRemarkStorage = (): Low => {
+  const db = new Low(new JSONFile(process.env.REMARK_STORAGE_DB_FILE_PATH));
   return db;
 };
 

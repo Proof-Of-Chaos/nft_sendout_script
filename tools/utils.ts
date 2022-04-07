@@ -4,6 +4,7 @@ import { logger } from "../tools/logger.js";
 import { createKeyMulti, encodeAddress } from "@polkadot/util-crypto";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { Modules, MultisigMethods, ProxyMethods, UtilityMethods } from "./constants.js";
+import BigNumber from "bignumber.js";
 import { BN } from '@polkadot/util';
 import fs from "fs";
 
@@ -192,10 +193,10 @@ export const isExtrinsicSuccess = (events) => {
 }
 
 export const amountToHumanString = (amount: string, afterCommas?: number): string => {
-  const decimals = parseInt(params.settings.network.decimals);
   const token = params.settings.network.token;
-  const value = new BN(amount.toString())
-      .div(new BN("1e" + decimals));
+  const value = new BigNumber(amount.toString())
+    .dividedBy(new BigNumber("1e" + params.api.registry.chainDecimals))
+    .toFixed(afterCommas ? afterCommas : 5, BigNumber.ROUND_FLOOR);
   const tokenString = token ? " " + token : "";
   return value + tokenString;
 };
@@ -203,12 +204,12 @@ export const amountToHumanString = (amount: string, afterCommas?: number): strin
 export const getSettingsFile = async (referendumId: BN) => {
   try {
 
-      const settings = await fsPromises.readFile(`${process.cwd()}/assets/shelf/referendaSettings/${referendumId}.json`, 'utf8');
-      logger.info(`reading settings from /assets/shelf/referendaSettings/${referendumId}.json`);
-      return settings
+    const settings = await fsPromises.readFile(`${process.cwd()}/assets/shelf/referendaSettings/${referendumId}.json`, 'utf8');
+    logger.info(`reading settings from /assets/shelf/referendaSettings/${referendumId}.json`);
+    return settings
   }
   catch (e) {
-      logger.info(`No settings file specified. Exiting.`);
-      return "";
+    logger.info(`No settings file specified. Exiting.`);
+    return "";
   }
 }
