@@ -22,7 +22,7 @@
     },
     "options": [
         {
-            "probability": 0.25,
+            "probability": 0.2,
             "transferable": 1,
             "text": "'Bonsai v800'\n\nThe Statemine parachain is well rooted within the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
             "royalty": [
@@ -39,7 +39,7 @@
             ]
         },
         {
-            "probability": 0.75,
+            "probability": 0.8,
             "transferable": 1,
             "text": "'Cactus v800'\n\nThe Statemine parachain is well rooted within the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
             "royalty": [
