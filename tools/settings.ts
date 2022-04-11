@@ -17,7 +17,8 @@ export const getSettings = () => {
     shelfNFTSymbol: process.env.SHELF_NFT_SYMBOL.toString(),
     saveDB: process.env.SAVE_DB.toString(),
     externalUrl: process.env.EXTERNAL_URL.toString(),
-    chunkSize: parseInt(process.env.CHUNK_SIZE)
+    chunkSize: parseInt(process.env.CHUNK_SIZE),
+    chunkSizeShelf: parseInt(process.env.CHUNK_SIZE_SHELF)
   };
   return settings;
 };

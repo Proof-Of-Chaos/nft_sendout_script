@@ -4,6 +4,7 @@ node_modules/
 dist/
 log/
 localStorage/localStorage.json
+localStorage/remarkStorage.json
 assets/mosaic/*
 assets/referenda
 assets/referendaSettings

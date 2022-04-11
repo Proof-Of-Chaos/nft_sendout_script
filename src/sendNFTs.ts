@@ -150,15 +150,18 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     //wait a bit since blocks after will be pretty full
     await sleep(10000);
     //wait until remark block has caught up with block
-    while ((await params.remarkBlockCountAdapter.get()) < indexer.blockHeight) {
-        console.log(`waiting for remark (Block: ${await params.remarkBlockCountAdapter.get()}) to get to current block: ${indexer.blockHeight}`);
+    let currentFinalized =  (await params.api.rpc.chain.getBlock(await params.api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
+    while ((await params.remarkBlockCountAdapter.get()) < currentFinalized) {
+        logger.info(`waiting for remark (Block: ${await params.remarkBlockCountAdapter.get()}) to get to current block: ${currentFinalized}`);
         await sleep(3000);
+        currentFinalized = (await params.api.rpc.chain.getBlock(await params.api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
     }
     let votes: DeriveReferendumVote[];
     let totalIssuance: String;
     let totalVotes: DeriveReferendumVote[];
     let totalIssuanceRefExpiry: String;
     const chunkSize = params.settings.chunkSize;
+    const chunkSizeShelf = params.settings.chunkSizeShelf;
 
     let settingsFile = await getSettingsFile(referendumIndex);
     if (settingsFile === "") {
@@ -214,9 +217,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
 
         let chunkCount = 0
         logger.info("accountsWithoutShelf", accountsWithoutShelf.length)
-        for (let i = 0; i < accountsWithoutShelf.length; i += chunkSize) {
+        for (let i = 0; i < accountsWithoutShelf.length; i += chunkSizeShelf) {
             const shelfRemarks: string[] = [];
-            const chunk = accountsWithoutShelf.slice(i, i + chunkSize);
+            const chunk = accountsWithoutShelf.slice(i, i + chunkSizeShelf);
             logger.info(`Chunk ${chunkCount}: ${chunk.length}`)
             let count = 0
             for (const account of chunk) {
@@ -225,7 +228,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
                     const nftProps: INftProps = {
                         block: 0,
-                        sn: ((chunkCount * chunkSize) + count++).toString(),
+                        sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
                         owner: encodeAddress(params.account.address, params.settings.network.prefix),
                         transferable: 1,
                         metadata: shelfMetadataCid,
@@ -261,7 +264,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                     //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
                         const nftProps: INftProps = {
                             block: block,
-                            sn: ((chunkCount * chunkSize) + count++).toString(),
+                            sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
                             owner: encodeAddress(params.account.address, params.settings.network.prefix),
                             transferable: 1,
                             metadata: shelfMetadataCid,
@@ -291,18 +294,22 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 // split remarks into sets of 400?
                 const { block: addBaseBlock, success: addBaseSuccess, hash: addBaseHash, fee: addBaseFee } = await mintAndSend(addBaseRemarks);
                 logger.info(`Base added at block ${addBaseBlock}: ${addBaseSuccess} for a total fee of ${addBaseFee}`)
+                while ((await params.remarkBlockCountAdapter.get()) < addBaseBlock) {
+                    await sleep(3000);
+                }
+                await sleep(60000);
 
                 // send out shelf nfts
                 const sendRemarks: string[] = [];
 
                 count = 0;
                 for (const account of chunk) {
-                    // //remove this
+                    //remove this
                     // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                     //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
                         const nftProps: INftProps = {
                             block: block,
-                            sn: ((chunkCount * chunkSize) + count++).toString(),
+                            sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
                             owner: encodeAddress(params.account.address, params.settings.network.prefix),
                             transferable: 1,
                             metadata: shelfMetadataCid,
@@ -315,13 +322,13 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 }
 
                 logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
-                // split remarks into sets of 400?
                 const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await mintAndSend(sendRemarks);
                 logger.info(`NFTs sent at block ${sendBlock}: ${sendSuccess} for a total fee of ${sendFee}`)
 
                 while ((await params.remarkBlockCountAdapter.get()) < sendBlock) {
                     await sleep(3000);
                 }
+                await sleep(60000);
             }
             chunkCount++;
         }
@@ -520,7 +527,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             count = 0;
             const sendRemarks: string[] = [];
             for (const [index, vote] of chunk.entries()) {
-                //remove this
+                // //remove this
                 // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                 //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
                     // const selectedOption = selectedOptions[index]
@@ -548,8 +555,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                         logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
                     }
                     // add emergency send shelf command here in case shelf was sent away in process?
-                    logger.info("idParent", accountShelfNFTId.id)
-                    sendRemarks.push(nft.send(accountShelfNFTId.id.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
+                    // logger.info("idParent", accountShelfNFTId.id)
+                    sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
                     //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
                 // }
             }
@@ -756,37 +763,37 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             count = 0;
             const sendRemarks: string[] = [];
             for (const [index, vote] of chunk.entries()) {
-                //remove this
+                // //remove this
                 // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                 //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
-                    const selectedOption = selectedOptions[index]
-                    // block: chunkCount == 3 ? 12007826 : blockMint,
-                    const nftProps: INftProps = {
-                        block: blockMint,
-                        sn: ((chunkCount * chunkSize) + count++).toString(),
-                        owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                        transferable: 1, //parseInt(selectedOption.transferable)
-                        metadata: usedMetadataCids[index],
-                        collection: itemCollectionId,
-                        symbol: referendumIndex.toString(),
-                    };
-                    const nft = new NFT(nftProps);
-                    //get the parent nft
-                    let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
+                const selectedOption = selectedOptions[index]
+                // block: chunkCount == 3 ? 12007826 : blockMint,
+                const nftProps: INftProps = {
+                    block: blockMint,
+                    sn: ((chunkCount * chunkSize) + count++).toString(),
+                    owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                    transferable: 1, //parseInt(selectedOption.transferable)
+                    metadata: usedMetadataCids[index],
+                    collection: itemCollectionId,
+                    symbol: referendumIndex.toString(),
+                };
+                const nft = new NFT(nftProps);
+                //get the parent nft
+                let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
 
-                    const accountShelfNFTId = allNFTs.find(({ owner, rootowner, symbol, burned }) => {
-                        return rootowner === vote.accountId.toString() &&
-                            symbol === params.settings.shelfNFTSymbol &&
-                            burned === ""
-                    })
+                const accountShelfNFTId = allNFTs.find(({ owner, rootowner, symbol, burned }) => {
+                    return rootowner === vote.accountId.toString() &&
+                        symbol === params.settings.shelfNFTSymbol &&
+                        burned === ""
+                })
 
-                    if (!accountShelfNFTId) {
-                        logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
-                    }
-                    // add emergency send shelf command here in case shelf was sent away in process?
-                    logger.info("idParent", accountShelfNFTId.id)
-                    sendRemarks.push(nft.send(accountShelfNFTId.id.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
-                    //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
+                if (!accountShelfNFTId) {
+                    logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
+                }
+                // add emergency send shelf command here in case shelf was sent away in process?
+                // logger.info("idParent", accountShelfNFTId.id)
+                sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
+                //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
                 // }
             }
             logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
