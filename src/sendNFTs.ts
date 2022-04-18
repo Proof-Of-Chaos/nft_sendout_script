@@ -974,11 +974,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         }
         chunkCount++;
     }
-    fs.writeFile(`assets/shelf/luck/${referendumIndex}.txt`, JSON.stringify(luckArray), (err) => {
-
-        // In case of a error throw err.
-        if (err) throw err;
-    })
+   
 
 
     //equip new collection to base
@@ -1010,6 +1006,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             await sleep(3000);
         }
     }
+
+    fs.writeFile(`assets/shelf/luck/${referendumIndex}.txt`, JSON.stringify(luckArray), (err) => {
+
+        // In case of a error throw err.
+        if (err) throw err;
+    })
 
     logger.info(`Sendout complete for Referendum ${referendumIndex}`);
 }
