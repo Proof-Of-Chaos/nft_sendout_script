@@ -32,7 +32,7 @@ export async function initDb() {
 
 async function _createIndexes() {
     if (!db) {
-        console.error("Please call initDb first");
+        logger.error("Please call initDb first");
         process.exit(1);
     }
 }

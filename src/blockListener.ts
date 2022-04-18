@@ -2,7 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { params } from "../config.js";
 import { CountAdapter } from "../tools/countAdapter.js";
 import { handleEvents } from "./eventsHandler.js";
-import { getBlockIndexer } from "../tools/substrateUtils.js";
+import { getApi, getBlockIndexer } from "../tools/substrateUtils.js";
 import { logger } from "../tools/logger.js";
 
 interface IStorageProvider {
@@ -46,9 +46,10 @@ export class BlockListener {
 
     private fetchEventsAtBlock = async (blockNumber: number): Promise<void> => {
         try {
-            const blockHash = await params.api.rpc.chain.getBlockHash(blockNumber);
-            const rawBlock = await params.api.rpc.chain.getBlock(blockHash);
-            const blockApi = await params.api.at(blockHash);
+            const api = await getApi();
+            const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+            const rawBlock = await api.rpc.chain.getBlock(blockHash);
+            const blockApi = await api.at(blockHash);
             const block = rawBlock.block;
             const blockIndexer = getBlockIndexer(block);
             const events = await blockApi.query.system.events();
@@ -76,7 +77,7 @@ export class BlockListener {
         headSubscriber(async (header) => {
             const latestFinalisedBlockNum = header.number.toNumber();
             if (latestFinalisedBlockNum === 0) {
-                console.error(
+                logger.error(
                     "Unable to retrieve finalized head - returned genesis block"
                 );
             }
@@ -113,11 +114,11 @@ export class BlockListener {
                     try {
                         await this.storageProvider.set(latestFinalisedBlockNum);
                     } catch (e: any) {
-                        console.error(e);
+                        logger.error(e);
                     }
                 }
             } catch (e: any) {
-                console.error(e);
+                logger.error(e);
                 return;
             }
         });

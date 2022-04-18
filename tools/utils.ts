@@ -7,6 +7,7 @@ import { Modules, MultisigMethods, ProxyMethods, UtilityMethods } from "./consta
 import BigNumber from "bignumber.js";
 import { BN } from '@polkadot/util';
 import fs from "fs";
+import { getApi } from "./substrateUtils.js";
 
 const fsPromises = fs.promises;
 
@@ -22,7 +23,8 @@ export const sleep = (ms: number): Promise<void> => {
 };
 
 export const getAccountName = async (account, short?: boolean) => {
-  var accountInfo = await params.api.derive.accounts.info(account);
+  const api = await getApi();
+  var accountInfo = await api.derive.accounts.info(account);
   if (accountInfo.identity.displayParent || accountInfo.identity.display) {
     var value = "";
     if (accountInfo.identity.displayParent) {
@@ -47,20 +49,21 @@ export const tryInitCall = (registry, callHex) => {
 };
 
 export const getCall = async (blockHash, callHex) => {
-  const registry = await params.api.getBlockRegistry(hexToU8a(blockHash));
+  const api = await getApi();
+  const registry = await api.getBlockRegistry(hexToU8a(blockHash));
   return tryInitCall(registry.registry, callHex) || null;
 };
 
-export const getMultiSigExtrinsicAddress = (args, signer) => {
+export const getMultiSigExtrinsicAddress = async (args, signer) => {
   if (!args) {
     args = {};
   }
   const { threshold, other_signatories: otherSignatories } = args;
-
+  const api = await getApi();
   return calcMultisigAddress(
     [signer, ...otherSignatories],
     threshold,
-    params.api.registry.chainSS58
+    api.registry.chainSS58
   );
 };
 
@@ -185,17 +188,19 @@ export const normalizeCall = (call) => {
 }
 
 export const getBlockHash = async (height) => {
-  return await params.api.rpc.chain.getBlockHash(height);
+  const api = await getApi();
+  return await api.rpc.chain.getBlockHash(height);
 };
 
 export const isExtrinsicSuccess = (events) => {
   return events.some((e) => e.event.method === "ExtrinsicSuccess");
 }
 
-export const amountToHumanString = (amount: string, afterCommas?: number): string => {
+export const amountToHumanString = async (amount: string, afterCommas?: number): Promise<string> => {
+  const api = await getApi();
   const token = params.settings.network.token;
   const value = new BigNumber(amount.toString())
-    .dividedBy(new BigNumber("1e" + params.api.registry.chainDecimals))
+    .dividedBy(new BigNumber("1e" + api.registry.chainDecimals))
     .toFixed(afterCommas ? afterCommas : 5, BigNumber.ROUND_FLOOR);
   const tokenString = token ? " " + token : "";
   return value + tokenString;
@@ -213,3 +218,4 @@ export const getSettingsFile = async (referendumId: BN) => {
     return "";
   }
 }
+

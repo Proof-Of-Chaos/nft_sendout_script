@@ -3,7 +3,7 @@ import { NFT, Collection } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../pinataUtils.js";
-import { sendAndFinalize } from "../substrateUtils.js";
+import { getApi, sendAndFinalize } from "../substrateUtils.js";
 import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
 import { logger } from "../logger.js";
 
@@ -47,8 +47,10 @@ export const createShelfCollection = async () => {
       collectionMetadataCid
     );
 
+    const api = await getApi()
+
     const { block } = await sendAndFinalize(
-      params.api.tx.system.remark(ShelfCollection.create()),
+      api.tx.system.remark(ShelfCollection.create()),
       params.account
     );
     logger.info("COLLECTION CREATION REMARK: ", ShelfCollection.create());
@@ -56,6 +58,6 @@ export const createShelfCollection = async () => {
 
     return block;
   } catch (error: any) {
-    console.error(error);
+    logger.error(error);
   }
 };

@@ -1,19 +1,15 @@
-import { params } from "../../config.js";
+import { logger } from "../tools/logger.js";
+import { params } from "../config.js";
 import { NFT, Collection } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { encodeAddress } from "@polkadot/util-crypto";
-import { pinSingleMetadataFromDir } from "../pinataUtils.js";
-import { getApi, sendAndFinalize } from "../substrateUtils.js";
+import { pinSingleMetadataFromDir } from "../tools/pinataUtils.js";
+import { getApi, sendAndFinalize } from "../tools/substrateUtils.js";
 import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
-import { logger } from "../logger.js";
 
-export const createItemCollection = async () => {
+export const createNewCollection = async (newCollectionId, settings) => {
     try {
-        const itemCollectionId = Collection.generateId(
-            u8aToHex(params.account.publicKey),
-            params.settings.itemCollectionSymbol
-        );
-        logger.info(`Item Collection Id: `, itemCollectionId);
+        logger.info(`New Collection Id: `, newCollectionId);
 
         const royaltyProperty: IRoyaltyAttribute = {
             type: "royalty",
@@ -24,11 +20,11 @@ export const createItemCollection = async () => {
         }
 
         const collectionMetadataCid = await pinSingleMetadataFromDir(
-            "/assets/shelf/collections",
-            `item.png`,
-            `Items`,
+            settings.newCollectionPath,
+            settings.newCollectionFile,
+            settings.newCollectionName,
             {
-                description: `A collection of items airdropped to Kusama referendum voters.`,
+                description: settings.newCollectionDescription,
                 external_url: params.settings.externalUrl,
                 properties: {
                     royaltyInfo: {
@@ -38,26 +34,25 @@ export const createItemCollection = async () => {
             }
         );
 
-        const ItemCollection = new Collection(
+        const NewCollection = new Collection(
             0,
             0,
             encodeAddress(params.account.address, params.settings.network.prefix),
-            params.settings.itemCollectionSymbol,
-            itemCollectionId,
+            settings.newCollectionSymbol,
+            newCollectionId,
             collectionMetadataCid
         );
 
         const api = await getApi()
 
         const { block } = await sendAndFinalize(
-            api.tx.system.remark(ItemCollection.create()),
+            api.tx.system.remark(NewCollection.create()),
             params.account
         );
-        logger.info("COLLECTION CREATION REMARK: ", ItemCollection.create());
+        logger.info("NEW COLLECTION CREATION REMARK: ", NewCollection.create());
         logger.info("Collection created at block: ", block);
 
     } catch (error: any) {
         logger.error(error);
     }
-
-};
+}

@@ -3,12 +3,11 @@ import { BN } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleMetadataWithoutFile, pinSingleWithThumbMetadataFromDir } from "../tools/pinataUtils.js";
 import fs from 'fs';
-import { Collection, NFT } from "rmrk-tools";
+import { Base, Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
-import { INftProps } from "../types.js";
-import { mintAndSend } from "../tools/substrateUtils.js";
+import { INftProps, VoteConviction } from "../types.js";
+import { getApi, getDecimal, mintAndSend } from "../tools/substrateUtils.js";
 import { amountToHumanString, getSettingsFile, sleep } from "../tools/utils.js";
-import { DeriveReferendumVote } from "@polkadot/api-derive/types";
 import { AccountId, VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
 import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
@@ -16,6 +15,10 @@ import { saveVotesToDB } from "./saveVotesToDB.js";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { nanoid } from "nanoid";
 import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
+import { exit } from "process";
+import BigNumber from "bignumber.js";
+import { createNewCollection } from "./createNewCollection.js";
+import { BaseConsolidated } from "rmrk-tools/dist/tools/consolidator/consolidator";
 
 const fsPromises = fs.promises;
 
@@ -27,9 +30,9 @@ const extractVotes = (mapped: [AccountId, PalletDemocracyVoteVoting][], referend
             voting.asDirect.votes.filter(([idx]) => idx.eq(referendumId))
         ])
         .filter(([, directVotes]) => !!directVotes.length)
-        .reduce((result: DeriveReferendumVote[], [accountId, votes]) =>
+        .reduce((result: VoteConviction[], [accountId, votes]) =>
             // FIXME We are ignoring split votes
-            votes.reduce((result: DeriveReferendumVote[], [, vote]): DeriveReferendumVote[] => {
+            votes.reduce((result: VoteConviction[], [, vote]): VoteConviction[] => {
                 if (vote.isStandard) {
                     result.push({
                         accountId,
@@ -47,7 +50,7 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
     const allVoting = await api.query.democracy.votingOf.entries()
     //logger.info("allVoting", allVoting)
     const mapped = allVoting.map(([{ args: [accountId] }, voting]): [AccountId, PalletDemocracyVoteVoting] => [accountId, voting]);
-    const votes: DeriveReferendumVote[] = extractVotes(mapped, referendumId);
+    let votes: VoteConviction[] = extractVotes(mapped, referendumId);
     const delegations = mapped
         .filter(([, voting]) => voting.isDelegating)
         .map(([accountId, voting]): [AccountId, VotingDelegating] => [accountId, voting.asDelegating]);
@@ -68,19 +71,24 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
             });
         }
     });
+    const LOCKS = [1, 10, 20, 30, 40, 50, 60];
+    votes = votes.map((vote) => {
+        const convictionBalance = vote.balance.muln(LOCKS[vote.vote.conviction.toNumber()]).div(new BN(10));
+        return { ...vote, convictionBalance }
+    })
     return votes;
 }
 
-const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[], totalIssuance: string, settings): Promise<DeriveReferendumVote[]> => {
+const filterVotes = async (referendumId: BN, votes: VoteConviction[], totalIssuance: string, settings): Promise<VoteConviction[]> => {
     const minVote = BN.max(new BN(settings.min), new BN("0"));
     const maxVote = BN.min(new BN(settings.max), new BN(totalIssuance));
     logger.info("min:", minVote.toString());
-    logger.info("minHuman:", amountToHumanString(minVote.toString()))
+    logger.info("minHuman:", await amountToHumanString(minVote.toString()))
     logger.info("max:", maxVote.toString());
-    logger.info("maxHuman:", amountToHumanString(maxVote.toString()))
+    logger.info("maxHuman:", await amountToHumanString(maxVote.toString()))
     let filtered = votes.filter((vote) => {
-        return (new BN(vote.balance).gte(minVote) &&
-            new BN(vote.balance).lte(maxVote))
+        return (new BN(vote.convictionBalance).gte(minVote) &&
+            new BN(vote.convictionBalance).lte(maxVote))
     })
     if (settings.directOnly) {
         filtered = votes.filter((vote) => !vote.isDelegating)
@@ -91,8 +99,9 @@ const filterVotes = async (referendumId: BN, votes: DeriveReferendumVote[], tota
     return filtered
 }
 
-const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, settings?): Promise<[String, DeriveReferendumVote[]]> => {
-    const info = await params.api.query.democracy.referendumInfoOf(referendumIndex);
+const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, settings?): Promise<[String, VoteConviction[]]> => {
+    const api = await getApi();
+    const info = await api.query.democracy.referendumInfoOf(referendumIndex);
     let blockNumber: BN;
     try {
         blockNumber = info.unwrap().asFinished.end
@@ -110,13 +119,13 @@ const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, setti
     else {
         cutOffBlock = blockNumber
     }
-    const blockHash = await params.api.rpc.chain.getBlockHash(cutOffBlock);
-    const blockApi = await params.api.at(blockHash);
+    const blockHash = await api.rpc.chain.getBlockHash(cutOffBlock);
+    const blockApi = await api.at(blockHash);
     const totalIssuance = (await blockApi.query.balances.totalIssuance()).toString()
     return [totalIssuance, await votesCurr(blockApi, referendumIndex)];
 }
 
-const getShelflessAccounts = async (votes: DeriveReferendumVote[], collectionId): Promise<AccountId[]> => {
+const getShelflessAccounts = async (votes: VoteConviction[], collectionId): Promise<AccountId[]> => {
     let accounts: AccountId[] = [];
     for (const vote of votes) {
         let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(collectionId);
@@ -146,19 +155,91 @@ const getRandom = (weights) => {
     return lastIndex;
 };
 
+
+
+const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent) => {
+    // unscale input
+    n = await getDecimal(n);
+    // console.log("n", n)
+    // minIn = new BigNumber(minIn).dividedBy(new BigNumber("1e" + api.registry.chainDecimals));
+    // maxIn = new BigNumber(maxIn).dividedBy(new BigNumber("1e" + api.registry.chainDecimals));
+    minOut = parseInt(minOut);
+    maxOut = parseInt(maxOut);
+    // console.log("bnb", nBN.toString());
+    // console.log("mininbn", minInBN.toString())
+    // console.log("maxInBN", maxInBN.toString())
+    // console.log("minOutBN", minOutBN.toString())
+    // console.log("maxOutBN", maxOutBN.toString())
+    n -= minIn
+    // nBN = nBN.minus(minInBN)
+    // console.log("bnb1", nBN);
+    n /= maxIn - minIn
+    // nBN = nBN.div(maxInBN.minus(minInBN))
+    // console.log("bnb2", nBN);
+
+    n = Math.pow(n, exponent)
+    // nBN = nBN.
+    // console.log("bnb3", nBN);
+
+    // scale output
+    n *= maxOut - minOut
+    // nBN = nBN.multipliedBy(maxOutBN.minus(minOutBN))
+    // console.log("bnb4", nBN);
+    n += minOut
+    // nBN = nBN.plus(minOutBN)
+    // console.log("bnb5", nBN.toString());
+    return n
+}
+
+const getMinMaxMedian = (someArray, criticalValue) => {
+    if (someArray.length < 4)
+        return someArray;
+    someArray = someArray.filter(vote => {
+        return vote > criticalValue
+    })
+
+    let values, q1, q3, iqr, maxValue, minValue, median;
+
+    values = someArray.slice().sort((a, b) => a - b);//copy array fast and sort
+    if ((values.length / 4) % 1 === 0) {//find quartiles
+        q1 = 1 / 2 * (values[(values.length / 4)] + values[(values.length / 4) + 1]);
+        q3 = 1 / 2 * (values[(values.length * (3 / 4))] + values[(values.length * (3 / 4)) + 1]);
+    } else {
+        q1 = values[Math.floor(values.length / 4 + 1)];
+        q3 = values[Math.ceil(values.length * (3 / 4) + 1)];
+    }
+
+    if ((values.length / 2) % 1 === 0) {//find quartiles
+        median = 1 / 2 * (values[(values.length / 2)] + values[(values.length / 2) + 1]);
+    } else {
+        median = values[Math.floor(values.length / 2 + 1)];
+    }
+
+
+    console.log("q1", q1)
+    console.log("q3", q3)
+    console.log("medium", median)
+    iqr = q3 - q1;
+    maxValue = q3 + iqr * 1.5;
+    minValue = q1 - iqr * 1.5;
+    console.log("maxi", maxValue)
+    return { minValue, maxValue, median };
+}
+
 export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) => {
     //wait a bit since blocks after will be pretty full
     await sleep(10000);
+    const api = await getApi();
     //wait until remark block has caught up with block
-    let currentFinalized =  (await params.api.rpc.chain.getBlock(await params.api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
+    let currentFinalized = (await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
     while ((await params.remarkBlockCountAdapter.get()) < currentFinalized) {
         logger.info(`waiting for remark (Block: ${await params.remarkBlockCountAdapter.get()}) to get to current block: ${currentFinalized}`);
         await sleep(3000);
-        currentFinalized = (await params.api.rpc.chain.getBlock(await params.api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
+        currentFinalized = (await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
     }
-    let votes: DeriveReferendumVote[];
+    let votes: VoteConviction[];
     let totalIssuance: String;
-    let totalVotes: DeriveReferendumVote[];
+    let totalVotes: VoteConviction[];
     let totalIssuanceRefExpiry: String;
     const chunkSize = params.settings.chunkSize;
     const chunkSizeShelf = params.settings.chunkSizeShelf;
@@ -170,6 +251,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     let settings = await JSON.parse(settingsFile);
     [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, false, settings);
     [totalIssuanceRefExpiry, totalVotes] = await getVotesAndIssuance(referendumIndex, true)
+
     logger.info("Number of votes: ", totalVotes.length)
     if (params.settings.saveDB) {
         await saveVotesToDB(referendumIndex, totalVotes, totalIssuanceRefExpiry, passed, indexer);
@@ -188,6 +270,32 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         u8aToHex(params.account.publicKey),
         params.settings.shelfCollectionSymbol
     );
+
+    let itemCollectionId;
+    //create collection if required
+
+    if (settings.createNewCollection) {
+        itemCollectionId = Collection.generateId(
+            u8aToHex(params.account.publicKey),
+            settings.newCollectionSymbol
+        );
+        let collection = await params.remarkStorageAdapter.getCollectionById(itemCollectionId);
+        if (!collection) {
+            await createNewCollection(itemCollectionId, settings);
+        }
+        else {
+            logger.info("New collection already exists.")
+        }
+    }
+    else {
+        itemCollectionId = Collection.generateId(
+            u8aToHex(params.account.publicKey),
+            params.settings.itemCollectionSymbol
+        );
+    }
+    logger.info("collectionID Item: ", itemCollectionId)
+
+    await sleep(10000);
 
     //check which wallets don't have the shelf nft
     const accountsWithoutShelf: AccountId[] = await getShelflessAccounts(totalVotes, shelfCollectionId)
@@ -304,7 +412,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
 
                 count = 0;
                 for (const account of chunk) {
-                    //remove this
+                    // //remove this
                     // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                     //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
                         const nftProps: INftProps = {
@@ -349,6 +457,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
     }
 
 
+
+
     //send "non-rare" NFT to voters not meeting requirements
 
     const metadataCidDirectDefault = await pinSingleMetadataWithoutFile(
@@ -372,10 +482,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         return;
     }
 
-    const itemCollectionId = Collection.generateId(
-        u8aToHex(params.account.publicKey),
-        params.settings.itemCollectionSymbol
-    );
+    // const itemCollectionId = Collection.generateId(
+    //     u8aToHex(params.account.publicKey),
+    //     params.settings.itemCollectionSymbol
+    // );
 
     let chunkCount = 0
 
@@ -416,7 +526,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             // const selectedOption = settings.options[selectedIndex];
             // selectedOptions.push(selectedOption);
             // const selectedMetadata = metadataCids[selectedIndex];
-            //remove this
+            // //remove this
             // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
             //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
                 let metadataCid = vote.isDelegating ? metadataCidDelegatedDefault : metadataCidDirectDefault
@@ -556,7 +666,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                     }
                     // add emergency send shelf command here in case shelf was sent away in process?
                     // logger.info("idParent", accountShelfNFTId.id)
-                    sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
+                    sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.id.toString()
                     //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
                 // }
             }
@@ -576,7 +686,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
 
 
     const metadataCids = []
-    const weights = []
+    // const weights = []
     for (const option of settings.options) {
         const metadataCidDirect = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
@@ -600,20 +710,20 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         }
 
         metadataCids.push([metadataCidDirect, metadataCidDelegated])
-        weights.push(option.probability)
+        // weights.push(option.probability)
     }
     logger.info("metadataCids", metadataCids);
-    logger.info("weights: ", weights);
+    // logger.info("weights: ", weights);
     //make sure weights total = 1
-    let weight_total = 0
-    for (const weight of weights) {
-        weight_total += weight
-    }
+    // let weight_total = 0
+    // for (const weight of weights) {
+    //     weight_total += weight
+    // }
 
-    if (weight_total !== 1) {
-        logger.error(`weights don't add up to 1: ${weights}`);
-        return;
-    }
+    // if (weight_total !== 1) {
+    //     logger.error(`weights don't add up to 1: ${weights}`);
+    //     return;
+    // }
 
     // const itemCollectionId = Collection.generateId(
     //     u8aToHex(params.account.publicKey),
@@ -640,6 +750,27 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
 
     logger.info("resourceCids", resourceCids);
 
+    const minVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).lt(new BN(curr.convictionBalance)) ? prev : curr);
+    const maxVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).gt(new BN(curr.convictionBalance)) ? prev : curr);
+    logger.info("minVote", minVote.convictionBalance.toString())
+    logger.info("maxVote", maxVote.convictionBalance.toString())
+    // const minOut = settings.minOut;
+    // const maxOut = settings.maxOut;
+    // logger.info("minOut", minOut)
+    // logger.info("maxOut", maxOut)
+    const promises = filteredVotes.map(async (vote) => {
+        return await getDecimal(vote.convictionBalance.toString())
+    })
+    const voteAmounts = await Promise.all(promises);
+    let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, settings.minAmount)
+    console.log("min", minValue);
+    console.log("median", median);
+    console.log("max", maxValue);
+    await sleep(10000);
+    minValue = minValue < await getDecimal(minVote.convictionBalance.toString()) ? await getDecimal(minVote.convictionBalance.toString()) : minValue
+    //remove this
+    let luckArray = [];
+
     for (let i = 0; i < filteredVotes.length; i += chunkSize) {
         const chunk = filteredVotes.slice(i, i + chunkSize);
         logger.info(`Chunk ${chunkCount}: ${chunk.length}`)
@@ -647,8 +778,44 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         let usedMetadataCids: string[] = [];
         let selectedOptions = [];
         let count = 0;
+
         for (const vote of chunk) {
-            const selectedIndex = getRandom(weights);
+            // console.log(vote.balance.toString(), vote.vote.conviction.toNumber(), vote.convictionBalance.toString())
+            let luck;
+            let selectedIndex;
+            let counter = 0;
+            for (const option of settings.options) {
+                if (counter < settings.options.length - 1) {
+                    if (await getDecimal(vote.convictionBalance.toString()) < median) {
+                        if (await getDecimal(vote.convictionBalance.toString()) < settings.minAmount) {
+                            luck = option.minProbability;
+                        }
+                        else {
+                            luck = await calculateLuck(vote.convictionBalance.toString(), minValue, median, option.minProbability, option.sweetspotProbability, 3)
+                        }
+                    }
+                    else {
+                        if (await getDecimal(vote.convictionBalance.toString()) > maxValue) {
+                            luck = option.maxProbability;
+                        }
+                        else {
+                            luck = await calculateLuck(vote.convictionBalance.toString(), median, maxValue, option.sweetspotProbability, option.maxProbability, 0.4)
+                        }
+                    }
+                    selectedIndex = getRandom([luck / 100, (100 - luck) / 100]);
+                    if (selectedIndex === 0) {
+                        selectedIndex = counter;
+                        break;
+                    }
+                }
+                selectedIndex = counter;
+                counter++;
+            }
+
+            // console.log("luck", luck)
+
+            luckArray.push([vote.convictionBalance.toString(), luck, selectedIndex])
+            // console.log("selectedIndex", selectedIndex)
             const selectedOption = settings.options[selectedIndex];
             selectedOptions.push(selectedOption);
             const selectedMetadata = metadataCids[selectedIndex];
@@ -766,34 +933,34 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 // //remove this
                 // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                 //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
-                const selectedOption = selectedOptions[index]
-                // block: chunkCount == 3 ? 12007826 : blockMint,
-                const nftProps: INftProps = {
-                    block: blockMint,
-                    sn: ((chunkCount * chunkSize) + count++).toString(),
-                    owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                    transferable: 1, //parseInt(selectedOption.transferable)
-                    metadata: usedMetadataCids[index],
-                    collection: itemCollectionId,
-                    symbol: referendumIndex.toString(),
-                };
-                const nft = new NFT(nftProps);
-                //get the parent nft
-                let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
+                    const selectedOption = selectedOptions[index]
+                    // block: chunkCount == 3 ? 12007826 : blockMint,
+                    const nftProps: INftProps = {
+                        block: blockMint,
+                        sn: ((chunkCount * chunkSize) + count++).toString(),
+                        owner: encodeAddress(params.account.address, params.settings.network.prefix),
+                        transferable: 1, //parseInt(selectedOption.transferable)
+                        metadata: usedMetadataCids[index],
+                        collection: itemCollectionId,
+                        symbol: referendumIndex.toString(),
+                    };
+                    const nft = new NFT(nftProps);
+                    //get the parent nft
+                    let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
 
-                const accountShelfNFTId = allNFTs.find(({ owner, rootowner, symbol, burned }) => {
-                    return rootowner === vote.accountId.toString() &&
-                        symbol === params.settings.shelfNFTSymbol &&
-                        burned === ""
-                })
+                    const accountShelfNFTId = allNFTs.find(({ owner, rootowner, symbol, burned }) => {
+                        return rootowner === vote.accountId.toString() &&
+                            symbol === params.settings.shelfNFTSymbol &&
+                            burned === ""
+                    })
 
-                if (!accountShelfNFTId) {
-                    logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
-                }
-                // add emergency send shelf command here in case shelf was sent away in process?
-                // logger.info("idParent", accountShelfNFTId.id)
-                sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.toString()
-                //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
+                    if (!accountShelfNFTId) {
+                        logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
+                    }
+                    // add emergency send shelf command here in case shelf was sent away in process?
+                    // logger.info("idParent", accountShelfNFTId.id)
+                    sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.id.toString()
+                    //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
                 // }
             }
             logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
@@ -806,6 +973,42 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             // }
         }
         chunkCount++;
+    }
+    fs.writeFile(`assets/shelf/luck/${referendumIndex}.txt`, JSON.stringify(luckArray), (err) => {
+
+        // In case of a error throw err.
+        if (err) throw err;
+    })
+
+
+    //equip new collection to base
+    //get base
+    const bases = await params.remarkStorageAdapter.getAllBases();
+    const base: BaseConsolidated = bases.find(({ issuer, symbol }) => {
+        return issuer === encodeAddress(params.account.address, params.settings.network.prefix).toString() &&
+            symbol === params.settings.baseSymbol
+    })
+    logger.info("baseId: ", base.id)
+    const baseConsolidated = new Base(
+        base.block,
+        base.symbol,
+        base.issuer,
+        base.type,
+        base.parts,
+        base.themes,
+        base.metadata
+    )
+    const baseEquippableRemarks = [];
+    if (settings.createNewCollection) {
+        for (const slot of settings.makeEquippable) {
+            baseEquippableRemarks.push(baseConsolidated.equippable({ slot: slot, collections: [itemCollectionId], operator: "+" }))
+        }
+        logger.info("baseEquippableRemarks: ", JSON.stringify(baseEquippableRemarks))
+        const { block: equippableBlock, success: equippableSuccess, hash: equippableHash, fee: equippableFee } = await mintAndSend(baseEquippableRemarks);
+        logger.info(`Collection whitelisted at block ${equippableBlock}: ${equippableSuccess} for a total fee of ${equippableFee}`)
+        while ((await params.remarkBlockCountAdapter.get()) < equippableBlock) {
+            await sleep(3000);
+        }
     }
 
     logger.info(`Sendout complete for Referendum ${referendumIndex}`);

@@ -3,6 +3,8 @@ import { AcceptEntityType } from "rmrk-tools/dist/classes/accept";
 import { IConsolidatorAdapter } from "rmrk-tools/dist/tools/consolidator/adapters/types";
 import { BaseConsolidated, CollectionConsolidated, NFTConsolidated } from "rmrk-tools/dist/tools/consolidator/consolidator";
 import _ from "lodash";
+import { encodeAddress } from "@polkadot/util-crypto";
+import { params } from "../config.js";
 //@ts-ignore
 BigInt.prototype.toJSON = function () {
   return this.toString();
@@ -223,11 +225,15 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   }
 
   public async updateCollectionMint(collection: CollectionConsolidated) { //: Promise<CollectionConsolidated>
-    // await this.db.read();
-    // this.db.data.collections.push(collection);
-    // await this.db.write();
-    // const collectionDb = await this.getCollectionById(collection.id);
-    // return collectionDb
+    //only add collections created by this wallet
+    if (collection.issuer === encodeAddress(params.account.address, params.settings.network.prefix)) {
+      await this.db.read();
+      this.db.data.collections.push(collection);
+      await this.db.write();
+      const collectionDb = await this.getCollectionById(collection.id);
+      return collectionDb
+    }
+
   }
 
   public async updateCollectionDestroy(collection: CollectionConsolidated) {
@@ -252,11 +258,12 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   public async updateBase(base: Base): Promise<BaseConsolidated> {
     await this.db.read();
     let baseDb: BaseConsolidated = this.db.data.bases.find(({ id }) => id === base.getId());
-    if (!baseDb) {
-      // this.db.data.bases.push({
-      //   ...base,
-      //   id: base.getId(),
-      // });
+    //only add base if issuer is this wallet
+    if (!baseDb && base.issuer === encodeAddress(params.account.address, params.settings.network.prefix)) {
+      this.db.data.bases.push({
+        ...base,
+        id: base.getId(),
+      });
     }
     else {
       this.db.chain = _.chain(this.db.data)

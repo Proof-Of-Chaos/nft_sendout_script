@@ -38,7 +38,7 @@ class Incentivizer {
 
   async run() {
     await getDb();
-    params.api = this.api;
+    // params.api = this.api;
     params.localStorage = this.localStorage;
     params.remarkStorage = this.remarkStorage;
     params.account = this.account
@@ -59,7 +59,7 @@ class Incentivizer {
 
     if (process.env.SETUP_COMPLETE === "true") {
       params.blockCountAdapter = new CountAdapter(params.localStorage, "headerBlock");
-      params.blockListener = new BlockListener(params.api,
+      params.blockListener = new BlockListener(this.api,
         params.blockCountAdapter);
     }
     //setup remark listener for minting listener
@@ -71,7 +71,7 @@ class Incentivizer {
     params.remarkBlockCountAdapter = new CountAdapter(params.localStorage, "remarkBlock")
     const startListening = async () => {
       const listener = new RemarkListener({
-        polkadotApi: params.api,
+        polkadotApi: this.api,
         prefixes: ['0x726d726b', '0x524d524b'],
         consolidateFunction,
         storageProvider: params.remarkBlockCountAdapter

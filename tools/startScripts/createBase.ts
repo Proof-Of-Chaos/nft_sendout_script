@@ -3,7 +3,7 @@ import { Base, Collection } from "rmrk-tools"
 import { IBasePart } from "rmrk-tools/dist/classes/base"
 import { encodeAddress } from "@polkadot/util-crypto";
 import { u8aToHex } from "@polkadot/util";
-import { sendAndFinalize } from "../../tools/substrateUtils.js";
+import { getApi, sendAndFinalize } from "../../tools/substrateUtils.js";
 import { pinSingleFileFromDir } from "../../tools/pinataUtils.js";
 import { logger } from "../logger.js";
 
@@ -83,14 +83,16 @@ export const createBase = async () => {
             "png",
             baseParts)
 
+        const api = await getApi()
+
         const { block } = await sendAndFinalize(
-            params.api.tx.system.remark(base.base()),
+            api.tx.system.remark(base.base()),
             params.account
         );
         logger.info("BASE CREATION REMARK: ", base.base());
         logger.info("Base created at block: ", block);
 
     } catch (error: any) {
-        console.error(error);
+        logger.error(error);
     }
 }

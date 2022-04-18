@@ -8,5 +8,6 @@ localStorage/remarkStorage.json
 assets/mosaic/*
 assets/referenda
 assets/referendaSettings
+assets/shelf/luck/*
 # assets/shelf/referenda/*
 # assets/shelf/referendaSettings/*
