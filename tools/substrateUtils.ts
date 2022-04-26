@@ -243,6 +243,10 @@ export const sendAndFinalize = async (
             logger.info(
               `💯 Transaction ${tx.meta.name}(..) Finalized at blockHash ${status.asFinalized}`,
             );
+            if (returnObject.block === 0) {
+              const signedBlock = await api.rpc.chain.getBlock(status.asInBlock);
+              returnObject.block = signedBlock.block.header.number.toNumber();
+            }
             unsubscribe();
             resolve(returnObject);
           } else if (status.isReady) {
@@ -371,7 +375,7 @@ export const mintAndSend = async (remarks: string[]): Promise<{
   }
 };
 
-export const getDecimal = async ( bigNum: string) => {
+export const getDecimal = async (bigNum: string) => {
   const api = await getApi()
   return new BigNumber(bigNum).dividedBy(new BigNumber("1e" + api.registry.chainDecimals)).toNumber()
 }
