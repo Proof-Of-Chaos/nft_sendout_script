@@ -333,7 +333,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             for (const account of chunk) {
                 // //remove this
                 // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+                //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
                     const nftProps: INftProps = {
                         block: 0,
                         sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
@@ -369,7 +371,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 for (const account of chunk) {
                     // //remove this
                     // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                    //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+                    //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                    //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                    //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
                         const nftProps: INftProps = {
                             block: block,
                             sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
@@ -414,7 +418,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 for (const account of chunk) {
                     // //remove this
                     // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                    //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+                    //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                    //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                    //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+
                         const nftProps: INftProps = {
                             block: block,
                             sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
@@ -528,7 +535,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             // const selectedMetadata = metadataCids[selectedIndex];
             // //remove this
             // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-            //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+            //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+            //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+            //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
                 let metadataCid = vote.isDelegating ? metadataCidDelegatedDefault : metadataCidDirectDefault
 
                 const randRoyaltyInRange = Math.floor(Math.random() * (settings.default.royalty[1] - settings.default.royalty[0] + 1) + settings.default.royalty[0])
@@ -586,7 +595,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             for (const [index, vote] of chunk.entries()) {
                 // //remove this
                 // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
                     // const selectedOption = selectedOptions[index]
                     const nftProps: INftProps = {
                         block: blockMint,
@@ -639,7 +650,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             for (const [index, vote] of chunk.entries()) {
                 // //remove this
                 // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
                     // const selectedOption = selectedOptions[index]
                     // block: chunkCount == 3 ? 12007826 : blockMint,
                     const nftProps: INftProps = {
@@ -821,7 +834,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             const selectedMetadata = metadataCids[selectedIndex];
             // //remove this
             // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-            //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+            //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+            //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+            //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
                 let metadataCid = vote.isDelegating ? selectedMetadata[1] : selectedMetadata[0]
 
                 const randRoyaltyInRange = Math.floor(Math.random() * (selectedOption.royalty[1] - selectedOption.royalty[0] + 1) + selectedOption.royalty[0])
@@ -879,7 +894,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             for (const [index, vote] of chunk.entries()) {
                 // //remove this
                 // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
                     const selectedOption = selectedOptions[index]
                     const nftProps: INftProps = {
                         block: blockMint,
@@ -924,6 +941,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             while ((await params.remarkBlockCountAdapter.get()) < resAddBlock) {
                 await sleep(3000);
             }
+            if (chunkCount == 0){
+                await sleep(60000);
+            }
             // }
 
             // if (chunkCount > 2) {
@@ -932,7 +952,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             for (const [index, vote] of chunk.entries()) {
                 // //remove this
                 // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3") {
+                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
                     const selectedOption = selectedOptions[index]
                     // block: chunkCount == 3 ? 12007826 : blockMint,
                     const nftProps: INftProps = {
@@ -974,7 +996,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         }
         chunkCount++;
     }
-   
+
 
 
     //equip new collection to base
