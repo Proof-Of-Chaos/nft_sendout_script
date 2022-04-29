@@ -354,10 +354,10 @@ export const mintAndSend = async (remarks: string[]): Promise<{
   fee?: string;
   topupRequired?: boolean;
 }> => {
-  const info = await getTransactionCost(
-    remarks
-  );
-  logger.info("total expected cost: ", info.partialFee.toHuman())
+  // const info = await getTransactionCost(
+  //   remarks
+  // );
+  // logger.info("total expected cost: ", info.partialFee.toHuman())
   const txs = [];
   const api = await getApi();
   for (const remark of remarks) {
@@ -366,7 +366,7 @@ export const mintAndSend = async (remarks: string[]): Promise<{
   try {
     const batch = api.tx.utility.batchAll(txs);
     const { block, hash, success } = await sendAndFinalize(batch, params.account);
-    return { block, success, hash: hash.toString(), fee: info.partialFee.toHuman() };
+    return { block, success, hash: hash.toString(), fee: null }; //info.partialFee.toHuman()
   }
   catch (error) {
     //write error to logger
