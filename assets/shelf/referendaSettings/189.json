@@ -1,0 +1,71 @@
+{
+    "min": "0",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "text": "'Squeaky Chaos #189'\n\nIn Referendum 189 the community voted on whether to upgrade the Kusama runtime to version 0.9.19.\n\n",
+        "royalty": [
+            20,
+            30
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "189/option2/resource1/main.png",
+                "thumb": "189/option2/resource1/thumb.png",
+                "slot": "base-11922668-SBP.REFERENDUM_189"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 25,
+            "maxProbability": 40,
+            "minProbability": 5,
+            "transferable": 1,
+            "text": "'Chaos #189'\n\nIn Referendum 189 the community voted on whether to upgrade the Kusama runtime to version 0.9.19.\n\n",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "189/option1/resource1/main.png",
+                    "thumb": "189/option1/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_189"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 50,
+            "minProbability": 20,
+            "transferable": 1,
+            "text": "'Squeaky Chaos #189'\n\nIn Referendum 189 the community voted on whether to upgrade the Kusama runtime to version 0.9.19.\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "189/option2/resource1/main.png",
+                    "thumb": "189/option2/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_189"
+                }
+            ]
+        }
+    ]
+}
