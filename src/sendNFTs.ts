@@ -877,7 +877,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
         //mint
         if (mintRemarks.length > 0) {
             let blockMint, successMint, hashMint, feeMint;
-            if (chunkCount > 7) {
+            // if (chunkCount > 7) {
                 ({ block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks));
                 // const { block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks);
                 if (!successMint) {
@@ -888,8 +888,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 while ((await params.remarkBlockCountAdapter.get()) < blockMint) {
                     await sleep(3000);
                 }
-            }
-            if (chunkCount > 7) {
+            // }
+            // if (chunkCount > 7) {
                 // add res to nft
                 count = 0;
                 const addResRemarks: string[] = [];
@@ -947,9 +947,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 if (chunkCount == 0) {
                     await sleep(300000);
                 }
-            }
+            // }
 
-            if (chunkCount > 6) {
+            // if (chunkCount > 6) {
                 count = 0;
                 const sendRemarks: string[] = [];
                 for (const [index, vote] of chunk.entries()) {
@@ -962,7 +962,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                         // block: chunkCount == 7 ? 12421221 : blockMint,
                         //block: blockMint,
                         const nftProps: INftProps = {
-                            block: chunkCount == 7 ? 12463327 : blockMint,
+                            block: blockMint,
                             sn: ((chunkCount * chunkSize) + count++).toString(),
                             owner: encodeAddress(params.account.address, params.settings.network.prefix),
                             transferable: 1, //parseInt(selectedOption.transferable)
@@ -996,7 +996,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
                 while ((await params.remarkBlockCountAdapter.get()) < sendBlock) {
                     await sleep(3000);
                 }
-            }
+            // }
         }
         chunkCount++;
     }
