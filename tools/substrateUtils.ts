@@ -244,7 +244,7 @@ export const sendAndFinalize = async (
               `💯 Transaction ${tx.meta.name}(..) Finalized at blockHash ${status.asFinalized}`,
             );
             if (returnObject.block === 0) {
-              const signedBlock = await api.rpc.chain.getBlock(status.asInBlock);
+              const signedBlock = await api.rpc.chain.getBlock(status.asFinalized);
               returnObject.block = signedBlock.block.header.number.toNumber();
             }
             unsubscribe();
