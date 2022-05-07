@@ -642,6 +642,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) =>
             while ((await params.remarkBlockCountAdapter.get()) < resAddBlock) {
                 await sleep(3000);
             }
+            if (chunkCount == 0) {
+                await sleep(300000);
+            }
             // }
 
             // if (chunkCount > 2) {
