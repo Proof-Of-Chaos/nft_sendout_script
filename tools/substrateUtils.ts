@@ -10,7 +10,7 @@ import { CodecHash, EventRecord } from '@polkadot/types/interfaces';
 import { sleep } from "./utils.js";
 import BigNumber from "bignumber.js";
 
-
+// 'wss://staging.node.rmrk.app'
 
 const WS_ENDPOINTS = [
   'wss://kusama-rpc.polkadot.io',

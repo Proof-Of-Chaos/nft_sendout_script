@@ -1,0 +1,128 @@
+{
+    "min": "200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": true,
+    "newCollectionSymbol": "itemxrmrk",
+    "newCollectionPath": "/assets/shelf/collections",
+    "newCollectionFile": "rmrk.png",
+    "newCollectionName": "Items x RMRK",
+    "newCollectionDescription": "A special collection for the Referendum 193 collaboration items with RMRK.\n\nThe main collection can be found here: https://singular.app/collections/3208723ec6f65df810-ITEM",
+    "makeEquippable": [
+        "REFERENDUM_193"
+    ],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "RMRKTB",
+        "text": "'RMRK Bronze'\n\nIn Referendum 193 the community voted on whether to give the RMRK token suffiency on Statemine.\n\nArtist: LokiKot(@LokiPages)\n\n",
+        "royalty": [
+            20,
+            30
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "193/option4/resource1/main.png",
+                "thumb": "193/option4/resource1/thumb.png",
+                "slot": "base-11922668-SBP.REFERENDUM_193"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 20,
+            "maxProbability": 35,
+            "minProbability": 2,
+            "transferable": 1,
+            "symbol": "BABD",
+            "text": "'Babushka Doll'\n\nIn Referendum 193 the community voted on whether to give the RMRK token suffiency on Statemine.\n\nArtist: RMRK Art Team\n\n",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "193/option1/resource1/main.svg",
+                    "thumb": "193/option1/resource1/thumb.png",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "193/option1/resource2/main.png",
+                    "thumb": "193/option1/resource2/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_193"
+                },
+                {
+                    "name": "option1resource3",
+                    "main": "193/option1/resource3/main.svg",
+                    "thumb": "193/option1/resource3/thumb.png",
+                    "slot": "base-8788686-KANBASE.foreground"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 35,
+            "maxProbability": 50,
+            "minProbability": 10,
+            "transferable": 1,
+            "symbol": "RMRKTG",
+            "text": "'RMRK Token Gold'\n\nIn Referendum 193 the community voted on whether to give the RMRK token suffiency on Statemine.\n\nArtist: LokiKot(@LokiPages)\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "193/option2/resource1/main.png",
+                    "thumb": "193/option2/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_193"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "RMRKTS",
+            "text": "'RMRK Token Silver'\n\nIn Referendum 193 the community voted on whether to give the RMRK token suffiency on Statemine.\n\nArtist: LokiKot(@LokiPages)\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "193/option3/resource1/main.png",
+                    "thumb": "193/option3/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_193"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 50,
+            "minProbability": 20,
+            "transferable": 1,
+            "symbol": "RMRKTB",
+            "text": "'RMRK Token Bronze'\n\nIn Referendum 193 the community voted on whether to give the RMRK token suffiency on Statemine.\n\nArtist: LokiKot(@LokiPages)\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option4resource1",
+                    "main": "193/option4/resource1/main.png",
+                    "thumb": "193/option4/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_193"
+                }
+            ]
+        }
+    ]
+}

@@ -18,6 +18,7 @@ export const getSettings = () => {
     saveDB: process.env.SAVE_DB.toString(),
     externalUrl: process.env.EXTERNAL_URL.toString(),
     chunkSize: parseInt(process.env.CHUNK_SIZE),
+    chunkSizeDefault: parseInt(process.env.CHUNK_SIZE_DEFAULT),
     chunkSizeShelf: parseInt(process.env.CHUNK_SIZE_SHELF)
   };
   return settings;

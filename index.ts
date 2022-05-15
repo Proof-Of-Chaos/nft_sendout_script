@@ -15,6 +15,9 @@ import { createShelfCollection } from "./tools/startScripts/createShelfCollectio
 import { createBase } from "./tools/startScripts/createBase.js";
 import { createItemCollection } from "./tools/startScripts/createItemCollection.js";
 import { logger } from "./tools/logger.js";
+import { sendNFTs } from "./src/sendNFTs.js";
+import { BN } from '@polkadot/util';
+
 
 dotenv.config();
 
@@ -100,6 +103,7 @@ class Incentivizer {
       await createItemCollection();
       await createBase();
     }
+    // sendNFTs(true, new BN("193"))
   }
 }
 

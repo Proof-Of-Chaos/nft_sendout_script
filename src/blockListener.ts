@@ -4,6 +4,10 @@ import { CountAdapter } from "../tools/countAdapter.js";
 import { handleEvents } from "./eventsHandler.js";
 import { getApi, getBlockIndexer } from "../tools/substrateUtils.js";
 import { logger } from "../tools/logger.js";
+import { sleep } from "../tools/utils.js";
+
+const MAX_RETRIES = 5;
+const RETRY_DELAY_SECONDS = 4;
 
 interface IStorageProvider {
     readonly storageKey: string;
@@ -44,7 +48,7 @@ export class BlockListener {
         }
     };
 
-    private fetchEventsAtBlock = async (blockNumber: number): Promise<void> => {
+    private fetchEventsAtBlock = async (blockNumber: number, retry = 0): Promise<void> => {
         try {
             const api = await getApi();
             const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
@@ -54,9 +58,20 @@ export class BlockListener {
             const blockIndexer = getBlockIndexer(block);
             const events = await blockApi.query.system.events();
             await handleEvents(events, block.extrinsics, blockIndexer);
-        } catch (e) {
-            logger.error(`error fetching extrinsics or events at block ${blockNumber}: ${e}`);
-            return e;
+        } catch (error) {
+            logger.info(
+                `Error fetching extrinsics or events at block ${blockNumber}: ${error}`,
+            );
+            if (retry < MAX_RETRIES) {
+                logger.info(`fetchEventsAtBlock Retry #${retry} of ${MAX_RETRIES}`);
+                await sleep(RETRY_DELAY_SECONDS * 1000);
+                return await this.fetchEventsAtBlock(blockNumber, retry + 1);
+            } else {
+                logger.error(`Error initiating tx fetchEventsAtBlock`, error);
+                return error;
+            }
+            // logger.error(`error fetching extrinsics or events at block ${blockNumber}: ${e}`);
+            // return e;
         }
     };
 
