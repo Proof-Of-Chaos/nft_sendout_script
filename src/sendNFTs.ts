@@ -268,7 +268,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     //     votes.push(new2)
     // }
     // console.log(votes)
-    // votes = data2 as VoteConviction[]
+
     logger.info("Number of votes: ", totalVotes.length)
     if (params.settings.saveDB) {
         await saveVotesToDB(referendumIndex, totalVotes, totalIssuanceRefExpiry, passed, indexer);
@@ -637,13 +637,19 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         let mainCid = resourceCidsDefault[i][0]
                         let thumbCid = resourceCidsDefault[i][1]
                         addResRemarks.push(
-                            nft.resadd({
-                                src: `ipfs://ipfs/${mainCid}`,
-                                thumb: `ipfs://ipfs/${thumbCid}`,
-                                id: nanoid(16),
-                                slot: `${resource.slot}`,
-                                metadata: usedMetadataCidsDefault[index]
-                            })
+                            (resource.slot) ?
+                                nft.resadd({
+                                    src: `ipfs://ipfs/${mainCid}`,
+                                    thumb: `ipfs://ipfs/${thumbCid}`,
+                                    id: nanoid(16),
+                                    slot: `${resource.slot}`,
+                                    metadata: usedMetadataCidsDefault[index]
+                                }) : nft.resadd({
+                                    src: `ipfs://ipfs/${mainCid}`,
+                                    thumb: `ipfs://ipfs/${thumbCid}`,
+                                    id: nanoid(16),
+                                    metadata: usedMetadataCidsDefault[index]
+                                })
                         );
                     }
                     // //get the parent nft
