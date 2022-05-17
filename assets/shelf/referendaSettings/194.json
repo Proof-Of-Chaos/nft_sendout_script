@@ -1,0 +1,118 @@
+{
+    "min": "200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "CARD",
+        "text": "'Card'\n\nIn Referendum 194 the community voted on whether to let Moonriver and Khala extend their leases by swapping parachain 2112 with 2023 and 2111 with 2004 respectively.\n\nArtist: @kseniashikh\n\n",
+        "royalty": [
+            50,
+            80
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "194/option3/resource1/main.png",
+                "thumb": "194/option3/resource1/thumb.png",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "194/option3/resource2/main.png",
+                "thumb": "194/option3/resource2/thumb.png",
+                "slot": "base-11942668-SBP.REFERENDUM_194"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 25,
+            "maxProbability": 40,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "TMTR",
+            "text": "'Time-Turner'\n\nIn Referendum 194 the community voted on whether to let Moonriver and Khala extend their leases by swapping parachain 2112 with 2023 and 2111 with 2004 respectively.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                20,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "194/option1/resource1/main.png",
+                    "thumb": "194/option1/resource1/thumb.png",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "194/option1/resource2/main.png",
+                    "thumb": "194/option1/resource2/thumb.png",
+                    "slot": "base-11942668-SBP.REFERENDUM_194"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 35,
+            "maxProbability": 60,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "HGLASS",
+            "text": "'Hourglass'\n\nIn Referendum 194 the community voted on whether to let Moonriver and Khala extend their leases by swapping parachain 2112 with 2023 and 2111 with 2004 respectively.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "194/option2/resource1/main.png",
+                    "thumb": "194/option2/resource1/thumb.png",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "194/option2/resource2/main.png",
+                    "thumb": "194/option2/resource2/thumb.png",
+                    "slot": "base-11942668-SBP.REFERENDUM_194"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "CARD",
+            "text": "'Card'\n\nIn Referendum 194 the community voted on whether to let Moonriver and Khala extend their leases by swapping parachain 2112 with 2023 and 2111 with 2004 respectively.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "194/option3/resource1/main.png",
+                    "thumb": "194/option3/resource1/thumb.png",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "194/option3/resource2/main.png",
+                    "thumb": "194/option3/resource2/thumb.png",
+                    "slot": "base-11942668-SBP.REFERENDUM_194"
+                }
+            ]
+        }
+    ]
+}
