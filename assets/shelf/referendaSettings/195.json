@@ -1,0 +1,134 @@
+{
+    "min": "250000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "BBIRD",
+        "text": "'Block Bird'\n\nIn Referendum 195 the community voted on whether to upgrade the Kusama runtime to version 0.9.20. Among other things the new code also improves parachain block times.\n\nArtist: @kseniashikh\n\n",
+        "royalty": [
+            50,
+            80
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "195/option3/resource1/main.png",
+                "thumb": "195/option3/resource1/thumb.png",
+                "text": "This is the thumb image.",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "195/option3/resource2/main.png",
+                "thumb": "195/option3/resource2/thumb.png",
+                "text": "This is the equippable image to the shelf.",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_195"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 25,
+            "maxProbability": 40,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "RBIRD",
+            "text": "'Robot Bird'\n\nIn Referendum 195 the community voted on whether to upgrade the Kusama runtime to version 0.9.20. Among other things the new code also improves parachain block times.\n\nArtist: Elizaveta Sokolova\n\n",
+            "royalty": [
+                20,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "195/option1/resource1/main.png",
+                    "thumb": "195/option1/resource1/thumb.png",
+                    "text": "This is the thumb image.",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "195/option1/resource2/main.png",
+                    "thumb": "195/option1/resource2/thumb.png",
+                    "text": "This is the equippable image to the shelf.",
+                    "title": "Equippable (Shelf)",
+                    "slot": "base-11922668-SBP.REFERENDUM_195"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 35,
+            "maxProbability": 60,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "BRBIRD",
+            "text": "'Brick Bird'\n\nIn Referendum 195 the community voted on whether to upgrade the Kusama runtime to version 0.9.20. Among other things the new code also improves parachain block times.\n\nArtist: LokiKot(@LokiPages)\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "195/option2/resource1/main.png",
+                    "thumb": "195/option2/resource1/thumb.png",
+                    "text": "This is the thumb image.",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "195/option2/resource2/main.png",
+                    "thumb": "195/option2/resource2/thumb.png",
+                    "text": "This is the equippable image to the shelf.",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_195"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "BBIRD",
+            "text": "'Block Bird'\n\nIn Referendum 195 the community voted on whether to upgrade the Kusama runtime to version 0.9.20. Among other things the new code also improves parachain block times.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "195/option3/resource1/main.png",
+                    "thumb": "195/option3/resource1/thumb.png",
+                    "text": "This is the thumb image.",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "195/option3/resource2/main.png",
+                    "thumb": "195/option3/resource2/thumb.png",
+                    "text": "This is the equippable image to the shelf.",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_195"
+                }
+            ]
+        }
+    ]
+}
