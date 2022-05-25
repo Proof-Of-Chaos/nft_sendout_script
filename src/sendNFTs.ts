@@ -333,6 +333,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             },
             "shelf/shelf_thumb.png"
         );
+        await sleep(2000);
         if (!shelfMetadataCid) {
             logger.error(`parentMetadataCid is null: ${shelfMetadataCid}. exiting.`)
             return;
@@ -535,23 +536,23 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     logger.info("resourceCidsDefault", resourceCidsDefault);
 
-    // let resourceMetadataCidsDefault = []
+    let resourceMetadataCidsDefault = []
 
-    // for (let i = 0; i < settings.default.resources.length; i++) {
-    //     const resource = settings.default.resources[i]
-    //     const metadataResource = await pinSingleMetadataWithoutFile(
-    //         `Resource ${i + 1}: ${resource.title}`,
-    //         {
-    //             description: resource.text,
-    //             properties: {}
-    //         }
-    //     );
-    //     resourceMetadataCidsDefault.push(metadataResource)
-    // }
+    for (let i = 0; i < settings.default.resources.length; i++) {
+        const resource = settings.default.resources[i]
+        const metadataResource = await pinSingleMetadataWithoutFile(
+            `Referendum ${referendumIndex}`,
+            {
+                description: resource.text,
+                properties: {}
+            }
+        );
+        resourceMetadataCidsDefault.push(metadataResource)
+    }
 
 
 
-    // logger.info("resourceMetadataCidsDefault", resourceMetadataCidsDefault);
+    logger.info("resourceMetadataCidsDefault", resourceMetadataCidsDefault);
 
     //get votes not in filtered
     const votesNotMeetingRequirements = totalVotes.filter(vote => {
@@ -663,12 +664,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
                                     slot: `${resource.slot}`,
-                                    metadata: usedMetadataCidsDefault[index] //resourceMetadataCidsDefault[index][i]
+                                    metadata: resourceMetadataCidsDefault[i]
                                 }) : nft.resadd({
                                     src: `ipfs://ipfs/${mainCid}`,
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
-                                    metadata: usedMetadataCidsDefault[index] //resourceMetadataCidsDefault[index][i]
+                                    metadata: resourceMetadataCidsDefault[i]
                                 })
                         );
                     // }
@@ -818,24 +819,24 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     logger.info("resourceCids", resourceCids);
 
-    // let resourceMetadataCids = []
-    // for (const option of settings.options) {
-    //     let optionResourceMetadataCids = []
-    //     for (let i = 0; i < option.resources.length; i++) {
-    //         const resource = option.resources[i]
-    //         const metadataResource = await pinSingleMetadataWithoutFile(
-    //             `Resource ${i + 1}: ${resource.title}`,
-    //             {
-    //                 description: resource.text,
-    //                 properties: {}
-    //             }
-    //         );
-    //         optionResourceMetadataCids.push(metadataResource)
-    //     }
-    //     resourceMetadataCids.push(optionResourceMetadataCids)
-    // }
+    let resourceMetadataCids = []
+    for (const option of settings.options) {
+        let optionResourceMetadataCids = []
+        for (let i = 0; i < option.resources.length; i++) {
+            const resource = option.resources[i]
+            const metadataResource = await pinSingleMetadataWithoutFile(
+                `Referendum ${referendumIndex}`,
+                {
+                    description: resource.text,
+                    properties: {}
+                }
+            );
+            optionResourceMetadataCids.push(metadataResource)
+        }
+        resourceMetadataCids.push(optionResourceMetadataCids)
+    }
 
-    // logger.info("resourceMetadataCids", resourceMetadataCids);
+    logger.info("resourceMetadataCids", resourceMetadataCids);
 
     const minVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).lt(new BN(curr.convictionBalance)) ? prev : curr);
     const maxVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).gt(new BN(curr.convictionBalance)) ? prev : curr);
@@ -863,7 +864,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         logger.info(`Chunk ${chunkCount}: ${chunk.length}`)
         const mintRemarks: string[] = [];
         let usedMetadataCids: string[] = [];
-        // let usedResourceMetadataCids: string[] = [];
+        let usedResourceMetadataCids: string[] = [];
         let selectedOptions = [];
         let count = 0;
 
@@ -937,7 +938,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 },
             };
             usedMetadataCids.push(metadataCid);
-            // usedResourceMetadataCids.push(resourceMetadataCids[selectedIndex])
+            usedResourceMetadataCids.push(resourceMetadataCids[selectedIndex])
             const nft = new NFT(nftProps);
             // //remove this
             // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
@@ -1000,12 +1001,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
                                     slot: `${resource.slot}`,
-                                    metadata: usedMetadataCids[index] // usedResourceMetadataCids[index][i]
+                                    metadata: usedResourceMetadataCids[index][i]
                                 }) : nft.resadd({
                                     src: `ipfs://ipfs/${mainCid}`,
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
-                                    metadata: usedMetadataCids[index] //usedResourceMetadataCids[index][i]
+                                    metadata: usedResourceMetadataCids[index][i]
                                 })
                         );
                     // }
