@@ -1,0 +1,134 @@
+{
+    "min": "400000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "COIN",
+        "text": "'Coins'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: @kseniashikh\n\n",
+        "royalty": [
+            60,
+            90
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "197/option3/resource1/main.png",
+                "thumb": "197/option3/resource1/thumb.png",
+                "text": "'Coins'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: @kseniashikh\n\n",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "197/option3/resource2/main.png",
+                "thumb": "197/option3/resource2/thumb.png",
+                "text": "'Coins: Equippable Shelf'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: @kseniashikh\n\n",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_197"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 20,
+            "maxProbability": 40,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "CHEST",
+            "text": "'Chest'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: LokiKot(@LokiPages)\n\n",
+            "royalty": [
+                20,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "197/option1/resource1/main.png",
+                    "thumb": "197/option1/resource1/thumb.png",
+                    "text": "'Chest'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "197/option1/resource2/main.png",
+                    "thumb": "197/option1/resource2/thumb.png",
+                    "text": "'Chest: Equippable Shelf'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_197"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 38,
+            "maxProbability": 60,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "MBAG",
+            "text": "'Money Bag'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: Elizaveta Sokolova\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "197/option2/resource1/main.png",
+                    "thumb": "197/option2/resource1/thumb.png",
+                    "text": "'Money Bag'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: Elizaveta Sokolova\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "197/option2/resource2/main.png",
+                    "thumb": "197/option2/resource2/thumb.png",
+                    "text": "'Money Bag: Equippable Shelf'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: Elizaveta Sokolova\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_197"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "COIN",
+            "text": "'Coins'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "197/option3/resource1/main.png",
+                    "thumb": "197/option3/resource1/thumb.png",
+                    "text": "'Coins'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "197/option3/resource2/main.png",
+                    "thumb": "197/option3/resource2/thumb.png",
+                    "text": "'Coins: Equippable Shelf'\n\nIn Referendum 197 the community voted on whether to give the USDT token suffiency on Statemine.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_197"
+                }
+            ]
+        }
+    ]
+}
