@@ -65,7 +65,7 @@ export class BlockListener {
             if (retry < MAX_RETRIES) {
                 logger.info(`fetchEventsAtBlock Retry #${retry} of ${MAX_RETRIES}`);
                 await sleep(RETRY_DELAY_SECONDS * 1000);
-                await this.fetchEventsAtBlock(blockNumber, retry + 1);
+                return await this.fetchEventsAtBlock(blockNumber, retry + 1);
             } else {
                 logger.error(`Error initiating tx fetchEventsAtBlock`, error);
                 return error;
