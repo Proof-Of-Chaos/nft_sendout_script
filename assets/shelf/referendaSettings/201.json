@@ -1,0 +1,134 @@
+{
+    "min": "800000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "SJ",
+        "text": "'Shell Jar'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: LokiKot(@LokiPages)\n\n",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "201/option3/resource1/main.png",
+                "thumb": "201/option3/resource1/thumb.png",
+                "text": "'Shell Jar'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "201/option3/resource2/main.png",
+                "thumb": "201/option3/resource2/thumb.png",
+                "text": "'Shell Jar: Equippable Shelf'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_201"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 20,
+            "maxProbability": 38,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "SSC",
+            "text": "'Scorpion Spider Conch'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "201/option1/resource1/main.png",
+                    "thumb": "201/option1/resource1/thumb.png",
+                    "text": "'Scorpion Spider Conch'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "201/option1/resource2/main.png",
+                    "thumb": "201/option1/resource2/thumb.png",
+                    "text": "'Scorpion Spider Conch: Equippable Shelf'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_201"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 38,
+            "maxProbability": 60,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "SB",
+            "text": "'Scotch Bonnet'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "201/option2/resource1/main.png",
+                    "thumb": "201/option2/resource1/thumb.png",
+                    "text": "'Scotch Bonnet'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "201/option2/resource2/main.png",
+                    "thumb": "201/option2/resource2/thumb.png",
+                    "text": "'Scotch Bonnet: Equippable Shelf'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_201"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "SJ",
+            "text": "'Shell Jar'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: LokiKot(@LokiPages)\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "201/option3/resource1/main.png",
+                    "thumb": "201/option3/resource1/thumb.png",
+                    "text": "'Shell Jar'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "201/option3/resource2/main.png",
+                    "thumb": "201/option3/resource2/thumb.png",
+                    "text": "'Shell Jar: Equippable Shelf'\n\nIn Referendum 201 the community voted on whether to make the 'Expect Chaos' on-chain remark.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_201"
+                }
+            ]
+        }
+    ]
+}
