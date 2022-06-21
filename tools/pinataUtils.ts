@@ -36,7 +36,10 @@ export const uploadAndPinIpfsMetadata = async (metadataFields: Metadata): Promis
         const metadataHashResult = await params.pinata.pinJSONToIPFS(metadata, options);
         return `ipfs://ipfs/${metadataHashResult.IpfsHash}`;
     } catch (error) {
-        return '';
+        logger.info("trying again");
+        await sleep(2000);
+        //try again
+        return await uploadAndPinIpfsMetadata(metadataFields);
     }
 };
 
@@ -87,9 +90,14 @@ export const pinSingleFileFromDir = async (
         logger.info(`NFT ${path} IMAGE CID: `, imageCid);
         return imageCid;
     } catch (error) {
+        
         logger.info(error);
+
         logger.info(JSON.stringify(error));
-        return '';
+        logger.info("trying again");
+        await sleep(2000);
+        //try again
+        return await pinSingleFileFromDir(dir, path, name);
     }
 };
 
@@ -174,7 +182,10 @@ export const pinSingleMetadataWithoutFile = async (
     } catch (error) {
         logger.info(error);
         logger.info(JSON.stringify(error));
-        return '';
+        logger.info("trying again");
+        await sleep(2000);
+        //try again
+        return await pinSingleMetadataWithoutFile(name, metadataBase);
     }
 };
 

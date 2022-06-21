@@ -357,7 +357,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
                 const nftProps: INftProps = {
                     block: 0,
-                    sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
+                    sn: ('00000000' + ((chunkCount * chunkSizeShelf) + count++).toString()).slice(-8),
                     owner: encodeAddress(params.account.address, params.settings.network.prefix),
                     transferable: 1,
                     metadata: shelfMetadataCid,
@@ -395,7 +395,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
                     const nftProps: INftProps = {
                         block: block,
-                        sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
+                        sn: ('00000000' + ((chunkCount * chunkSizeShelf) + count++).toString()).slice(-8),
                         owner: encodeAddress(params.account.address, params.settings.network.prefix),
                         transferable: 1,
                         metadata: shelfMetadataCid,
@@ -443,7 +443,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
                     const nftProps: INftProps = {
                         block: block,
-                        sn: ((chunkCount * chunkSizeShelf) + count++).toString(),
+                        sn: ('00000000' + ((chunkCount * chunkSizeShelf) + count++).toString()).slice(-8),
                         owner: encodeAddress(params.account.address, params.settings.network.prefix),
                         transferable: 1,
                         metadata: shelfMetadataCid,
@@ -593,7 +593,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             }
             const nftProps: INftProps = {
                 block: 0,
-                sn: ((chunkCount * chunkSizeDefault) + count++).toString(),
+                sn: ('00000000' + ((chunkCount * chunkSizeDefault) + count++).toString()).slice(-8),
                 owner: encodeAddress(params.account.address, params.settings.network.prefix),
                 transferable: 1, //parseInt(selectedOption.transferable)
                 metadata: metadataCid,
@@ -640,7 +640,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 // const selectedOption = selectedOptions[index]
                 const nftProps: INftProps = {
                     block: blockMint,
-                    sn: ((chunkCount * chunkSizeDefault) + count++).toString(),
+                    sn: ('00000000' + ((chunkCount * chunkSizeDefault) + count++).toString()).slice(-8),
                     owner: encodeAddress(params.account.address, params.settings.network.prefix),
                     transferable: 1, //parseInt(selectedOption.transferable)
                     metadata: usedMetadataCidsDefault[index],
@@ -707,7 +707,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 // block: chunkCount == 3 ? 12007826 : blockMint,
                 const nftProps: INftProps = {
                     block: blockMint,
-                    sn: ((chunkCount * chunkSizeDefault) + count++).toString(),
+                    sn: ('00000000' + ((chunkCount * chunkSizeDefault) + count++).toString()).slice(-8),
                     owner: encodeAddress(params.account.address, params.settings.network.prefix),
                     transferable: 1, //parseInt(selectedOption.transferable)
                     metadata: usedMetadataCidsDefault[index],
@@ -925,7 +925,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             }
             const nftProps: INftProps = {
                 block: 0,
-                sn: ((chunkCount * chunkSize) + count++).toString(),
+                sn: ('00000000' + ((chunkCount * chunkSize) + count++).toString()).slice(-8),
                 owner: encodeAddress(params.account.address, params.settings.network.prefix),
                 transferable: 1, //parseInt(selectedOption.transferable)
                 metadata: metadataCid,
@@ -977,7 +977,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 const selectedOption = selectedOptions[index]
                 const nftProps: INftProps = {
                     block: blockMint,
-                    sn: ((chunkCount * chunkSize) + count++).toString(),
+                    sn: ('00000000' + ((chunkCount * chunkSize) + count++).toString()).slice(-8),
                     owner: encodeAddress(params.account.address, params.settings.network.prefix),
                     transferable: 1, //parseInt(selectedOption.transferable)
                     metadata: usedMetadataCids[index],
@@ -1045,7 +1045,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 //block: blockMint,
                 const nftProps: INftProps = {
                     block: blockMint,
-                    sn: ((chunkCount * chunkSize) + count++).toString(),
+                    sn: ('00000000' + ((chunkCount * chunkSize) + count++).toString()).slice(-8),
                     owner: encodeAddress(params.account.address, params.settings.network.prefix),
                     transferable: 1, //parseInt(selectedOption.transferable)
                     metadata: usedMetadataCids[index],
