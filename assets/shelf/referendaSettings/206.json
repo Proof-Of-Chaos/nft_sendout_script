@@ -1,0 +1,168 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": true,
+    "newCollectionSymbol": "itemxmt",
+    "newCollectionPath": "/assets/shelf/collections",
+    "newCollectionFile": "mt.png",
+    "newCollectionName": "Items x Mushroomtopia",
+    "newCollectionDescription": "A special collection for the Referendum 206 collaboration items with Mushroomtopia.\n\nThe main collection can be found [here](https://singular.app/collections/3208723ec6f65df810-ITEM).",
+    "makeEquippable": [
+        "REFERENDUM_206"
+    ],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "BB",
+        "text": "'Brightberry'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "206/option3/resource1/main.png",
+                "thumb": "206/option3/resource1/thumb.png",
+                "text": "'Brightberry'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "206/option3/resource2/main.png",
+                "thumb": "206/option3/resource2/thumb.png",
+                "text": "'Brightberry: Equippable Shelf'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_206"
+            },
+            {
+                "name": "defaultresource3",
+                "main": "206/option3/resource3/main.png",
+                "thumb": "206/option3/resource3/thumb.png",
+                "text": "'Brightberry: Equippable Mirror'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                "title": "Equippable Mirror",
+                "slot": "base-12005213-MSHRMTPIA.Headwear"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 32,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "SB",
+            "text": "'Starberry'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "206/option1/resource1/main.png",
+                    "thumb": "206/option1/resource1/thumb.png",
+                    "text": "'Starberry'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "206/option1/resource2/main.png",
+                    "thumb": "206/option1/resource2/thumb.png",
+                    "text": "'Starberry: Equippable Shelf'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_206"
+                },
+                {
+                    "name": "option1resource3",
+                    "main": "206/option1/resource3/main.png",
+                    "thumb": "206/option1/resource3/thumb.png",
+                    "text": "'Starberry: Equippable Mirror'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Equippable Mirror",
+                    "slot": "base-12005213-MSHRMTPIA.Headwear"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 50,
+            "minProbability": 10,
+            "transferable": 1,
+            "symbol": "RB",
+            "text": "'Ripeberry'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "206/option2/resource1/main.png",
+                    "thumb": "206/option2/resource1/thumb.png",
+                    "text": "'Ripeberry'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "206/option2/resource2/main.png",
+                    "thumb": "206/option2/resource2/thumb.png",
+                    "text": "'Ripeberry: Equippable Shelf'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_206"
+                },
+                {
+                    "name": "option2resource3",
+                    "main": "206/option2/resource3/main.png",
+                    "thumb": "206/option2/resource3/thumb.png",
+                    "text": "'Ripeberry: Equippable Mirror'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Equippable Mirror",
+                    "slot": "base-12005213-MSHRMTPIA.Headwear"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "BB",
+            "text": "'Brightberry'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "206/option3/resource1/main.png",
+                    "thumb": "206/option3/resource1/thumb.png",
+                    "text": "'Brightberry'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "206/option3/resource2/main.png",
+                    "thumb": "206/option3/resource2/thumb.png",
+                    "text": "'Brightberry: Equippable Shelf'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_206"
+                },
+                {
+                    "name": "option3resource3",
+                    "main": "206/option3/resource3/main.png",
+                    "thumb": "206/option3/resource3/thumb.png",
+                    "text": "'Brightberry: Equippable Mirror'\n\nIn Referendum 206 the community voted on whether to upgrade the Kusama runtime to version 0.9.23.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Mirrors of Mushroom Topia](https://singular.app/collections/c8d5ea648c93514667-MTPIAMRRS).\n\nArtist: Ruben Topia\n\n",
+                    "title": "Equippable Mirror",
+                    "slot": "base-12005213-MSHRMTPIA.Headwear"
+                }
+            ]
+        }
+    ]
+}

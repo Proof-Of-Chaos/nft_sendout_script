@@ -18,9 +18,9 @@ const WS_ENDPOINTS = [
   'wss://kusama-rpc.dwellir.com'
 ];
 
-const MAX_RETRIES = 5;
+const MAX_RETRIES = 15;
 const WS_DISCONNECT_TIMEOUT_SECONDS = 20;
-const RETRY_DELAY_SECONDS = 4;
+const RETRY_DELAY_SECONDS = 20;
 
 // export const sleep = (ms: number): Promise<void> => {
 //   return new Promise((resolve) => {
