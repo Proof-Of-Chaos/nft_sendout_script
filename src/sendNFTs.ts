@@ -903,7 +903,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
             // console.log("luck", luck)
 
-            luckArray.push([vote.convictionBalance.toString(), luck, selectedIndex])
+            luckArray.push([vote.convictionBalance.toString(), luck, selectedIndex, vote.accountId.toString()])
             // console.log("selectedIndex", selectedIndex)
             const selectedOption = settings.options[selectedIndex];
             selectedOptions.push(selectedOption);
