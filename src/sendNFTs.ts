@@ -8,7 +8,7 @@ import { Base, Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { INftProps, VoteConviction } from "../types.js";
 import { getApi, getDecimal, mintAndSend } from "../tools/substrateUtils.js";
-import { amountToHumanString, getSettingsFile, sleep } from "../tools/utils.js";
+import { amountToHumanString, getDragonBonusFile, getSettingsFile, sleep } from "../tools/utils.js";
 import { AccountId, VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
 import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
@@ -103,6 +103,7 @@ const filterVotes = async (referendumId: BN, votes: VoteConviction[], totalIssua
 const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, settings?): Promise<[String, VoteConviction[]]> => {
     const api = await getApi();
     const info = await api.query.democracy.referendumInfoOf(referendumIndex);
+    
     let blockNumber: BN;
     try {
         blockNumber = info.unwrap().asFinished.end
@@ -111,6 +112,7 @@ const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, setti
         logger.error(`Referendum is still ongoing: ${e}`);
         return;
     }
+   
     let cutOffBlock;
     if (!atExpiry) {
         cutOffBlock = settings.blockCutOff && settings.blockCutOff !== "-1" ?
@@ -158,7 +160,7 @@ const getRandom = (weights) => {
 
 
 
-const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent) => {
+const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyWallets, toddlerWallets, adolescentWallets, adultWallets, account, babyBonus, toddlerBonus, adolescentBonus, adultBonus) => {
     // unscale input
     n = await getDecimal(n);
     // console.log("n", n)
@@ -189,6 +191,20 @@ const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent) => {
     n += minOut
     // nBN = nBN.plus(minOutBN)
     // console.log("bnb5", nBN.toString());
+    //check if dragon bonus
+
+    if (adultWallets.includes(account)) {
+        n = n * (1 + (adultBonus / 100))
+    }
+    else if (adolescentWallets.includes(account)) {
+        n = n * (1 + (adolescentBonus / 100))
+    }
+    else if (toddlerWallets.includes(account)) {
+        n = n * (1 + (toddlerBonus / 100))
+    }
+    else if (babyWallets.includes(account)) {
+        n = n * (1 + (babyBonus / 100))
+    }
     return n
 }
 
@@ -250,7 +266,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     [totalIssuanceRefExpiry, totalVotes] = await getVotesAndIssuance(referendumIndex, true)
     logger.info("Number of votes: ", totalVotes.length)
     if (params.settings.saveDB) {
-        await saveVotesToDB(referendumIndex, totalVotes, totalIssuanceRefExpiry, passed, indexer);
+        await saveVotesToDB(referendumIndex, totalVotes, totalIssuanceRefExpiry, indexer);
     }
 
     let settingsFile = await getSettingsFile(referendumIndex);
@@ -258,6 +274,24 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         return;
     }
     let settings = await JSON.parse(settingsFile);
+    let bonusFile = await getDragonBonusFile(referendumIndex);
+    if (bonusFile === "") {
+        return;
+    }
+    let bonuses = await JSON.parse(bonusFile);
+    //check that bonusFile is from correct block
+    if (bonuses.block != indexer.blockHeight) {
+        logger.info(`Wrong Block in Bonus File. Exiting.`);
+        return;
+    }
+    const babyDragons = bonuses.babies;
+    const toddlerDragons = bonuses.toddlers;
+    const adolescentDragons = bonuses.adolescents;
+    const adultDragons = bonuses.adults;
+    const babyWallets = babyDragons.map(({ wallet }) => wallet);
+    const toddlerWallets = toddlerDragons.map(({ wallet }) => wallet);
+    const adolescentWallets = adolescentDragons.map(({ wallet }) => wallet);
+    const adultWallets = adultDragons.map(({ wallet }) => wallet);
     [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, false, settings);
 
     // fs.writeFile(`assets/shelf/votes/${referendumIndex}.txt`, JSON.stringify(totalVotes), (err) => {
@@ -378,7 +412,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
                 //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
                 //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-                shelfRemarks.push(nft.mint());
+                    shelfRemarks.push(nft.mint());
                 // }
             }
             logger.info("shelfRemarks", JSON.stringify(shelfRemarks))
@@ -419,14 +453,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
                     //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
                     //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-                    addBaseRemarks.push(
-                        nft.resadd({
-                            base: baseId,
-                            id: nanoid(16),
-                            parts: parts,
-                            thumb: `ipfs://ipfs/${shelfThumbCid}`,
-                        })
-                    );
+                        addBaseRemarks.push(
+                            nft.resadd({
+                                base: baseId,
+                                id: nanoid(16),
+                                parts: parts,
+                                thumb: `ipfs://ipfs/${shelfThumbCid}`,
+                            })
+                        );
                     // }
                 }
                 logger.info("addBaseRemarks: ", JSON.stringify(addBaseRemarks))
@@ -460,7 +494,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
                     //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
 
-                    sendRemarks.push(nft.send(account.toString()))
+                        sendRemarks.push(nft.send(account.toString()))
                     // }
                 }
 
@@ -615,7 +649,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
             //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
             //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-            mintRemarks.push(nft.mint());
+                mintRemarks.push(nft.mint());
             // }
         }
         // logger.info("selectedOptions: ", JSON.stringify(selectedOptions))
@@ -660,21 +694,21 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
                     //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
                     //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-                    addResRemarks.push(
-                        (resource.slot) ?
-                            nft.resadd({
-                                src: `ipfs://ipfs/${mainCid}`,
-                                thumb: `ipfs://ipfs/${thumbCid}`,
-                                id: nanoid(16),
-                                slot: `${resource.slot}`,
-                                metadata: resourceMetadataCidsDefault[i]
-                            }) : nft.resadd({
-                                src: `ipfs://ipfs/${mainCid}`,
-                                thumb: `ipfs://ipfs/${thumbCid}`,
-                                id: nanoid(16),
-                                metadata: resourceMetadataCidsDefault[i]
-                            })
-                    );
+                        addResRemarks.push(
+                            (resource.slot) ?
+                                nft.resadd({
+                                    src: `ipfs://ipfs/${mainCid}`,
+                                    thumb: `ipfs://ipfs/${thumbCid}`,
+                                    id: nanoid(16),
+                                    slot: `${resource.slot}`,
+                                    metadata: resourceMetadataCidsDefault[i]
+                                }) : nft.resadd({
+                                    src: `ipfs://ipfs/${mainCid}`,
+                                    thumb: `ipfs://ipfs/${thumbCid}`,
+                                    id: nanoid(16),
+                                    metadata: resourceMetadataCidsDefault[i]
+                                })
+                        );
                     // }
                     // //get the parent nft
                     // let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
@@ -737,8 +771,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
                 //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
                 //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-                sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.id.toString()
-                //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
+                    sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.id.toString()
+                    //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
                 // }
             }
             // put this for testing
@@ -883,7 +917,21 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                             luck = option.minProbability;
                         }
                         else {
-                            luck = await calculateLuck(vote.convictionBalance.toString(), minValue, median, option.minProbability, option.sweetspotProbability, 3)
+                            luck = await calculateLuck(vote.convictionBalance.toString(),
+                                minValue,
+                                median,
+                                option.minProbability,
+                                option.sweetspotProbability,
+                                3,
+                                babyWallets,
+                                toddlerWallets,
+                                adolescentWallets,
+                                adultWallets,
+                                vote.accountId.toString(),
+                                settings.babyBonus,
+                                settings.toddlerBonus,
+                                settings.adolescentBonus,
+                                settings.adultBonus)
                         }
                     }
                     else {
@@ -891,7 +939,21 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                             luck = option.maxProbability;
                         }
                         else {
-                            luck = await calculateLuck(vote.convictionBalance.toString(), median, maxValue, option.sweetspotProbability, option.maxProbability, 0.4)
+                            luck = await calculateLuck(vote.convictionBalance.toString(),
+                                median,
+                                maxValue,
+                                option.sweetspotProbability,
+                                option.maxProbability,
+                                0.4,
+                                babyWallets,
+                                toddlerWallets,
+                                adolescentWallets,
+                                adultWallets,
+                                vote.accountId.toString(),
+                                settings.babyBonus,
+                                settings.toddlerBonus,
+                                settings.adolescentBonus,
+                                settings.adultBonus)
                         }
                     }
                     selectedIndex = getRandom([luck / 100, (100 - luck) / 100]);
@@ -948,7 +1010,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
             //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
             //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-            mintRemarks.push(nft.mint());
+                mintRemarks.push(nft.mint());
             // }
         }
         // logger.info("selectedOptions: ", JSON.stringify(selectedOptions))
@@ -997,21 +1059,21 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
                     //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
                     //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-                    addResRemarks.push(
-                        (resource.slot) ?
-                            nft.resadd({
-                                src: `ipfs://ipfs/${mainCid}`,
-                                thumb: `ipfs://ipfs/${thumbCid}`,
-                                id: nanoid(16),
-                                slot: `${resource.slot}`,
-                                metadata: usedResourceMetadataCids[index][i]
-                            }) : nft.resadd({
-                                src: `ipfs://ipfs/${mainCid}`,
-                                thumb: `ipfs://ipfs/${thumbCid}`,
-                                id: nanoid(16),
-                                metadata: usedResourceMetadataCids[index][i]
-                            })
-                    );
+                        addResRemarks.push(
+                            (resource.slot) ?
+                                nft.resadd({
+                                    src: `ipfs://ipfs/${mainCid}`,
+                                    thumb: `ipfs://ipfs/${thumbCid}`,
+                                    id: nanoid(16),
+                                    slot: `${resource.slot}`,
+                                    metadata: usedResourceMetadataCids[index][i]
+                                }) : nft.resadd({
+                                    src: `ipfs://ipfs/${mainCid}`,
+                                    thumb: `ipfs://ipfs/${thumbCid}`,
+                                    id: nanoid(16),
+                                    metadata: usedResourceMetadataCids[index][i]
+                                })
+                        );
                     // }
                     // //get the parent nft
                     // let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
@@ -1075,8 +1137,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
                 //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
                 //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-                sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.id.toString()
-                //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
+                    sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.id.toString()
+                    //addResAndSendRemarks.push(nft.equip("base-11873516-SBP.181"))
                 // }
             }
             // // put this for testing

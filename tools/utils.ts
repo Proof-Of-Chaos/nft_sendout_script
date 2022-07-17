@@ -219,3 +219,16 @@ export const getSettingsFile = async (referendumId: BN) => {
   }
 }
 
+export const getDragonBonusFile = async (referendumId: BN) => {
+  try {
+
+    const bonuses = await fsPromises.readFile(`${process.cwd()}/assets/shelf/dragonBonus/${referendumId}.json`, 'utf8');
+    logger.info(`reading bonuses from /assets/shelf/dragonBonus/${referendumId}.json`);
+    return bonuses
+  }
+  catch (e) {
+    logger.info(`No bonus file specified. Exiting.`);
+    return "";
+  }
+}
+
