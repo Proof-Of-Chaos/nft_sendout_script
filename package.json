@@ -1,12 +1,12 @@
 {
   "dependencies": {
     "@pinata/sdk": "^1.1.23",
-    "@polkadot/api": "^8.12.2",
-    "@polkadot/api-augment": "^8.12.2",
-    "@polkadot/api-base": "^8.12.2",
-    "@polkadot/api-derive": "^8.12.2",
+    "@polkadot/api": "^8.13.1",
+    "@polkadot/api-augment": "^8.13.1",
+    "@polkadot/api-base": "^8.13.1",
+    "@polkadot/api-derive": "^8.13.1",
     "@polkadot/keyring": "^10.0.2",
-    "@polkadot/types": "^8.12.2",
+    "@polkadot/types": "^8.13.1",
     "@polkadot/util-crypto": "^10.0.2",
     "@types/seedrandom": "^3.0.2",
     "bignumber.js": "^9.0.2",
