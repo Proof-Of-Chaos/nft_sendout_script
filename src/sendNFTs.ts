@@ -160,39 +160,28 @@ const getRandom = (weights) => {
 
 
 
-const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyWallets, toddlerWallets, adolescentWallets, adultWallets, account, babyBonus, toddlerBonus, adolescentBonus, adultBonus) => {
-    // unscale input
+const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyWallets, toddlerWallets, adolescentWallets, adultWallets, account, babyBonus, toddlerBonus, adolescentBonus, adultBonus, minAmount) => {
+    
     n = await getDecimal(n);
-    // console.log("n", n)
-    // minIn = new BigNumber(minIn).dividedBy(new BigNumber("1e" + api.registry.chainDecimals));
-    // maxIn = new BigNumber(maxIn).dividedBy(new BigNumber("1e" + api.registry.chainDecimals));
     minOut = parseInt(minOut);
     maxOut = parseInt(maxOut);
-    // console.log("bnb", nBN.toString());
-    // console.log("mininbn", minInBN.toString())
-    // console.log("maxInBN", maxInBN.toString())
-    // console.log("minOutBN", minOutBN.toString())
-    // console.log("maxOutBN", maxOutBN.toString())
+    if (n > maxIn) {
+        n = maxOut;
+    }
+    else if (n < minAmount) {
+        n = minOut;
+    }
+    else {
+        // unscale input
     n -= minIn
-    // nBN = nBN.minus(minInBN)
-    // console.log("bnb1", nBN);
     n /= maxIn - minIn
-    // nBN = nBN.div(maxInBN.minus(minInBN))
-    // console.log("bnb2", nBN);
-
     n = Math.pow(n, exponent)
-    // nBN = nBN.
-    // console.log("bnb3", nBN);
-
     // scale output
     n *= maxOut - minOut
-    // nBN = nBN.multipliedBy(maxOutBN.minus(minOutBN))
-    // console.log("bnb4", nBN);
     n += minOut
-    // nBN = nBN.plus(minOutBN)
-    // console.log("bnb5", nBN.toString());
+        
+    }
     //check if dragon bonus
-
     if (adultWallets.includes(account)) {
         n = n * (1 + (adultBonus / 100))
     }
@@ -913,10 +902,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             for (const option of settings.options) {
                 if (counter < settings.options.length - 1) {
                     if (await getDecimal(vote.convictionBalance.toString()) < median) {
-                        if (await getDecimal(vote.convictionBalance.toString()) < settings.minAmount) {
-                            luck = option.minProbability;
-                        }
-                        else {
+                        // if (await getDecimal(vote.convictionBalance.toString()) < settings.minAmount) {
+                        //     luck = option.minProbability;
+                        // }
+                        // else {
                             luck = await calculateLuck(vote.convictionBalance.toString(),
                                 minValue,
                                 median,
@@ -931,14 +920,15 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                 settings.babyBonus,
                                 settings.toddlerBonus,
                                 settings.adolescentBonus,
-                                settings.adultBonus)
-                        }
+                                settings.adultBonus,
+                                settings.minAmount)
+                        // }
                     }
                     else {
-                        if (await getDecimal(vote.convictionBalance.toString()) > maxValue) {
-                            luck = option.maxProbability;
-                        }
-                        else {
+                        // if (await getDecimal(vote.convictionBalance.toString()) > maxValue) {
+                        //     luck = option.maxProbability;
+                        // }
+                        // else {
                             luck = await calculateLuck(vote.convictionBalance.toString(),
                                 median,
                                 maxValue,
@@ -953,8 +943,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                 settings.babyBonus,
                                 settings.toddlerBonus,
                                 settings.adolescentBonus,
-                                settings.adultBonus)
-                        }
+                                settings.adultBonus,
+                                settings.minAmount)
+                        // }
                     }
                     selectedIndex = getRandom([luck / 100, (100 - luck) / 100]);
                     if (selectedIndex === 0) {

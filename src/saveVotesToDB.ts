@@ -4,7 +4,6 @@ import { insertReferendum } from "./mongo/service/referendum.js";
 import { logger } from '../tools/logger.js';
 import dotenv from "dotenv";
 import fetch from 'node-fetch';
-import { ApiPromise } from '@polkadot/api';
 import { sleep } from '../tools/utils.js';
 
 dotenv.config();
@@ -59,13 +58,12 @@ export const saveVotesToDB = async (referendumIndex: BN,
     const response = await getReferendumData(referendumIndex)
     const responseJSON = await response.json();
     let info;
-    if (responseJSON && responseJSON.message == "Success" && responseJSON.data.info){
+    if (responseJSON && responseJSON.message == "Success" && responseJSON.data.info) {
         info = responseJSON.data.info;
     }
     const votesWithAdditionalInfo = formattedVotes.map(addInfo);
     const referendum = {
         ...info,
-        time: indexer.blockTime,
         totalIssuance: totalIssuance.toString(),
         votes: formattedVotes
     }
