@@ -37,7 +37,7 @@
                 "name": "defaultresource2",
                 "main": "213/option3/resource2/main.png",
                 "thumb": "213/option3/resource2/thumb.png",
-                "text": "'Cardboard Ballot Box Equippable on Shelf'\n\nIn Referendum 213 the community voted on whether to upgrade the Kusama runtime to version 0.9.25. The upgrade includes several changes in preparation for Governance 2.0.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                "text": "'Cardboard Ballot Box: Equippable on Shelf'\n\nIn Referendum 213 the community voted on whether to upgrade the Kusama runtime to version 0.9.25. The upgrade includes several changes in preparation for Governance 2.0.\n\nArtist: LokiKot(@LokiPages)\n\n",
                 "title": "Equippable Shelf",
                 "slot": "base-11922668-SBP.REFERENDUM_213"
             }
