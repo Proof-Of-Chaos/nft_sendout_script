@@ -15,7 +15,7 @@ import { ApiDecoration } from "@polkadot/api/types";
 import { saveVotesToDB } from "./saveVotesToDB.js";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { nanoid } from "nanoid";
-import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
+import { IAttribute, IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
 import { exit } from "process";
 import BigNumber from "bignumber.js";
 import { createNewCollection } from "./createNewCollection.js";
@@ -103,7 +103,7 @@ const filterVotes = async (referendumId: BN, votes: VoteConviction[], totalIssua
 const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, settings?): Promise<[String, VoteConviction[]]> => {
     const api = await getApi();
     const info = await api.query.democracy.referendumInfoOf(referendumIndex);
-    
+
     let blockNumber: BN;
     try {
         blockNumber = info.unwrap().asFinished.end
@@ -112,7 +112,7 @@ const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, setti
         logger.error(`Referendum is still ongoing: ${e}`);
         return;
     }
-   
+
     let cutOffBlock;
     if (!atExpiry) {
         cutOffBlock = settings.blockCutOff && settings.blockCutOff !== "-1" ?
@@ -143,11 +143,10 @@ const getShelflessAccounts = async (votes: VoteConviction[], collectionId): Prom
     return accounts;
 }
 
-const getRandom = (weights) => {
-    var num = Math.random(),
+const getRandom = (rng, weights) => {
+    var num = rng(),
         s = 0,
         lastIndex = weights.length - 1;
-
     for (var i = 0; i < lastIndex; ++i) {
         s += weights[i];
         if (num < s) {
@@ -161,7 +160,7 @@ const getRandom = (weights) => {
 
 
 const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyWallets, toddlerWallets, adolescentWallets, adultWallets, account, babyBonus, toddlerBonus, adolescentBonus, adultBonus, minAmount) => {
-    
+
     n = await getDecimal(n);
     minOut = parseInt(minOut);
     maxOut = parseInt(maxOut);
@@ -173,13 +172,13 @@ const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyWall
     }
     else {
         // unscale input
-    n -= minIn
-    n /= maxIn - minIn
-    n = Math.pow(n, exponent)
-    // scale output
-    n *= maxOut - minOut
-    n += minOut
-        
+        n -= minIn
+        n /= maxIn - minIn
+        n = Math.pow(n, exponent)
+        // scale output
+        n *= maxOut - minOut
+        n += minOut
+
     }
     //check if dragon bonus
     if (adultWallets.includes(account)) {
@@ -220,8 +219,6 @@ const getMinMaxMedian = (someArray, criticalValue) => {
     } else {
         median = values[Math.floor(values.length / 2 + 1)];
     }
-
-
     console.log("q1", q1)
     console.log("q3", q3)
     console.log("medium", median)
@@ -233,7 +230,6 @@ const getMinMaxMedian = (someArray, criticalValue) => {
 }
 
 export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = null) => {
-    seedrandom(referendumIndex.toString(), { global: true });
     //wait a bit since blocks after will be pretty full
     await sleep(10000);
     const api = await getApi();
@@ -263,6 +259,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         return;
     }
     let settings = await JSON.parse(settingsFile);
+    const rng = seedrandom(referendumIndex.toString()+settings.seed);
     let bonusFile = await getDragonBonusFile(referendumIndex);
     if (bonusFile === "") {
         return;
@@ -310,6 +307,109 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     // totalIssuance = "12312312312342312314"
     const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance.toString(), settings)
     logger.info("Number of votes after filter: ", filteredVotes.length)
+
+    //get votes not in filtered
+    const votesNotMeetingRequirements = totalVotes.filter(vote => {
+        return !filteredVotes.some(o => {
+            return o.accountId.toString() === vote.accountId.toString()
+                && o.vote.toString() === vote.vote.toString()
+                && o.isDelegating === vote.isDelegating
+        });
+    })
+
+    logger.info(`${votesNotMeetingRequirements.length} votes not meeting the requirements.`)
+
+    let luckArray = [];
+    const minVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).lt(new BN(curr.convictionBalance)) ? prev : curr);
+    const maxVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).gt(new BN(curr.convictionBalance)) ? prev : curr);
+    logger.info("minVote", minVote.convictionBalance.toString())
+    logger.info("maxVote", maxVote.convictionBalance.toString())
+    const promises = filteredVotes.map(async (vote) => {
+        return await getDecimal(vote.convictionBalance.toString())
+    })
+    const voteAmounts = await Promise.all(promises);
+    let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, settings.minAmount)
+    console.log("min", minValue);
+    console.log("median", median);
+    console.log("max", maxValue);
+    await sleep(10000);
+    minValue = minValue < await getDecimal(minVote.convictionBalance.toString()) ? await getDecimal(minVote.convictionBalance.toString()) : minValue
+
+
+    let selectedIndexArray = [];
+    for (const vote of filteredVotes) {
+        let luck;
+        let selectedIndex;
+        let counter = 0;
+        for (const option of settings.options) {
+            if (counter < settings.options.length - 1) {
+                if (await getDecimal(vote.convictionBalance.toString()) < median) {
+                    // if (await getDecimal(vote.convictionBalance.toString()) < settings.minAmount) {
+                    //     luck = option.minProbability;
+                    // }
+                    // else {
+                    luck = await calculateLuck(vote.convictionBalance.toString(),
+                        minValue,
+                        median,
+                        option.minProbability,
+                        option.sweetspotProbability,
+                        3,
+                        babyWallets,
+                        toddlerWallets,
+                        adolescentWallets,
+                        adultWallets,
+                        vote.accountId.toString(),
+                        settings.babyBonus,
+                        settings.toddlerBonus,
+                        settings.adolescentBonus,
+                        settings.adultBonus,
+                        settings.minAmount)
+                    // }
+                }
+                else {
+                    // if (await getDecimal(vote.convictionBalance.toString()) > maxValue) {
+                    //     luck = option.maxProbability;
+                    // }
+                    // else {
+                    luck = await calculateLuck(vote.convictionBalance.toString(),
+                        median,
+                        maxValue,
+                        option.sweetspotProbability,
+                        option.maxProbability,
+                        0.4,
+                        babyWallets,
+                        toddlerWallets,
+                        adolescentWallets,
+                        adultWallets,
+                        vote.accountId.toString(),
+                        settings.babyBonus,
+                        settings.toddlerBonus,
+                        settings.adolescentBonus,
+                        settings.adultBonus,
+                        settings.minAmount)
+                    // }
+                }
+                selectedIndex = getRandom(rng, [luck / 100, (100 - luck) / 100]);
+                if (selectedIndex === 0) {
+                    selectedIndex = counter;
+                    break;
+                }
+            }
+            selectedIndex = counter;
+            counter++;
+        }
+        luckArray.push([vote.convictionBalance.toString(), luck, selectedIndex, vote.accountId.toString()])
+        selectedIndexArray.push(selectedIndex)
+    }
+    var uniqs = selectedIndexArray.reduce((acc, val) => {
+        acc[val] = acc[val] === undefined ? 1 : acc[val] += 1;
+        return acc;
+    }, {});
+    var commonIndex = Object.keys(uniqs).sort().pop();
+    console.log("commonIndex", commonIndex)
+    uniqs[commonIndex] = uniqs[commonIndex] + votesNotMeetingRequirements.length
+
+    logger.info(uniqs)
 
     const shelfCollectionId = Collection.generateId(
         u8aToHex(params.account.publicKey),
@@ -515,23 +615,53 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     }
 
 
-
-
+    const rarityAttribute: IAttribute = {
+        type: "string",
+        value: settings.default.rarity,
+    }
+    const supplyAttribute: IAttribute = {
+        type: "number",
+        value: uniqs[commonIndex],
+    }
+    const artistAttribute: IAttribute = {
+        type: "string",
+        value: settings.default.artist,
+    }
     //send "non-rare" NFT to voters not meeting requirements
 
     const metadataCidDirectDefault = await pinSingleMetadataWithoutFile(
         `Referendum ${referendumIndex}`,
         {
-            description: settings.default.text + `Type of vote: Direct.`,
-            properties: {}
+            description: settings.default.text + settings.default.artist + `\n\n` + `Type of vote: Direct.`,
+            properties: {
+                "rarity": {
+                    ...rarityAttribute
+                },
+                "total_supply": {
+                    ...supplyAttribute
+                },
+                "artist": {
+                    ...artistAttribute
+                },
+            }
         }
     );
 
     const metadataCidDelegatedDefault = await pinSingleMetadataWithoutFile(
         `Referendum ${referendumIndex}`,
         {
-            description: settings.default.text + `Type of vote: Delegated.`,
-            properties: {}
+            description: settings.default.text + settings.default.artist + `\n\n` + `Type of vote: Delegated.`,
+            properties: {
+                "rarity": {
+                    ...rarityAttribute
+                },
+                "total_supply": {
+                    ...supplyAttribute
+                },
+                "artist": {
+                    ...artistAttribute
+                },
+            }
         }
     );
 
@@ -566,11 +696,33 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     for (let i = 0; i < settings.default.resources.length; i++) {
         const resource = settings.default.resources[i]
+        const rarityAttribute: IAttribute = {
+            type: "string",
+            value: resource.rarity,
+        }
+        const supplyAttribute: IAttribute = {
+            type: "number",
+            value: uniqs[commonIndex],
+        }
+        const artistAttribute: IAttribute = {
+            type: "string",
+            value: resource.artist,
+        }
         const metadataResource = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
             {
-                description: resource.text,
-                properties: {}
+                description: resource.text + resource.artist,
+                properties: {
+                    "rarity": {
+                        ...rarityAttribute
+                    },
+                    "total_supply": {
+                        ...supplyAttribute
+                    },
+                    "artist": {
+                        ...artistAttribute
+                    },
+                }
             }
         );
         resourceMetadataCidsDefault.push(metadataResource)
@@ -580,15 +732,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     logger.info("resourceMetadataCidsDefault", resourceMetadataCidsDefault);
 
-    //get votes not in filtered
-    const votesNotMeetingRequirements = totalVotes.filter(vote => {
-        return !filteredVotes.some(o => {
-            return o.accountId.toString() === vote.accountId.toString()
-                && o.vote.toString() === vote.vote.toString()
-                && o.isDelegating === vote.isDelegating
-        });
-    })
-    logger.info(`${votesNotMeetingRequirements.length} votes not meeting the requirements.`)
 
     for (let i = 0; i < votesNotMeetingRequirements.length; i += chunkSizeDefault) {
         const chunk = votesNotMeetingRequirements.slice(i, i + chunkSizeDefault);
@@ -605,7 +748,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
             let metadataCid = vote.isDelegating ? metadataCidDelegatedDefault : metadataCidDirectDefault
 
-            const randRoyaltyInRange = Math.floor(Math.random() * (settings.default.royalty[1] - settings.default.royalty[0] + 1) + settings.default.royalty[0])
+            const randRoyaltyInRange = Math.floor(rng() * (settings.default.royalty[1] - settings.default.royalty[0] + 1) + settings.default.royalty[0])
             const itemRoyaltyProperty: IRoyaltyAttribute = {
                 type: "royalty",
                 value: {
@@ -783,19 +926,52 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const metadataCids = []
     // const weights = []
     for (const option of settings.options) {
+        const rarityAttribute: IAttribute = {
+            type: "string",
+            value: option.rarity,
+        }
+        const supplyAttribute: IAttribute = {
+            type: "number",
+            value: uniqs[settings.options.indexOf(option).toString()],
+        }
+        const artistAttribute: IAttribute = {
+            type: "string",
+            value: option.artist,
+        }
+
         const metadataCidDirect = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
             {
-                description: option.text + `Type of vote: Direct.`,
-                properties: {}
+                description: option.text + option.artist + `\n\n` + `Type of vote: Direct.`,
+                properties: {
+                    "rarity": {
+                        ...rarityAttribute
+                    },
+                    "total_supply": {
+                        ...supplyAttribute
+                    },
+                    "artist": {
+                        ...artistAttribute
+                    }
+                }
             }
         );
 
         const metadataCidDelegated = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
             {
-                description: option.text + `Type of vote: Delegated.`,
-                properties: {}
+                description: option.text + option.artist + `\n\n` + `Type of vote: Delegated.`,
+                properties: {
+                    "rarity": {
+                        ...rarityAttribute
+                    },
+                    "total_supply": {
+                        ...supplyAttribute
+                    },
+                    "artist": {
+                        ...artistAttribute
+                    }
+                }
             }
         );
 
@@ -850,11 +1026,33 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         let optionResourceMetadataCids = []
         for (let i = 0; i < option.resources.length; i++) {
             const resource = option.resources[i]
+            const rarityAttribute: IAttribute = {
+                type: "string",
+                value: resource.rarity,
+            }
+            const supplyAttribute: IAttribute = {
+                type: "number",
+                value: uniqs[settings.options.indexOf(option).toString()],
+            }
+            const artistAttribute: IAttribute = {
+                type: "string",
+                value: resource.artist,
+            }
             const metadataResource = await pinSingleMetadataWithoutFile(
                 `Referendum ${referendumIndex}`,
                 {
-                    description: resource.text,
-                    properties: {}
+                    description: resource.text + resource.artist,
+                    properties: {
+                        "rarity": {
+                            ...rarityAttribute
+                        },
+                        "total_supply": {
+                            ...supplyAttribute
+                        },
+                        "artist": {
+                            ...artistAttribute
+                        }
+                    }
                 }
             );
             optionResourceMetadataCids.push(metadataResource)
@@ -864,26 +1062,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     logger.info("resourceMetadataCids", resourceMetadataCids);
 
-    const minVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).lt(new BN(curr.convictionBalance)) ? prev : curr);
-    const maxVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).gt(new BN(curr.convictionBalance)) ? prev : curr);
-    logger.info("minVote", minVote.convictionBalance.toString())
-    logger.info("maxVote", maxVote.convictionBalance.toString())
-    // const minOut = settings.minOut;
-    // const maxOut = settings.maxOut;
-    // logger.info("minOut", minOut)
-    // logger.info("maxOut", maxOut)
-    const promises = filteredVotes.map(async (vote) => {
-        return await getDecimal(vote.convictionBalance.toString())
-    })
-    const voteAmounts = await Promise.all(promises);
-    let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, settings.minAmount)
-    console.log("min", minValue);
-    console.log("median", median);
-    console.log("max", maxValue);
-    await sleep(10000);
-    minValue = minValue < await getDecimal(minVote.convictionBalance.toString()) ? await getDecimal(minVote.convictionBalance.toString()) : minValue
-    //remove this
-    let luckArray = [];
 
     for (let i = 0; i < filteredVotes.length; i += chunkSize) {
         const chunk = filteredVotes.slice(i, i + chunkSize);
@@ -894,76 +1072,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         let selectedOptions = [];
         let count = 0;
 
-        for (const vote of chunk) {
-            // console.log(vote.balance.toString(), vote.vote.conviction.toNumber(), vote.convictionBalance.toString())
-            let luck;
-            let selectedIndex;
-            let counter = 0;
-            for (const option of settings.options) {
-                if (counter < settings.options.length - 1) {
-                    if (await getDecimal(vote.convictionBalance.toString()) < median) {
-                        // if (await getDecimal(vote.convictionBalance.toString()) < settings.minAmount) {
-                        //     luck = option.minProbability;
-                        // }
-                        // else {
-                            luck = await calculateLuck(vote.convictionBalance.toString(),
-                                minValue,
-                                median,
-                                option.minProbability,
-                                option.sweetspotProbability,
-                                3,
-                                babyWallets,
-                                toddlerWallets,
-                                adolescentWallets,
-                                adultWallets,
-                                vote.accountId.toString(),
-                                settings.babyBonus,
-                                settings.toddlerBonus,
-                                settings.adolescentBonus,
-                                settings.adultBonus,
-                                settings.minAmount)
-                        // }
-                    }
-                    else {
-                        // if (await getDecimal(vote.convictionBalance.toString()) > maxValue) {
-                        //     luck = option.maxProbability;
-                        // }
-                        // else {
-                            luck = await calculateLuck(vote.convictionBalance.toString(),
-                                median,
-                                maxValue,
-                                option.sweetspotProbability,
-                                option.maxProbability,
-                                0.4,
-                                babyWallets,
-                                toddlerWallets,
-                                adolescentWallets,
-                                adultWallets,
-                                vote.accountId.toString(),
-                                settings.babyBonus,
-                                settings.toddlerBonus,
-                                settings.adolescentBonus,
-                                settings.adultBonus,
-                                settings.minAmount)
-                        // }
-                    }
-                    selectedIndex = getRandom([luck / 100, (100 - luck) / 100]);
-                    if (selectedIndex === 0) {
-                        selectedIndex = counter;
-                        break;
-                    }
-                }
-                selectedIndex = counter;
-                counter++;
-            }
-
-            // console.log("luck", luck)
-
-            luckArray.push([vote.convictionBalance.toString(), luck, selectedIndex, vote.accountId.toString()])
+        for (let j = 0; j < chunk.length; j++) {
+            const vote = chunk[j]
             // console.log("selectedIndex", selectedIndex)
-            const selectedOption = settings.options[selectedIndex];
+            const selectedOption = settings.options[selectedIndexArray[i + j]];
             selectedOptions.push(selectedOption);
-            const selectedMetadata = metadataCids[selectedIndex];
+            const selectedMetadata = metadataCids[selectedIndexArray[i + j]];
 
             let metadataCid = vote.isDelegating ? selectedMetadata[1] : selectedMetadata[0]
 
@@ -994,7 +1108,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 },
             };
             usedMetadataCids.push(metadataCid);
-            usedResourceMetadataCids.push(resourceMetadataCids[selectedIndex])
+            usedResourceMetadataCids.push(resourceMetadataCids[selectedIndexArray[i + j]])
             const nft = new NFT(nftProps);
             // //remove this
             // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
