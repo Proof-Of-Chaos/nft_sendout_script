@@ -1,0 +1,163 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 15,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "424",
+    "default": {
+        "transferable": 1,
+        "symbol": "GH",
+        "text": "'Gjallarhorn'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+        "artist": "@kseniashikh",
+        "rarity": "common",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "212/option3/resource1/main.png",
+                "thumb": "212/option3/resource1/thumb.png",
+                "text": "'Gjallarhorn'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+                "artist": "@kseniashikh",
+                "rarity": "common",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "212/option3/resource2/main.png",
+                "thumb": "212/option3/resource2/thumb.png",
+                "text": "'Gjallarhorn: Equippable on Shelf'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+                "artist": "@kseniashikh",
+                "rarity": "common",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_212"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "YG",
+            "text": "'Yggdrasil Garment'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+            "artist": "LokiKot(@LokiPages)",
+            "rarity": "epic",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "212/option1/resource1/main.png",
+                    "thumb": "212/option1/resource1/thumb.png",
+                    "text": "'Yggdrasil Garment'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "epic",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "212/option1/resource2/main.png",
+                    "thumb": "212/option1/resource2/thumb.png",
+                    "text": "'Yggdrasil Garment: Equippable on Shelf'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "epic",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_212"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "AS",
+            "text": "'Asgard Shield'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+            "artist": "@kseniashikh",
+            "rarity": "rare",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "212/option2/resource1/main.png",
+                    "thumb": "212/option2/resource1/thumb.png",
+                    "text": "'Asgard Shield'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "rare",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "212/option2/resource2/main.png",
+                    "thumb": "212/option2/resource2/thumb.png",
+                    "text": "'Asgard Shield: Equippable on Shelf'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "rare",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_212"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "GH",
+            "text": "'Gjallarhorn'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+            "artist": "@kseniashikh",
+            "rarity": "common",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "212/option3/resource1/main.png",
+                    "thumb": "212/option3/resource1/thumb.png",
+                    "text": "'Gjallarhorn'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "common",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "212/option3/resource2/main.png",
+                    "thumb": "212/option3/resource2/thumb.png",
+                    "text": "'Gjallarhorn: Equippable on Shelf'\n\nIn Referendum 212 the community voted on whether to give Bifrost a KSM liquidity subsidy. The team aims for this allocation to provide liqudity for staked KSM and to further improve the incentives for users to nominate and pledge tokens.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "common",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_212"
+                }
+            ]
+        }
+    ]
+}

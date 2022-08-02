@@ -17,6 +17,7 @@ import { createItemCollection } from "./tools/startScripts/createItemCollection.
 import { logger } from "./tools/logger.js";
 import { sendNFTs } from "./src/sendNFTs.js";
 import { BN } from '@polkadot/util';
+import { upsertReferendaInDB } from "./src/saveVotesToDB.js";
 
 
 dotenv.config();
@@ -64,6 +65,13 @@ class Incentivizer {
       params.blockCountAdapter = new CountAdapter(params.localStorage, "headerBlock");
       params.blockListener = new BlockListener(this.api,
         params.blockCountAdapter);
+      upsertReferendaInDB();
+      const interval = setInterval(async () => {
+        upsertReferendaInDB();
+      }, 300000);
+
+      //add/update ones that are not passed/notpassed yet in db
+
     }
     //setup remark listener for minting listener
     params.remarkStorageAdapter = new RemarkStorageAdapter(params.remarkStorage);

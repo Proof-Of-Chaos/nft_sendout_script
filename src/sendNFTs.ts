@@ -250,9 +250,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     [totalIssuanceRefExpiry, totalVotes] = await getVotesAndIssuance(referendumIndex, true)
     logger.info("Number of votes: ", totalVotes.length)
-    if (params.settings.saveDB) {
-        await saveVotesToDB(referendumIndex, totalVotes, totalIssuanceRefExpiry, indexer);
-    }
+    // if (params.settings.saveDB) {
+    //     await saveVotesToDB(referendumIndex, totalVotes, totalIssuanceRefExpiry, indexer);
+    // }
 
     let settingsFile = await getSettingsFile(referendumIndex);
     if (settingsFile === "") {
