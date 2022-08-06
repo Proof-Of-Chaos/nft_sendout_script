@@ -627,6 +627,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         type: "string",
         value: settings.default.artist,
     }
+    const refIndexAttribute: IAttribute = {
+        type: "string",
+        value: referendumIndex.toString(),
+    }
+    const nameAttribute: IAttribute = {
+        type: "string",
+        value: settings.default.itemName,
+    }
     //send "non-rare" NFT to voters not meeting requirements
 
     const metadataCidDirectDefault = await pinSingleMetadataWithoutFile(
@@ -643,6 +651,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 "artist": {
                     ...artistAttribute
                 },
+                "referendum_index": {
+                    ...refIndexAttribute
+                },
+                "name": {
+                    ...nameAttribute
+                }
             }
         }
     );
@@ -661,6 +675,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 "artist": {
                     ...artistAttribute
                 },
+                "referendum_index": {
+                    ...refIndexAttribute
+                },
+                "name": {
+                    ...nameAttribute
+                }
             }
         }
     );
@@ -708,6 +728,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             type: "string",
             value: resource.artist,
         }
+        const refIndexAttribute: IAttribute = {
+            type: "string",
+            value: referendumIndex.toString(),
+        }
+        const nameAttribute: IAttribute = {
+            type: "string",
+            value: resource.itemName,
+        }
         const metadataResource = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
             {
@@ -722,6 +750,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     "artist": {
                         ...artistAttribute
                     },
+                    "referendum_index": {
+                        ...refIndexAttribute
+                    },
+                    "name": {
+                        ...nameAttribute
+                    }
                 }
             }
         );
@@ -938,6 +972,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             type: "string",
             value: option.artist,
         }
+        const refIndexAttribute: IAttribute = {
+            type: "string",
+            value: referendumIndex.toString(),
+        }
+        const nameAttribute: IAttribute = {
+            type: "string",
+            value: option.itemName,
+        }
 
         const metadataCidDirect = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
@@ -952,6 +994,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     },
                     "artist": {
                         ...artistAttribute
+                    },
+                    "referendum_index": {
+                        ...refIndexAttribute
+                    },
+                    "name": {
+                        ...nameAttribute
                     }
                 }
             }
@@ -970,6 +1018,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     },
                     "artist": {
                         ...artistAttribute
+                    },
+                    "referendum_index": {
+                        ...refIndexAttribute
+                    },
+                    "name": {
+                        ...nameAttribute
                     }
                 }
             }
@@ -1038,6 +1092,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 type: "string",
                 value: resource.artist,
             }
+            const refIndexAttribute: IAttribute = {
+                type: "string",
+                value: referendumIndex.toString(),
+            }
+            const nameAttribute: IAttribute = {
+                type: "string",
+                value: resource.itemName,
+            }
             const metadataResource = await pinSingleMetadataWithoutFile(
                 `Referendum ${referendumIndex}`,
                 {
@@ -1051,6 +1113,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         },
                         "artist": {
                             ...artistAttribute
+                        },
+                        "referendum_index": {
+                            ...refIndexAttribute
+                        },
+                        "name": {
+                            ...nameAttribute
                         }
                     }
                 }
