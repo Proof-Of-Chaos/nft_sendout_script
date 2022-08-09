@@ -37,11 +37,11 @@ export const handleEvents = async (events, extrinsics, blockIndexer) => {
 
   for (let sort = 0; sort < events.length; sort++) {
     const { event, phase } = events[sort];
-
-    if (phase.isNull) {
+    // if (phase.isNull) {
+      // console.log("event", event)
       await handleEventWithoutExtrinsic(blockIndexer, event, sort, events);
       continue;
-    }
+    // }
 
     // const extrinsicIndex = phase.value.toNumber();
     // const extrinsic = extrinsics[extrinsicIndex];

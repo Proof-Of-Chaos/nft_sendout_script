@@ -1,0 +1,219 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 15,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "Lucky number 7",
+    "default": {
+        "transferable": 1,
+        "symbol": "TF",
+        "text": "'Takeout Food'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+        "artist": "@kseniashikh",
+        "rarity": "common",
+        "itemName": "Takeout Food",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "217/option3/resource1/main.png",
+                "thumb": "217/option3/resource1/thumb.png",
+                "text": "'Takeout Food'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                "artist": "@kseniashikh",
+                "rarity": "common",
+                "itemName": "Takeout Food",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "217/option3/resource2/main.png",
+                "thumb": "217/option3/resource2/thumb.png",
+                "text": "'Takeout Food: Equippable on Shelf'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                "artist": "@kseniashikh",
+                "rarity": "common",
+                "itemName": "Takeout Food",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_217"
+            },
+            {
+                "name": "defaultresource3",
+                "main": "217/option3/resource3/main.png",
+                "thumb": "217/option3/resource3/thumb.png",
+                "text": "'Activist Crowd: Equippable on Shelf'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                "artist": "LokiKot(@LokiPages)",
+                "rarity": "common",
+                "itemName": "Activist Crowd",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_217"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "TM",
+            "text": "'Theatre Mask'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+            "artist": "@kseniashikh",
+            "rarity": "epic",
+            "itemName": "Theatre Mask",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "217/option1/resource1/main.png",
+                    "thumb": "217/option1/resource1/thumb.png",
+                    "text": "'Theatre Mask'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "epic",
+                    "itemName": "Theatre Mask",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "217/option1/resource2/main.png",
+                    "thumb": "217/option1/resource2/thumb.png",
+                    "text": "'Theatre Mask: Equippable on Shelf'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "epic",
+                    "itemName": "Theatre Mask",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_217"
+                },
+                {
+                    "name": "option1resource3",
+                    "main": "217/option1/resource3/main.png",
+                    "thumb": "217/option1/resource3/thumb.png",
+                    "text": "'Activist Crowd: Equippable on Shelf'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "epic",
+                    "itemName": "Activist Crowd",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_217"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "SG",
+            "text": "'Sunglasses'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+            "artist": "@kseniashikh",
+            "rarity": "rare",
+            "itemName": "Sunglasses",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "217/option2/resource1/main.png",
+                    "thumb": "217/option2/resource1/thumb.png",
+                    "text": "'Sunglasses'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "rare",
+                    "itemName": "Sunglasses",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "217/option2/resource2/main.png",
+                    "thumb": "217/option2/resource2/thumb.png",
+                    "text": "'Sunglasses: Equippable on Shelf'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "rare",
+                    "itemName": "Sunglasses",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_217"
+                },
+                {
+                    "name": "option2resource3",
+                    "main": "217/option2/resource3/main.png",
+                    "thumb": "217/option2/resource3/thumb.png",
+                    "text": "'Activist Crowd: Equippable on Shelf'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "rare",
+                    "itemName": "Activist Crowd",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_217"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "TF",
+            "text": "'Takeout Food'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+            "artist": "@kseniashikh",
+            "rarity": "common",
+            "itemName": "Takeout Food",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "217/option3/resource1/main.png",
+                    "thumb": "217/option3/resource1/thumb.png",
+                    "text": "'Takeout Food'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "common",
+                    "itemName": "Takeout Food",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "217/option3/resource2/main.png",
+                    "thumb": "217/option3/resource2/thumb.png",
+                    "text": "'Takeout Food: Equippable on Shelf'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "common",
+                    "itemName": "Takeout Food",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_217"
+                },
+                {
+                    "name": "option3resource3",
+                    "main": "217/option3/resource3/main.png",
+                    "thumb": "217/option3/resource3/thumb.png",
+                    "text": "'Activist Crowd: Equippable on Shelf'\n\nIn Referendum 217 the community voted on whether to provide Genshiro with liquidity funding of 25000 KSM. The team aims to use these funds to attract liquidity into Genshiro's money market and DEX, incentivise the KSM / EQD market liquidity and margin trading, further KSM network effects and benefit the ecosystem with a first real margin trading and borrowing use case.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "common",
+                    "itemName": "Activist Crowd",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_217"
+                }
+            ]
+        }
+    ]
+}
