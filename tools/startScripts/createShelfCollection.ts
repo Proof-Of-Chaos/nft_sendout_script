@@ -11,7 +11,7 @@ export const createShelfCollection = async () => {
   try {
     const collectionId = Collection.generateId(
       u8aToHex(params.account.publicKey),
-      params.settings.shelfCollectionSymbol
+      params.settings.parentCollectionSymbol
     );
     logger.info("collection Id: ", collectionId);
 
@@ -42,7 +42,7 @@ export const createShelfCollection = async () => {
       0,
       0,
       encodeAddress(params.account.address, params.settings.network.prefix),
-      params.settings.shelfCollectionSymbol,
+      params.settings.parentCollectionSymbol,
       collectionId,
       collectionMetadataCid
     );

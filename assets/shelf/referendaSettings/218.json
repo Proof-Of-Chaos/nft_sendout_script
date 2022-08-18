@@ -1,0 +1,175 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 15,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "987",
+    "default": {
+        "transferable": 1,
+        "symbol": "BS",
+        "text": "'Balance Scale'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+        "artist": "@kseniashikh",
+        "rarity": "common",
+        "itemName": "Balance Scale",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "218/option3/resource1/main.png",
+                "thumb": "218/option3/resource1/thumb.png",
+                "text": "'Balance Scale'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+                "artist": "@kseniashikh",
+                "rarity": "common",
+                "itemName": "Balance Scale",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "218/option3/resource2/main.png",
+                "thumb": "218/option3/resource2/thumb.png",
+                "text": "'Balance Scale: Equippable on Shelf'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+                "artist": "@kseniashikh",
+                "rarity": "common",
+                "itemName": "Balance Scale",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_218"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "DS",
+            "text": "'Digital Scale'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+            "artist": "LokiKot(@LokiPages)",
+            "rarity": "epic",
+            "itemName": "Digital Scale",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "218/option1/resource1/main.png",
+                    "thumb": "218/option1/resource1/thumb.png",
+                    "text": "'Digital Scale'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "epic",
+                    "itemName": "Digital Scale",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "218/option1/resource2/main.png",
+                    "thumb": "218/option1/resource2/thumb.png",
+                    "text": "'Digital Scale: Equippable on Shelf'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "epic",
+                    "itemName": "Digital Scale",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_218"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "MS",
+            "text": "'Mechanical Scale'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+            "artist": "LokiKot(@LokiPages)",
+            "rarity": "rare",
+            "itemName": "Mechanical Scale",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "218/option2/resource1/main.png",
+                    "thumb": "218/option2/resource1/thumb.png",
+                    "text": "'Mechanical Scale'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "rare",
+                    "itemName": "Mechanical Scale",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "218/option2/resource2/main.png",
+                    "thumb": "218/option2/resource2/thumb.png",
+                    "text": "'Mechanical Scale: Equippable on Shelf'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "rare",
+                    "itemName": "Mechanical Scale",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_218"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "BS",
+            "text": "'Balance Scale'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+            "artist": "@kseniashikh",
+            "rarity": "common",
+            "itemName": "Balance Scale",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "218/option3/resource1/main.png",
+                    "thumb": "218/option3/resource1/thumb.png",
+                    "text": "'Balance Scale'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "common",
+                    "itemName": "Balance Scale",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "218/option3/resource2/main.png",
+                    "thumb": "218/option3/resource2/thumb.png",
+                    "text": "'Balance Scale: Equippable on Shelf'\n\nIn Referendum 218 the community voted again on whether to open a bi-directional HRMP channel between Statemine and Shiden. A previous proposal on the topic, which has passed community vote through Referendum 204, failed because of an incorrect maximum weight in the execution call.\n\nArtist: ",
+                    "artist": "@kseniashikh",
+                    "rarity": "common",
+                    "itemName": "Balance Scale",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_218"
+                }
+            ]
+        }
+    ]
+}

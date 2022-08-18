@@ -70,8 +70,6 @@ export class BlockListener {
                 logger.error(`Error initiating tx fetchEventsAtBlock`, error);
                 return error;
             }
-            // logger.error(`error fetching extrinsics or events at block ${blockNumber}: ${e}`);
-            // return e;
         }
     };
 

@@ -1,17 +1,10 @@
-import { BN } from '@polkadot/util';
-import { DeriveReferendumVote } from "@polkadot/api-derive/types";
-import { insertReferendum, upsertReferenda } from "./mongo/service/referendum.js";
+import { upsertReferenda } from "./mongo/service/referendum.js";
 import { logger } from '../tools/logger.js';
 import dotenv from "dotenv";
 import fetch from 'node-fetch';
 import { sleep } from '../tools/utils.js';
 
 dotenv.config();
-
-const addInfo = (vote) => {
-    //check if wallet has set identity
-    //check if wallet is validator etc.
-}
 
 export const getReferendumData = async (referendumIndex, retry = 0): Promise<any> => {
     try {
@@ -47,7 +40,19 @@ export const getReferendumVotes = async (page, referendumIndex, retry = 0) => {
             },
             body: JSON.stringify({ "referendum_index": referendumIndex, "row": 100, "page": page })
         });
-        return response
+        let responseJSON: any = await response.json()
+        if (response && responseJSON.message != "Success") {
+            if (retry < 10) {
+                logger.info(`getReferendumVotes request failed. Retrying`);
+                await sleep(2 * 1000);
+                return await getReferendumVotes(page, referendumIndex, retry + 1);
+            }
+            else {
+                logger.error(`Error in getReferendumVotes`);
+                return;
+            }
+        }
+        return responseJSON
     } catch (e) {
         if (retry < 10) {
             logger.info(`getReferendumVotes request failed. Retrying`);
@@ -85,43 +90,6 @@ const getReferendaData = async (page, retry = 0): Promise<any> => {
     }
 }
 
-export const saveVotesToDB = async (referendumIndex: BN,
-    votes: DeriveReferendumVote[],
-    totalIssuance: String,
-    indexer) => {
-
-    const formattedVotes = votes.map(({ balance, accountId, vote, isDelegating }) => (
-
-        {
-            balance: balance.toString(),
-            accountId: accountId.toString(),
-            createdAt: vote?.createdAtHash,
-            conviction: vote.conviction.toString(),
-            isAye: vote.isAye,
-            isNay: vote.isNay,
-            isDelegating: isDelegating,
-            isEmpty: vote.isEmpty
-        }
-    ))
-    const response = await getReferendumData(referendumIndex)
-    const responseJSON = await response.json();
-    let info;
-    if (responseJSON && responseJSON.message == "Success" && responseJSON.data.info) {
-        info = responseJSON.data.info;
-    }
-    const votesWithAdditionalInfo = formattedVotes.map(addInfo);
-    const referendum = {
-        ...info,
-        totalIssuance: totalIssuance.toString(),
-        votes: formattedVotes
-    }
-
-    if (!await insertReferendum(referendum)) {
-        return logger.info(`Referendum ${referendumIndex} already exists in DB.`)
-    }
-    logger.info(`Referendum ${referendumIndex} saved to DB.`)
-}
-
 export const upsertReferendaInDB = async () => {
     let count = 0;
     const response = await getReferendaData(count)
@@ -135,5 +103,4 @@ export const upsertReferendaInDB = async () => {
         const response = await getReferendaData(++count)
         responseJSON = await response.json();
     }
-
 }

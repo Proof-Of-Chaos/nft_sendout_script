@@ -22,12 +22,6 @@ const MAX_RETRIES = 15;
 const WS_DISCONNECT_TIMEOUT_SECONDS = 20;
 const RETRY_DELAY_SECONDS = 20;
 
-// export const sleep = (ms: number): Promise<void> => {
-//   return new Promise((resolve) => {
-//     setTimeout(() => resolve(), ms);
-//   });
-// };
-
 interface ISendTxReturnType {
   success: boolean;
   hash?: CodecHash;
@@ -131,16 +125,6 @@ export const getApi = async (
     }
   }
 };
-
-
-
-
-// export const getApi = async (): Promise<ApiPromise> => {
-//   const wsNodeUri = process.env.WS_NODE_URI || "ws://127.0.0.1:9944/";
-//   const wsProvider = new WsProvider(wsNodeUri);
-//   const api = await ApiPromise.create({ provider: wsProvider });
-//   return api;
-// };
 
 export const initAccount = (): KeyringPair => {
   const keyring = new Keyring({ type: "sr25519" });
@@ -274,58 +258,6 @@ export const sendAndFinalize = async (
     }
   });
 };
-
-
-
-
-
-// export const sendAndFinalize = async (
-//   tx: SubmittableExtrinsic<"promise", ISubmittableResult>,
-//   account: KeyringPair
-// ): Promise<{
-//   block: number;
-//   success: boolean;
-//   hash: string;
-//   included: any[];
-//   finalized: any[];
-// }> => {
-//   return new Promise(async (resolve) => {
-//     let success = false;
-//     let included = [];
-//     let finalized = [];
-//     let block = 0;
-//     const unsubscribe = await tx.signAndSend(
-//       account,
-//       async ({ events = [], status, dispatchError }) => {
-//         if (status.isInBlock) {
-//           logger.info(`status: ${status}`);
-
-//           success = dispatchError ? false : true;
-//           logger.info(
-//             `📀 Transaction ${tx.meta.name} included at blockHash ${status.asInBlock} [success = ${success}]`
-//           );
-//           const signedBlock = await params.api.rpc.chain.getBlock(status.asInBlock);
-//           block = signedBlock.block.header.number.toNumber();
-//           included = [...events];
-//         } else if (status.isBroadcast) {
-//           logger.info(`🚀 Transaction broadcasted.`);
-//         } else if (status.isFinalized) {
-//           logger.info(
-//             `💯 Transaction ${tx.meta.name}(..) Finalized at blockHash ${status.asFinalized}`
-//           );
-//           finalized = [...events];
-//           const hash = tx.hash.toHex();
-//           unsubscribe();
-//           resolve({ success, hash, included, finalized, block });
-//         } else if (status.isReady) {
-//           // let's not be too noisy..
-//         } else {
-//           logger.info(`🤷 Other status ${status}`);
-//         }
-//       }
-//     );
-//   });
-// };
 
 export const getTransactionCost = async (
   toSendRemarks: string[]): Promise<RuntimeDispatchInfo> => {

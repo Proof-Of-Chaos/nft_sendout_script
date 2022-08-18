@@ -5,6 +5,7 @@ import { BaseConsolidated, CollectionConsolidated, NFTConsolidated } from "rmrk-
 import _ from "lodash";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { params } from "../config.js";
+import { u8aToHex } from "@polkadot/util";
 //@ts-ignore
 BigInt.prototype.toJSON = function () {
   return this.toString();
@@ -12,8 +13,14 @@ BigInt.prototype.toJSON = function () {
 
 export class RemarkStorageAdapter implements IConsolidatorAdapter {
   private db;
+  private parentCollection;
   constructor(db) {
     this.db = db;
+    this.parentCollection = Collection.generateId(
+      u8aToHex(params.account.publicKey),
+      params.settings.parentCollectionSymbol
+    );
+
   }
 
   public async getAllNFTs() {
@@ -216,12 +223,15 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
 
   public async updateNFTMint(nft: NFT): Promise<void> {
     await this.db.read();
-    this.db.data.nfts.push({
-      ...nft,
-      symbol: nft.symbol,
-      id: nft.getId(),
-    });
-    await this.db.write();
+    //only save parents to rmrkStorage
+    if (nft.collection === this.parentCollection) {
+      this.db.data.nfts.push({
+        ...nft,
+        symbol: nft.symbol,
+        id: nft.getId(),
+      });
+      await this.db.write();
+    }
   }
 
   public async updateCollectionMint(collection: CollectionConsolidated) { //: Promise<CollectionConsolidated>

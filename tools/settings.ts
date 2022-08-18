@@ -8,7 +8,7 @@ export const getSettings = () => {
     },
     itemCount: parseInt(process.env.ITEM_COUNT),
     startReferendum: parseInt(process.env.START_REFERENDUM),
-    shelfCollectionSymbol: process.env.SHELF_COLLECTION_SYMBOL.toString(),
+    parentCollectionSymbol: process.env.SHELF_COLLECTION_SYMBOL.toString(),
     itemCollectionSymbol: process.env.ITEM_COLLECTION_SYMBOL.toString(),
     backgroundCollectionSymbol: process.env.BACKGROUND_COLLECTION_SYMBOL.toString(),
     decorationCollectionSymbol: process.env.DECORATION_COLLECTION_SYMBOL.toString(),
