@@ -491,13 +491,17 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     }
                 };
                 const nft = new NFT(nftProps);
-                // //remove this
-                // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                if (params.settings.isTest) {
+                    if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                        || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                        || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                        || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                        shelfRemarks.push(nft.mint());
+                    }
+                }
+                else {
                     shelfRemarks.push(nft.mint());
-                // }
+                }
             }
             logger.info("shelfRemarks", JSON.stringify(shelfRemarks))
             if (shelfRemarks.length > 0) {
@@ -532,11 +536,22 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         parts.push(`REFERENDUM_${i.toString()}`)
                     }
                     parts.push("foreground");
-                    // //remove this
-                    // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                    //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                    //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                    //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                    if (params.settings.isTest) {
+                        if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                            || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                            || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                            || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                            addBaseRemarks.push(
+                                nft.resadd({
+                                    base: baseId,
+                                    id: nanoid(16),
+                                    parts: parts,
+                                    thumb: `ipfs://ipfs/${shelfThumbCid}`,
+                                })
+                            );
+                        }
+                    }
+                    else {
                         addBaseRemarks.push(
                             nft.resadd({
                                 base: baseId,
@@ -545,7 +560,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                 thumb: `ipfs://ipfs/${shelfThumbCid}`,
                             })
                         );
-                    // }
+                    }
                 }
                 logger.info("addBaseRemarks: ", JSON.stringify(addBaseRemarks))
                 // split remarks into sets of 400?
@@ -572,14 +587,18 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         symbol: params.settings.shelfNFTSymbol,
                     };
                     const nft = new NFT(nftProps);
-                    // //remove this
-                    // if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                    //     || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                    //     || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                    //     || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                    if (params.settings.isTest) {
+                        if (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                            || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                            || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                            || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
 
+                            sendRemarks.push(nft.send(account.toString()))
+                        }
+                    }
+                    else {
                         sendRemarks.push(nft.send(account.toString()))
-                    // }
+                    }
                 }
 
                 logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
@@ -644,7 +663,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const metadataCidDirectDefault = await pinSingleMetadataWithoutFile(
         `Referendum ${referendumIndex}`,
         {
-            description: settings.default.text + settings.default.artist,
+            description: settings.default.text,
             properties: {
                 "rarity": {
                     ...rarityAttribute
@@ -671,7 +690,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const metadataCidDelegatedDefault = await pinSingleMetadataWithoutFile(
         `Referendum ${referendumIndex}`,
         {
-            description: settings.default.text + settings.default.artist,
+            description: settings.default.text,
             properties: {
                 "rarity": {
                     ...rarityAttribute
@@ -744,7 +763,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         const metadataResource = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
             {
-                description: resource.text + resource.artist,
+                description: resource.text,
                 properties: {
                     "rarity": {
                         ...rarityAttribute
@@ -807,13 +826,17 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             };
             usedMetadataCidsDefault.push(metadataCid);
             const nft = new NFT(nftProps);
-            // //remove this
-            // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-            //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-            //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-            //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+            if (params.settings.isTest) {
+                if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                    || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                    || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                    || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                    mintRemarks.push(nft.mint());
+                }
+            }
+            else {
                 mintRemarks.push(nft.mint());
-            // }
+            }
         }
         logger.info("mintRemarksDefault: ", JSON.stringify(mintRemarks))
         //mint
@@ -847,11 +870,29 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     let resource = settings.default.resources[i]
                     let mainCid = resourceCidsDefault[i][0]
                     let thumbCid = resourceCidsDefault[i][1]
-                    // //remove this
-                    // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                    //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                    //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                    //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                    if (params.settings.isTest) {
+                        if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                            || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                            || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                            || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                            addResRemarks.push(
+                                (resource.slot) ?
+                                    nft.resadd({
+                                        src: `ipfs://ipfs/${mainCid}`,
+                                        thumb: `ipfs://ipfs/${thumbCid}`,
+                                        id: nanoid(16),
+                                        slot: `${resource.slot}`,
+                                        metadata: resourceMetadataCidsDefault[i]
+                                    }) : nft.resadd({
+                                        src: `ipfs://ipfs/${mainCid}`,
+                                        thumb: `ipfs://ipfs/${thumbCid}`,
+                                        id: nanoid(16),
+                                        metadata: resourceMetadataCidsDefault[i]
+                                    })
+                            );
+                        }
+                    }
+                    else {
                         addResRemarks.push(
                             (resource.slot) ?
                                 nft.resadd({
@@ -867,10 +908,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                     metadata: resourceMetadataCidsDefault[i]
                                 })
                         );
-                    // }
+                    }
                 }
             }
-            
+
             logger.info("addResRemarks: ", JSON.stringify(addResRemarks))
             const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addResRemarks);
             logger.info(`Resource(s) added to default NFTs at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
@@ -887,7 +928,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             const sendRemarks: string[] = [];
             for (const [index, vote] of chunk.entries()) {
 
-                
+
                 // block: chunkCount == 3 ? 12007826 : blockMint,
                 const nftProps: INftProps = {
                     block: blockMint,
@@ -911,14 +952,18 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 if (!accountShelfNFTId) {
                     logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
                 }
-                
-                // //remove this
-                // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-                    sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.id.toString()
-                // }
+
+                if (params.settings.isTest) {
+                    if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                        || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                        || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                        || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                        sendRemarks.push(nft.send(accountShelfNFTId.id.toString()))
+                    }
+                }
+                else {
+                    sendRemarks.push(nft.send(vote.accountId.toString()))
+                }
             }
             // put this for testing
             logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
@@ -971,7 +1016,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         const metadataCidDirect = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
             {
-                description: option.text + option.artist,
+                description: option.text,
                 properties: {
                     "rarity": {
                         ...rarityAttribute
@@ -998,7 +1043,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         const metadataCidDelegated = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
             {
-                description: option.text + option.artist,
+                description: option.text,
                 properties: {
                     "rarity": {
                         ...rarityAttribute
@@ -1080,7 +1125,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             const metadataResource = await pinSingleMetadataWithoutFile(
                 `Referendum ${referendumIndex}`,
                 {
-                    description: resource.text + resource.artist,
+                    description: resource.text,
                     properties: {
                         "rarity": {
                             ...rarityAttribute
@@ -1154,13 +1199,17 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             usedMetadataCids.push(metadataCid);
             usedResourceMetadataCids.push(resourceMetadataCids[selectedIndexArray[i + j]])
             const nft = new NFT(nftProps);
-            // //remove this
-            // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-            //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-            //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-            //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+            if (params.settings.isTest) {
+                if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                    || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                    || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                    || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                    mintRemarks.push(nft.mint());
+                }
+            }
+            else {
                 mintRemarks.push(nft.mint());
-            // }
+            }
         }
         logger.info("mintRemarks: ", JSON.stringify(mintRemarks))
         //mint
@@ -1199,11 +1248,29 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     let resource = selectedOption.resources[i]
                     let mainCid = resourceCids[settings.options.indexOf(selectedOption)][i][0]
                     let thumbCid = resourceCids[settings.options.indexOf(selectedOption)][i][1]
-                    // //remove this
-                    // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                    //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                    //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                    //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                    if (params.settings.isTest) {
+                        if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                            || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                            || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                            || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                            addResRemarks.push(
+                                (resource.slot) ?
+                                    nft.resadd({
+                                        src: `ipfs://ipfs/${mainCid}`,
+                                        thumb: `ipfs://ipfs/${thumbCid}`,
+                                        id: nanoid(16),
+                                        slot: `${resource.slot}`,
+                                        metadata: usedResourceMetadataCids[index][i]
+                                    }) : nft.resadd({
+                                        src: `ipfs://ipfs/${mainCid}`,
+                                        thumb: `ipfs://ipfs/${thumbCid}`,
+                                        id: nanoid(16),
+                                        metadata: usedResourceMetadataCids[index][i]
+                                    })
+                            );
+                        }
+                    }
+                    else {
                         addResRemarks.push(
                             (resource.slot) ?
                                 nft.resadd({
@@ -1219,7 +1286,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                     metadata: usedResourceMetadataCids[index][i]
                                 })
                         );
-                    // }
+                    }
                 }
             }
             logger.info("addResRemarks: ", JSON.stringify(addResRemarks))
@@ -1262,13 +1329,17 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 if (!accountShelfNFTId) {
                     logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
                 }
-                // //remove this
-                // if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                //     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                //     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                //     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
-                    sendRemarks.push(nft.send(vote.accountId.toString())) //vote.accountId.toString() //accountShelfNFTId.id.toString()
-                // }
+                if (params.settings.isTest) {
+                    if (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
+                        || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
+                        || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
+                        || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK") {
+                        sendRemarks.push(nft.send(accountShelfNFTId.id.toString()))
+                    }
+                }
+                else {
+                    sendRemarks.push(nft.send(vote.accountId.toString()))
+                }
             }
             logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
             const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await mintAndSend(sendRemarks);
