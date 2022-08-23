@@ -5,6 +5,7 @@ import { PinataPinOptions } from '@pinata/sdk';
 import { sleep } from './utils.js';
 import { params } from '../config.js';
 import { Metadata } from 'rmrk-tools/dist/tools/types';
+import { logger } from "./logger.js";
 
 const defaultOptions: Partial<PinataPinOptions> = {
     pinataOptions: {
@@ -35,7 +36,10 @@ export const uploadAndPinIpfsMetadata = async (metadataFields: Metadata): Promis
         const metadataHashResult = await params.pinata.pinJSONToIPFS(metadata, options);
         return `ipfs://ipfs/${metadataHashResult.IpfsHash}`;
     } catch (error) {
-        return '';
+        logger.info("trying again");
+        await sleep(2000);
+        //try again
+        return await uploadAndPinIpfsMetadata(metadataFields);
     }
 };
 
@@ -55,16 +59,45 @@ export const pinSingleMetadataFromDir = async (
         stream.path = path;
 
         const imageCid = await pinFileStreamToIpfs(stream, name);
-        console.log(`NFT ${path} IMAGE CID: `, imageCid);
+        logger.info(`NFT ${path} IMAGE CID: `, imageCid);
         const metadata: Metadata = { ...metadataBase, name, mediaUri: `ipfs://ipfs/${imageCid}` };
         const metadataCid = await uploadAndPinIpfsMetadata(metadata);
         await sleep(500);
-        console.log(`NFT ${name} METADATA: `, metadataCid);
+        logger.info(`NFT ${name} METADATA: `, metadataCid);
         return metadataCid;
     } catch (error) {
-        console.log(error);
-        console.log(JSON.stringify(error));
+        logger.info(error);
+        logger.info(JSON.stringify(error));
         return '';
+    }
+};
+
+export const pinSingleFileFromDir = async (
+    dir: string,
+    path: string,
+    name: string
+): Promise<string> => {
+    try {
+        const imageFile = await fsPromises.readFile(`${process.cwd()}${dir}/${path}`);
+        if (!imageFile) {
+            throw new Error('No image file');
+        }
+
+        const stream: StreamPinata = Readable.from(imageFile);
+        stream.path = path;
+
+        const imageCid = await pinFileStreamToIpfs(stream, name);
+        logger.info(`NFT ${path} IMAGE CID: `, imageCid);
+        return imageCid;
+    } catch (error) {
+        
+        logger.info(error);
+
+        logger.info(JSON.stringify(error));
+        logger.info("trying again");
+        await sleep(2000);
+        //try again
+        return await pinSingleFileFromDir(dir, path, name);
     }
 };
 
@@ -85,7 +118,7 @@ export const pinSingleWithThumbMetadataFromDir = async (
         stream.path = pathMedia;
 
         const mainCid = await pinFileStreamToIpfs(stream, name);
-        console.log(`NFT ${pathMedia} Media CID: `, mainCid);
+        logger.info(`NFT ${pathMedia} Media CID: `, mainCid);
         let thumbCid;
         if (pathThumb) {
             const thumbMedia = await fsPromises.readFile(`${process.cwd()}${dir}/${pathThumb}`);
@@ -93,20 +126,20 @@ export const pinSingleWithThumbMetadataFromDir = async (
                 throw new Error('No thumb media file');
             }
 
-            const stream: StreamPinata = Readable.from(pathThumb);
+            const stream: StreamPinata = Readable.from(thumbMedia);
             stream.path = pathThumb;
 
             thumbCid = await pinFileStreamToIpfs(stream, name);
-            console.log(`NFT ${pathThumb} Thumb CID: `, thumbCid);
+            logger.info(`NFT ${pathThumb} Thumb CID: `, thumbCid);
         }
         const metadata: Metadata = { ...metadataBase, name, mediaUri: `ipfs://ipfs/${mainCid}`, thumbnailUri: `ipfs://ipfs/${thumbCid || mainCid}` };
         const metadataCid = await uploadAndPinIpfsMetadata(metadata);
         await sleep(500);
-        console.log(`NFT ${name} METADATA: `, metadataCid);
+        logger.info(`NFT ${name} METADATA: `, metadataCid);
         return [metadataCid, mainCid, thumbCid || mainCid];
     } catch (error) {
-        console.log(error);
-        console.log(JSON.stringify(error));
+        logger.info(error);
+        logger.info(JSON.stringify(error));
         return [];
     }
 };
@@ -123,34 +156,36 @@ export const pinSingleMetadata = async (
         const stream: StreamPinata = Readable.from(buffer);
         stream.path = "nft_file.png";
         const imageCid = await pinFileStreamToIpfs(stream, name);
-        console.log(`NFT ${name} IMAGE CID: `, imageCid);
+        logger.info(`NFT ${name} IMAGE CID: `, imageCid);
         const metadata: Metadata = { ...metadataBase, name, mediaUri: `ipfs://ipfs/${imageCid}` };
         const metadataCid = await uploadAndPinIpfsMetadata(metadata);
         await sleep(500);
-        console.log(`NFT ${name} METADATA: `, metadataCid);
+        logger.info(`NFT ${name} METADATA: `, metadataCid);
         return metadataCid;
     } catch (error) {
-        console.log(error);
-        console.log(JSON.stringify(error));
+        logger.info(error);
+        logger.info(JSON.stringify(error));
         return '';
     }
 };
 
 export const pinSingleMetadataWithoutFile = async (
-    imageCid: string,
     name: string,
     metadataBase: Partial<Metadata>,
 ): Promise<string> => {
     try {
-        const metadata: Metadata = { ...metadataBase, name, mediaUri: `ipfs://ipfs/${imageCid}` };
+        const metadata: Metadata = { ...metadataBase, name };
         const metadataCid = await uploadAndPinIpfsMetadata(metadata);
         await sleep(500);
-        console.log(`NFT ${name} METADATA: `, metadataCid);
+        logger.info(`NFT ${name} METADATA: `, metadataCid);
         return metadataCid;
     } catch (error) {
-        console.log(error);
-        console.log(JSON.stringify(error));
-        return '';
+        logger.info(error);
+        logger.info(JSON.stringify(error));
+        logger.info("trying again");
+        await sleep(2000);
+        //try again
+        return await pinSingleMetadataWithoutFile(name, metadataBase);
     }
 };
 
@@ -165,22 +200,23 @@ export const pinSingleFile = async (
         const stream: StreamPinata = Readable.from(buffer);
         stream.path = "file.png";
         const imageCid = await pinFileStreamToIpfs(stream, name);
-        console.log(`NFT ${name} IMAGE CID: `, imageCid);
+        logger.info(`NFT ${name} IMAGE CID: `, imageCid);
         return imageCid;
     } catch (error) {
-        console.log(error);
-        console.log(JSON.stringify(error));
+        logger.info(error);
+        logger.info(JSON.stringify(error));
         return '';
     }
 };
+
 
 export const unpin = async (cid: string): Promise<string> => {
     try {
         const status = await params.pinata.unpin(cid.replace("ipfs://ipfs/", ""));
         return status;
     } catch (error) {
-        console.log(error);
-        console.log(JSON.stringify(error));
+        logger.info(error);
+        logger.info(JSON.stringify(error));
         return '';
     }
 };

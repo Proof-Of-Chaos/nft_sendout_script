@@ -1,0 +1,168 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": true,
+    "newCollectionSymbol": "itemxpunks",
+    "newCollectionPath": "/assets/shelf/collections",
+    "newCollectionFile": "punks.png",
+    "newCollectionName": "Items x RMRK Punks",
+    "newCollectionDescription": "A special collection for the Referendum 208 collaboration items with [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nThe main collection can be found [here](https://singular.app/collections/3208723ec6f65df810-ITEM).",
+    "makeEquippable": [
+        "REFERENDUM_208"
+    ],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "MBM",
+        "text": "'Menelaus Blue Morpho'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: @kseniashikh & RMRK Punks\n\n",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "208/option3/resource1/main.png",
+                "thumb": "208/option3/resource1/thumb.png",
+                "text": "'Menelaus Blue Morpho'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: @kseniashikh\n\n",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "208/option3/resource2/main.png",
+                "thumb": "208/option3/resource2/thumb.png",
+                "text": "'Menelaus Blue Morpho: Equippable on Shelf'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: @kseniashikh\n\n",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_208"
+            },
+            {
+                "name": "defaultresource3",
+                "main": "208/option3/resource3/main.png",
+                "thumb": "208/option3/resource3/thumb.png",
+                "text": "'Azure Pants: Equippable on Punk'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: RMRK Punks\n\n",
+                "title": "Equippable Punk",
+                "slot": "base-12529545-RMRKPUNKBASE.legs"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 32,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "MSM",
+            "text": "'Madagascan Sunset Moth'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: LokiKot(@LokiPages) & RMRK Punks\n\n",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "208/option1/resource1/main.png",
+                    "thumb": "208/option1/resource1/thumb.png",
+                    "text": "'Madagascan Sunset Moth'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "208/option1/resource2/main.png",
+                    "thumb": "208/option1/resource2/thumb.png",
+                    "text": "'Madagascan Sunset Moth: Equippable on Shelf'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_208"
+                },
+                {
+                    "name": "option1resource3",
+                    "main": "208/option1/resource3/main.png",
+                    "thumb": "208/option1/resource3/thumb.png",
+                    "text": "'Sunset Mask: Equippable on Punk'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: RMRK Punks\n\n",
+                    "title": "Equippable Mirror",
+                    "slot": "base-12529545-RMRKPUNKBASE.head"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 50,
+            "minProbability": 10,
+            "transferable": 1,
+            "symbol": "ES",
+            "text": "'Emerald Swallowtail'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: LokiKot(@LokiPages) & RMRK Punks\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "208/option2/resource1/main.png",
+                    "thumb": "208/option2/resource1/thumb.png",
+                    "text": "'Emerald Swallowtail'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "208/option2/resource2/main.png",
+                    "thumb": "208/option2/resource2/thumb.png",
+                    "text": "'Emerald Swallowtail: Equippable on Shelf'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_208"
+                },
+                {
+                    "name": "option2resource3",
+                    "main": "208/option2/resource3/main.png",
+                    "thumb": "208/option2/resource3/thumb.png",
+                    "text": "'Emerald Armor: Equippable on Punk'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: RMRK Punks\n\n",
+                    "title": "Equippable Punk",
+                    "slot": "base-12529545-RMRKPUNKBASE.chest"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "MBM",
+            "text": "'Menelaus Blue Morpho'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: @kseniashikh & RMRK Punks\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "208/option3/resource1/main.png",
+                    "thumb": "208/option3/resource1/thumb.png",
+                    "text": "'Menelaus Blue Morpho'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "208/option3/resource2/main.png",
+                    "thumb": "208/option3/resource2/thumb.png",
+                    "text": "'Menelaus Blue Morpho: Equippable on Shelf'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_208"
+                },
+                {
+                    "name": "option3resource3",
+                    "main": "208/option3/resource3/main.png",
+                    "thumb": "208/option3/resource3/thumb.png",
+                    "text": "'Azure Pants: Equippable on Punk'\n\nIn Referendum 208 the community voted on whether to lower the number of nomination pools to 64 and the members per pool to 16.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [RMRK Punks](https://singular.app/collections/3629a3ff458d113e25-PUNK).\n\nArtist: RMRK Punks\n\n",
+                    "title": "Equippable Punk",
+                    "slot": "base-12529545-RMRKPUNKBASE.legs"
+                }
+            ]
+        }
+    ]
+}

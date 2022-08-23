@@ -1,22 +1,25 @@
 {
   "dependencies": {
-    "@pinata/sdk": "^1.1.23",
-    "@polkadot/api": "^7.9.1",
-    "@polkadot/api-augment": "^7.9.1",
-    "@polkadot/api-base": "^7.9.1",
-    "@polkadot/api-derive": "^7.9.1",
-    "@polkadot/keyring": "^8.4.1",
-    "@polkadot/types": "^7.9.1",
-    "@polkadot/util-crypto": "^8.4.1",
+    "@pinata/sdk": "^1.1.26",
+    "@polkadot/api": "^9.1.1",
+    "@polkadot/api-augment": "^9.1.1",
+    "@polkadot/api-base": "^9.1.1",
+    "@polkadot/api-derive": "^9.1.1",
+    "@polkadot/keyring": "^10.1.5",
+    "@polkadot/types": "^9.1.1",
+    "@polkadot/util-crypto": "^10.1.3",
+    "bignumber.js": "^9.1.0",
     "dotenv": "^14.3.2",
-    "jimp": "^0.16.1",
     "lodash": "^4.17.21",
-    "log4js": "^6.4.1",
+    "log4js": "^6.6.1",
     "lowdb": "^3.0.0",
-    "mongodb": "^4.3.1",
-    "nanoid": "^3.3.1",
+    "mongodb": "^4.9.0",
+    "nanoid": "^3.3.4",
+    "node-fetch": "^3.2.10",
     "p-limit": "^4.0.0",
-    "rmrk-tools": "^2.0.50"
+    "rmrk-tools": "^2.0.90",
+    "seedrandom": "^3.0.5",
+    "typescript": "^4.7.4"
   },
   "type": "module",
   "license": "Apache-2.0",
@@ -41,7 +44,8 @@
     "lint-and-fix": "eslint . --ext .ts --fix"
   },
   "devDependencies": {
-    "@types/node": "^16.11.7",
+    "@types/node": "^16.11.52",
+    "@types/seedrandom": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0"

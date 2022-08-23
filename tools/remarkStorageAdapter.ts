@@ -3,6 +3,9 @@ import { AcceptEntityType } from "rmrk-tools/dist/classes/accept";
 import { IConsolidatorAdapter } from "rmrk-tools/dist/tools/consolidator/adapters/types";
 import { BaseConsolidated, CollectionConsolidated, NFTConsolidated } from "rmrk-tools/dist/tools/consolidator/consolidator";
 import _ from "lodash";
+import { encodeAddress } from "@polkadot/util-crypto";
+import { params } from "../config.js";
+import { u8aToHex } from "@polkadot/util";
 //@ts-ignore
 BigInt.prototype.toJSON = function () {
   return this.toString();
@@ -10,8 +13,14 @@ BigInt.prototype.toJSON = function () {
 
 export class RemarkStorageAdapter implements IConsolidatorAdapter {
   private db;
+  private parentCollection;
   constructor(db) {
     this.db = db;
+    this.parentCollection = Collection.generateId(
+      u8aToHex(params.account.publicKey),
+      params.settings.parentCollectionSymbol
+    );
+
   }
 
   public async getAllNFTs() {
@@ -66,7 +75,7 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     await this.db.write();
   }
 
-  public async updateEquip(nft: NFT, consolidatedNFT: NFTConsolidated): Promise<void> {
+  public async updateEquip(nft: NFT, consolidatedNFT: NFTConsolidated) {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
     this.db.chain = _.chain(this.db.data)
@@ -103,7 +112,7 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     nft: NFT,
     consolidatedNFT: NFTConsolidated,
     entity: AcceptEntityType
-  ): Promise<void> {
+  ) {
     await this.db.read();
     let nftDb: NFTConsolidated = this.db.data.nfts.find(({ id }) => id === consolidatedNFT.id);
     this.db.chain = _.chain(this.db.data)
@@ -173,6 +182,7 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
     this.db.chain.get("nfts").find(({ id }) => id === consolidatedNFT.id).assign({
       ...nftDb,
       owner: nft?.owner,
+      rootowner: nft?.rootowner,
       changes: nft?.changes,
       forsale: nft?.forsale,
     }).value();
@@ -213,20 +223,26 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
 
   public async updateNFTMint(nft: NFT): Promise<void> {
     await this.db.read();
-    this.db.data.nfts.push({
-      ...nft,
-      symbol: nft.symbol,
-      id: nft.getId(),
-    });
-    await this.db.write();
+    //only save parents to rmrkStorage
+    if (nft.collection === this.parentCollection) {
+      this.db.data.nfts.push({
+        ...nft,
+        symbol: nft.symbol,
+        id: nft.getId(),
+      });
+      await this.db.write();
+    }
   }
 
-  public async updateCollectionMint(collection: CollectionConsolidated): Promise<CollectionConsolidated> {
-    await this.db.read();
-    this.db.data.collections.push(collection);
-    await this.db.write();
-    const collectionDb = await this.getCollectionById(collection.id);
-    return collectionDb
+  public async updateCollectionMint(collection: CollectionConsolidated) { //: Promise<CollectionConsolidated>
+    //only add collections created by this wallet
+    if (collection.issuer === encodeAddress(params.account.address, params.settings.network.prefix)) {
+      await this.db.read();
+      this.db.data.collections.push(collection);
+      await this.db.write();
+      const collectionDb = await this.getCollectionById(collection.id);
+      return collectionDb
+    }
   }
 
   public async updateCollectionDestroy(collection: CollectionConsolidated) {
@@ -251,7 +267,8 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
   public async updateBase(base: Base): Promise<BaseConsolidated> {
     await this.db.read();
     let baseDb: BaseConsolidated = this.db.data.bases.find(({ id }) => id === base.getId());
-    if (!baseDb) {
+    //only add base if issuer is this wallet
+    if (!baseDb && base.issuer === encodeAddress(params.account.address, params.settings.network.prefix)) {
       this.db.data.bases.push({
         ...base,
         id: base.getId(),

@@ -1,0 +1,43 @@
+{
+    "min": "0",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "options": [
+        {
+            "probability": 0.25,
+            "transferable": 1,
+            "text": "'Jam Jar'\n\nWhether council member Jam gets a verified identity or not, this glass of jam will be delicious either way.\n\n",
+            "royalty": [
+                20,
+                40
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "182/option1/resource1/main.png",
+                    "thumb": "182/option1/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_182"
+                }
+            ]
+        },
+        {
+            "probability": 0.75,
+            "transferable": 1,
+            "text": "'Photo Frame'\n\nA memory of the time when the whole community voted on giving council member Jam a verified identity.\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "182/option2/resource1/main.png",
+                    "thumb": "182/option2/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_182"
+                }
+            ]
+        }
+    ]
+}

@@ -4,9 +4,12 @@ node_modules/
 dist/
 log/
 localStorage/localStorage.json
-assets/referendaImageFiles/[0-9]*.png
-assets/referendaSettings/[0-9]*.json
+localStorage/remarkStorage.json
 assets/mosaic/*
-assets/referenda/*
-assets/defaultSettings.json
-assets
+assets/referenda
+assets/referendaSettings
+assets/shelf/luck/*
+assets/shelf/votes/*
+assets/shelf/difference/*
+# assets/shelf/referenda/*
+# assets/shelf/referendaSettings/*

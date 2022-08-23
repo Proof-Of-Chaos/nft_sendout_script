@@ -1,0 +1,73 @@
+{
+    "min": "0",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": true,
+    "newCollectionSymbol": "itemxevrloot",
+    "newCollectionPath": "/assets/shelf/collections",
+    "newCollectionFile": "evrloot.png",
+    "newCollectionName": "Items x Evrloot",
+    "newCollectionDescription": "A special collection for the Referendum 187 collaboration items with Evrloot.\n\nThe main collection can be found here: https://singular.app/collections/3208723ec6f65df810-ITEM",
+    "makeEquippable": [
+        "REFERENDUM_185"
+    ],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "text": "'Themis'\n\nIn Referendum 185 the community voted on whether to update the genesis state of the Mangata X chain.\n\n",
+        "royalty": [
+            20,
+            30
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "185/option2/resource1/main.png",
+                "thumb": "185/option2/resource1/thumb.png",
+                "slot": "base-11906460-SBP.REFERENDUM_185"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 25,
+            "maxProbability": 40,
+            "minProbability": 5,
+            "transferable": 1,
+            "text": "'Airwhale'\n\nIn Referendum 185 the community voted on whether to update the genesis state of the Mangata X chain.\n\n",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "185/option1/resource1/main.png",
+                    "thumb": "185/option1/resource1/thumb.png",
+                    "slot": "base-11906460-SBP.REFERENDUM_185"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 50,
+            "minProbability": 20,
+            "transferable": 1,
+            "text": "'Themis'\n\nIn Referendum 185 the community voted on whether to update the genesis state of the Mangata X chain.\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "185/option2/resource1/main.png",
+                    "thumb": "185/option2/resource1/thumb.png",
+                    "slot": "base-11906460-SBP.REFERENDUM_185"
+                }
+            ]
+        }
+    ]
+}

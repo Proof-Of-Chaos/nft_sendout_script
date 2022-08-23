@@ -1,0 +1,90 @@
+{
+    "min": "200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "text": "'Gerbera'\n\nIn Referendum 191 the community voted on whether to upgrade the Statemine Runtime to v900.\n\nArtist: Elizaveta Sokolova\n\n",
+        "royalty": [
+            20,
+            30
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "191/option3/resource1/main.png",
+                "thumb": "191/option3/resource1/thumb.png",
+                "slot": "base-11922668-SBP.REFERENDUM_191"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 25,
+            "maxProbability": 40,
+            "minProbability": 3,
+            "transferable": 1,
+            "text": "'Bamboo'\n\nIn Referendum 191 the community voted on whether to upgrade the Statemine Runtime to v900.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "191/option1/resource1/main.png",
+                    "thumb": "191/option1/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_191"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 45,
+            "maxProbability": 60,
+            "minProbability": 20,
+            "transferable": 1,
+            "text": "'Lemon Tree'\n\nIn Referendum 191 the community voted on whether to upgrade the Statemine Runtime to v900.\n\nArtist: Elizaveta Sokolova\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "191/option2/resource1/main.png",
+                    "thumb": "191/option2/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_191"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 50,
+            "minProbability": 20,
+            "transferable": 1,
+            "text": "'Gerbera'\n\nIn Referendum 191 the community voted on whether to upgrade the Statemine Runtime to v900.\n\nArtist: Elizaveta Sokolova\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "191/option3/resource1/main.png",
+                    "thumb": "191/option3/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_191"
+                }
+            ]
+        }
+    ]
+}

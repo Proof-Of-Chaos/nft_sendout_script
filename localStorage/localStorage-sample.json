@@ -1,7 +1,4 @@
 {
-    "nfts": [],
-    "collections": [],
-    "bases": [],
     "remarkBlock": "put block you wish to start at here",
     "headerBlock": "put block you wish to start at here",
     "currentTileId": 0

@@ -2,8 +2,12 @@ import { ApiPromise } from "@polkadot/api";
 import { params } from "../config.js";
 import { CountAdapter } from "../tools/countAdapter.js";
 import { handleEvents } from "./eventsHandler.js";
-import { getBlockIndexer } from "../tools/substrateUtils.js";
+import { getApi, getBlockIndexer } from "../tools/substrateUtils.js";
 import { logger } from "../tools/logger.js";
+import { sleep } from "../tools/utils.js";
+
+const MAX_RETRIES = 5;
+const RETRY_DELAY_SECONDS = 4;
 
 interface IStorageProvider {
     readonly storageKey: string;
@@ -44,18 +48,28 @@ export class BlockListener {
         }
     };
 
-    private fetchEventsAtBlock = async (blockNumber: number): Promise<void> => {
+    private fetchEventsAtBlock = async (blockNumber: number, retry = 0): Promise<void> => {
         try {
-            const blockHash = await params.api.rpc.chain.getBlockHash(blockNumber);
-            const rawBlock = await params.api.rpc.chain.getBlock(blockHash);
-            const blockApi = await params.api.at(blockHash);
+            const api = await getApi();
+            const blockHash = await api.rpc.chain.getBlockHash(blockNumber);
+            const rawBlock = await api.rpc.chain.getBlock(blockHash);
+            const blockApi = await api.at(blockHash);
             const block = rawBlock.block;
             const blockIndexer = getBlockIndexer(block);
             const events = await blockApi.query.system.events();
             await handleEvents(events, block.extrinsics, blockIndexer);
-        } catch (e) {
-            logger.error(`error fetching extrinsics or events at block ${blockNumber}: ${e}`);
-            return e;
+        } catch (error) {
+            logger.info(
+                `Error fetching extrinsics or events at block ${blockNumber}: ${error}`,
+            );
+            if (retry < MAX_RETRIES) {
+                logger.info(`fetchEventsAtBlock Retry #${retry} of ${MAX_RETRIES}`);
+                await sleep(RETRY_DELAY_SECONDS * 1000);
+                return await this.fetchEventsAtBlock(blockNumber, retry + 1);
+            } else {
+                logger.error(`Error initiating tx fetchEventsAtBlock`, error);
+                return error;
+            }
         }
     };
 
@@ -74,9 +88,9 @@ export class BlockListener {
         const headSubscriber = this.apiPromise.rpc.chain.subscribeFinalizedHeads;
 
         headSubscriber(async (header) => {
-            const blockNumber = header.number.toNumber();
-            if (blockNumber === 0) {
-                console.error(
+            const latestFinalisedBlockNum = header.number.toNumber();
+            if (latestFinalisedBlockNum === 0) {
+                logger.error(
                     "Unable to retrieve finalized head - returned genesis block"
                 );
             }
@@ -85,26 +99,42 @@ export class BlockListener {
                 if (!this.missingBlockEventsFetched && !this.missingBlockFetchInitiated) {
                     this.missingBlockFetchInitiated = true;
                     const latestBlock = await this.storageProvider.get();
-                    await this.fetchMissingBlockEvents(latestBlock, blockNumber - 1);
+                    await this.fetchMissingBlockEvents(latestBlock, latestFinalisedBlockNum - 1);
                     this.missingBlockEventsFetched = true;
                 }
-                await this.fetchEventsAtBlock(blockNumber);
+                this.fetchEventsAtBlock(latestFinalisedBlockNum);
+
+                const latestSavedBlock = this.currentBlockNumber;
+                // Compare block sequence order to see if there's a skipped finalised block
+                if (
+                    latestSavedBlock &&
+                    latestSavedBlock + 1 < latestFinalisedBlockNum &&
+                    this.missingBlockEventsFetched
+                ) {
+                    // Fetch all the missing blocks
+                    this.missingBlockEventsFetched = false;
+                    await this.fetchMissingBlockEvents(
+                        latestSavedBlock,
+                        latestFinalisedBlockNum - 1
+                    );
+                    this.missingBlockEventsFetched = true;
+                }
+                this.currentBlockNumber = latestFinalisedBlockNum;
                 // Update local db latestBlock
                 if (
                     this.missingBlockEventsFetched
                 ) {
-                    if (this.currentBlockNumber < blockNumber) this.currentBlockNumber = blockNumber;
-                    await this.storageProvider.set(this.currentBlockNumber);
+                    try {
+                        await this.storageProvider.set(latestFinalisedBlockNum);
+                    } catch (e: any) {
+                        logger.error(e);
+                    }
                 }
             } catch (e: any) {
-                console.error(e);
+                logger.error(e);
                 return;
             }
-
-
-
         });
-
         return;
     }
 }

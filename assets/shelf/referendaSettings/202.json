@@ -1,0 +1,134 @@
+{
+    "min": "900000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "BALL",
+        "text": "'Ball'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "202/option3/resource1/main.png",
+                "thumb": "202/option3/resource1/thumb.png",
+                "text": "'Ball'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "202/option3/resource2/main.png",
+                "thumb": "202/option3/resource2/thumb.png",
+                "text": "'Ball: Equippable Shelf'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_202"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 18,
+            "maxProbability": 35,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "FLGO",
+            "text": "'Flamingo'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: LokiKot(@LokiPages)\n\n",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "202/option1/resource1/main.png",
+                    "thumb": "202/option1/resource1/thumb.png",
+                    "text": "'Flamingo'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "202/option1/resource2/main.png",
+                    "thumb": "202/option1/resource2/thumb.png",
+                    "text": "'Flamingo: Equippable Shelf'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: LokiKot(@LokiPages)\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_202"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 35,
+            "maxProbability": 55,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "RING",
+            "text": "'Ring'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "202/option2/resource1/main.png",
+                    "thumb": "202/option2/resource1/thumb.png",
+                    "text": "'Ring'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "202/option2/resource2/main.png",
+                    "thumb": "202/option2/resource2/thumb.png",
+                    "text": "'Ring: Equippable Shelf'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_202"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "BALL",
+            "text": "'Ball'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "202/option3/resource1/main.png",
+                    "thumb": "202/option3/resource1/thumb.png",
+                    "text": "'Ball'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "202/option3/resource2/main.png",
+                    "thumb": "202/option3/resource2/thumb.png",
+                    "text": "'Ball: Equippable Shelf'\n\nIn Referendum 202 the community voted on whether to upgrade the Kusama runtime to version 0.9.22. Among other things, the new release also adds nomination pools to the Kusama Network.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_202"
+                }
+            ]
+        }
+    ]
+}

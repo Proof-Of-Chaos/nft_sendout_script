@@ -1,4 +1,6 @@
+import { DeriveReferendumVote } from "@polkadot/api-derive/types";
 import { IProperties } from "rmrk-tools/dist/tools/types";
+import { BN } from '@polkadot/util';
 
 export interface INftProps {
     block: number;
@@ -8,5 +10,10 @@ export interface INftProps {
     sn: string;
     metadata?: string;
     owner?: string;
+    rootowner?: string;
     properties?: IProperties;
+}
+
+export interface VoteConviction extends DeriveReferendumVote {
+    convictionBalance?: string
 }

@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
+import { logger } from "../../tools/logger.js";
 
 dotenv.config();
 
@@ -13,25 +14,28 @@ const getDbName = () => {
 }
 
 const referendumCollectionName = "referendum";
+const voteCollectionName = "vote";
 
 let client = null;
 let db = null;
 const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017";
 let referendumCol = null;
+let voteCol = null;
 
 export async function initDb() {
     client = await MongoClient.connect(mongoUri);
 
     const dbName = getDbName();
-    console.log('dbName:', dbName);
+    logger.info('dbName:', dbName);
     db = client.db(dbName);
     referendumCol = db.collection(referendumCollectionName);
+    voteCol = db.collection(voteCollectionName);
     await _createIndexes();
 }
 
 async function _createIndexes() {
     if (!db) {
-        console.error("Please call initDb first");
+        logger.error("Please call initDb first");
         process.exit(1);
     }
 }
@@ -45,4 +49,10 @@ async function tryInit(col) {
 export async function getReferendumCollection() {
     await tryInit(referendumCol);
     return referendumCol;
-} 
+}
+
+export async function getVoteCollection() {
+    await tryInit(voteCol);
+    return voteCol;
+}
+

@@ -12,14 +12,14 @@ export class CountAdapter implements IStorageProvider {
     this.db = db;
   }
 
-  public async set(counterValue: number): Promise<void> {
-    this.db.data[this.storageKey] = String(counterValue);
+  public async set(latestBlock: number): Promise<void> {
+    this.db.data[this.storageKey] = String(latestBlock);
     await this.db.write();
   }
 
   public async get(): Promise<number> {
     await this.db.read();
-    const counterValueString = this.db.data[this.storageKey];
-    return counterValueString ? parseInt(counterValueString) : 0;
+    const latestBlockString = this.db.data[this.storageKey];
+    return latestBlockString ? parseInt(latestBlockString) : 0;
   }
 }

@@ -1,0 +1,59 @@
+{
+    "min": "200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "default": {
+        "transferable": 1,
+        "text": "'Cactus v800'\n\nThe Statemine parachain is well rooted within the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
+        "royalty": [
+            15,
+            25
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "184/option2/resource1/main.png",
+                "thumb": "184/option2/resource1/thumb.png",
+                "slot": "base-11922668-SBP.REFERENDUM_184"
+            }
+        ]
+    },
+    "options": [
+        {
+            "probability": 0.2,
+            "transferable": 1,
+            "text": "'Bonsai v800'\n\nThe Statemine parachain is well rooted within the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "184/option1/resource1/main.png",
+                    "thumb": "184/option1/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_184"
+                }
+            ]
+        },
+        {
+            "probability": 0.8,
+            "transferable": 1,
+            "text": "'Cactus v800'\n\nThe Statemine parachain is well rooted within the Kusama ecosystem. In Referendum 184 the community voted on whether to upgrade its runtime to v800, fixing a bug on the chain.\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "184/option2/resource1/main.png",
+                    "thumb": "184/option2/resource1/thumb.png",
+                    "slot": "base-11922668-SBP.REFERENDUM_184"
+                }
+            ]
+        }
+    ]
+}

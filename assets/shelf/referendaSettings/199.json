@@ -1,0 +1,134 @@
+{
+    "min": "500000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "minAmount": 0.2,
+    "default": {
+        "transferable": 1,
+        "symbol": "SN",
+        "text": "'Simple Necklace'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+        "royalty": [
+            60,
+            90
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "199/option3/resource1/main.png",
+                "thumb": "199/option3/resource1/thumb.png",
+                "text": "'Simple Necklace'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "199/option3/resource2/main.png",
+                "thumb": "199/option3/resource2/thumb.png",
+                "text": "'Simple Necklace: Equippable Shelf'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_199"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 20,
+            "maxProbability": 40,
+            "minProbability": 4,
+            "transferable": 1,
+            "symbol": "MPN",
+            "text": "'Multi-Pendant Necklace'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                20,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "199/option1/resource1/main.png",
+                    "thumb": "199/option1/resource1/thumb.png",
+                    "text": "'Multi-Pendant Necklace'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "199/option1/resource2/main.png",
+                    "thumb": "199/option1/resource2/thumb.png",
+                    "text": "'Multi-Pendant Necklace: Equippable Shelf'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_199"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 39,
+            "maxProbability": 63,
+            "minProbability": 23,
+            "transferable": 1,
+            "symbol": "PN",
+            "text": "'Pendant Necklace'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "199/option2/resource1/main.png",
+                    "thumb": "199/option2/resource1/thumb.png",
+                    "text": "'Pendant Necklace'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "199/option2/resource2/main.png",
+                    "thumb": "199/option2/resource2/thumb.png",
+                    "text": "'Pendant Necklace: Equippable Shelf'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_199"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "SN",
+            "text": "'Simple Necklace'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "199/option3/resource1/main.png",
+                    "thumb": "199/option3/resource1/thumb.png",
+                    "text": "'Simple Necklace'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "199/option3/resource2/main.png",
+                    "thumb": "199/option3/resource2/thumb.png",
+                    "text": "'Simple Necklace: Equippable Shelf'\n\nIn Referendum 199 the community voted on whether to let Shiden swap their lease from parachain ID 2007 to ID 2120.\n\nArtist: @kseniashikh\n\n",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_199"
+                }
+            ]
+        }
+    ]
+}
