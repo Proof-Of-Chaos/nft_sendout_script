@@ -101,7 +101,6 @@ const filterVotes = async (referendumId: BN, votes: VoteConviction[], totalIssua
 const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, settings?): Promise<[String, VoteConviction[]]> => {
     const api = await getApi();
     const info = await api.query.democracy.referendumInfoOf(referendumIndex);
-
     let blockNumber: BN;
     try {
         blockNumber = info.unwrap().asFinished.end
@@ -678,8 +677,15 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 }
             }
         }
-    );
+    }
+    return accounts;
+}
 
+export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer) => {
+    const parentCollectionId = Collection.generateId(
+        u8aToHex(params.account.publicKey),
+        params.settings.parentCollectionSymbol
+    );
     const metadataCidDelegatedDefault = await pinSingleMetadataWithoutFile(
         `Referendum ${referendumIndex}`,
         {
