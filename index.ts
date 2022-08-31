@@ -3,7 +3,7 @@ import { params, getLocalStorage, getDb, getRemarkStorage } from "./config.js";
 import { getSettings } from "./tools/settings.js";
 import { CountAdapter } from "./tools/countAdapter.js";
 import dotenv from "dotenv";
-import { getApi, initAccount, mintAndSend } from "./tools/substrateUtils.js";
+import { getApi, initAccount } from "./tools/substrateUtils.js";
 import { ApiPromise } from "@polkadot/api";
 import { Low } from "lowdb/lib";
 import { BlockListener } from "./src/blockListener.js";
@@ -19,6 +19,7 @@ import { sendNFTs } from "./src/sendNFTs.js";
 import { BN } from '@polkadot/util';
 import { upsertReferendaInDB } from "./src/saveVotesToDB.js";
 
+
 dotenv.config();
 
 class Incentivizer {
@@ -27,7 +28,6 @@ class Incentivizer {
   localStorage: Low;
   remarkStorage: Low;
   account: KeyringPair;
-
   constructor({
     settings,
     api,
