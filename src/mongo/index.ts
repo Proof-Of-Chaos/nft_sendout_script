@@ -55,4 +55,3 @@ export async function getVoteCollection() {
     await tryInit(voteCol);
     return voteCol;
 }
-
