@@ -330,7 +330,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     await sleep(10000);
     minValue = minValue < await getDecimal(minVote.convictionBalance.toString()) ? await getDecimal(minVote.convictionBalance.toString()) : minValue
 
-
     let selectedIndexArray = [];
     for (const vote of filteredVotes) {
         let luck;
@@ -405,6 +404,15 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     uniqs[commonIndex] = uniqs[commonIndex] + votesNotMeetingRequirements.length
 
     logger.info(uniqs)
+    for (const vote of votesNotMeetingRequirements) {
+        luckArray.push([vote.convictionBalance.toString(), 0, parseInt(commonIndex), vote.accountId.toString()])
+    }
+
+    fs.writeFile(`assets/shelf/luck/${referendumIndex}.txt`, JSON.stringify(luckArray), (err) => {
+
+        // In case of a error throw err.
+        if (err) throw err;
+    })
 
     const shelfCollectionId = Collection.generateId(
         u8aToHex(params.account.publicKey),
@@ -1362,12 +1370,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             await sleep(3000);
         }
     }
-
-    fs.writeFile(`assets/shelf/luck/${referendumIndex}.txt`, JSON.stringify(luckArray), (err) => {
-
-        // In case of a error throw err.
-        if (err) throw err;
-    })
 
     logger.info(`Sendout complete for Referendum ${referendumIndex}`);
 }
