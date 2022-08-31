@@ -243,7 +243,6 @@ export class RemarkStorageAdapter implements IConsolidatorAdapter {
       const collectionDb = await this.getCollectionById(collection.id);
       return collectionDb
     }
-
   }
 
   public async updateCollectionDestroy(collection: CollectionConsolidated) {
