@@ -1171,7 +1171,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             }
             const nftProps: INftProps = {
                 block: 0,
-                sn: ('00000000' + ((chunkCount * chunkSize) + count++).toString()).slice(-8),
+                sn: ('00000000' + (votesNotMeetingRequirements.length + (chunkCount * chunkSize) + count++).toString()).slice(-8),
                 owner: encodeAddress(params.account.address, params.settings.network.prefix),
                 transferable: 1, //parseInt(selectedOption.transferable)
                 metadata: metadataCid,
@@ -1221,7 +1221,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 const selectedOption = selectedOptions[index]
                 const nftProps: INftProps = {
                     block: blockMint,
-                    sn: ('00000000' + ((chunkCount * chunkSize) + count++).toString()).slice(-8),
+                    sn: ('00000000' + (votesNotMeetingRequirements.length + (chunkCount * chunkSize) + count++).toString()).slice(-8),
                     owner: encodeAddress(params.account.address, params.settings.network.prefix),
                     transferable: 1, //parseInt(selectedOption.transferable)
                     metadata: usedMetadataCids[index],
@@ -1292,7 +1292,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 // block: chunkCount == 7 ? 12421221 : blockMint,
                 const nftProps: INftProps = {
                     block: blockMint,
-                    sn: ('00000000' + ((chunkCount * chunkSize) + count++).toString()).slice(-8),
+                    sn: ('00000000' + (votesNotMeetingRequirements.length + (chunkCount * chunkSize) + count++).toString()).slice(-8),
                     owner: encodeAddress(params.account.address, params.settings.network.prefix),
                     transferable: 1, //parseInt(selectedOption.transferable)
                     metadata: usedMetadataCids[index],
