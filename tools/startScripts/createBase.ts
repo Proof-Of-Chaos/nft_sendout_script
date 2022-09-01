@@ -3,7 +3,7 @@ import { Base, Collection } from "rmrk-tools"
 import { IBasePart } from "rmrk-tools/dist/classes/base"
 import { encodeAddress } from "@polkadot/util-crypto";
 import { u8aToHex } from "@polkadot/util";
-import { getApi, sendAndFinalize } from "../../tools/substrateUtils.js";
+import { getApi, getApiTest, sendAndFinalize } from "../../tools/substrateUtils.js";
 import { pinSingleFileFromDir } from "../../tools/pinataUtils.js";
 import { logger } from "../logger.js";
 
@@ -83,7 +83,7 @@ export const createBase = async () => {
             "png",
             baseParts)
 
-        const api = await getApi()
+        const api = params.settings.isTest ? await getApiTest() : await getApi();
 
         const { block } = await sendAndFinalize(
             api.tx.system.remark(base.base()),

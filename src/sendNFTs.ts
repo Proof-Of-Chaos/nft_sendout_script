@@ -7,7 +7,7 @@ import fs from 'fs';
 import { Base, Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { INftProps, VoteConviction } from "../types.js";
-import { getApi, getDecimal, mintAndSend } from "../tools/substrateUtils.js";
+import { getApi, getApiTest, getDecimal, mintAndSend } from "../tools/substrateUtils.js";
 import { amountToHumanString, getDragonBonusFile, getSettingsFile, sleep } from "../tools/utils.js";
 import { AccountId, VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
 import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
@@ -230,9 +230,12 @@ const getMinMaxMedian = (someArray, criticalValue) => {
 export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = null) => {
     //wait a bit since blocks after will be pretty full
     await sleep(10000);
-    const api = await getApi();
+    let api = await getApi();
     //wait until remark block has caught up with block
     let currentFinalized = (await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
+    if (params.settings.isTest) {
+        api = await getApiTest();
+    }
     while ((await params.remarkBlockCountAdapter.get()) < currentFinalized) {
         logger.info(`waiting for remark (Block: ${await params.remarkBlockCountAdapter.get()}) to get to current block: ${currentFinalized}`);
         await sleep(3000);

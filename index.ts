@@ -3,7 +3,7 @@ import { params, getLocalStorage, getDb, getRemarkStorage } from "./config.js";
 import { getSettings } from "./tools/settings.js";
 import { CountAdapter } from "./tools/countAdapter.js";
 import dotenv from "dotenv";
-import { getApi, initAccount } from "./tools/substrateUtils.js";
+import { getApi, getApiTest, initAccount } from "./tools/substrateUtils.js";
 import { ApiPromise } from "@polkadot/api";
 import { Low } from "lowdb/lib";
 import { BlockListener } from "./src/blockListener.js";
@@ -18,6 +18,7 @@ import { logger } from "./tools/logger.js";
 import { sendNFTs } from "./src/sendNFTs.js";
 import { BN } from '@polkadot/util';
 import { upsertReferendaInDB } from "./src/saveVotesToDB.js";
+import { sleep } from "./tools/utils.js";
 
 
 dotenv.config();
@@ -81,7 +82,7 @@ class Incentivizer {
     params.remarkBlockCountAdapter = new CountAdapter(params.localStorage, "remarkBlock")
     const startListening = async () => {
       const listener = new RemarkListener({
-        polkadotApi: this.api,
+        polkadotApi: params.settings.isTest ? await getApiTest() : this.api,
         prefixes: ['0x726d726b', '0x524d524b'],
         consolidateFunction,
         storageProvider: params.remarkBlockCountAdapter
@@ -106,9 +107,13 @@ class Incentivizer {
       logger.info(err);
     }
     if (process.env.SETUP_COMPLETE !== "true") {
+      await sleep(3000)
       await createShelfCollection();
+      await sleep(3000)
       await createItemCollection();
+      await sleep(3000)
       await createBase();
+      logger.info("complete")
     }
     // sendNFTs(true, new BN("193"))
   }
