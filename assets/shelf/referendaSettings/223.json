@@ -16,7 +16,7 @@
     "adolescentBonus": 16,
     "adultBonus": 20,
     "minAmount": 0.2,
-    "seed": "112",
+    "seed": "LGTM",
     "default": {
         "transferable": 1,
         "symbol": "CS",
