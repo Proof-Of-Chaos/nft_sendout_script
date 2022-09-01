@@ -18,6 +18,10 @@ const WS_ENDPOINTS = [
   'wss://kusama-rpc.dwellir.com'
 ];
 
+const WS_ENDPOINTS_TEST = [
+  'wss://staging.node.rmrk.app'
+];
+
 const MAX_RETRIES = 15;
 const WS_DISCONNECT_TIMEOUT_SECONDS = 20;
 const RETRY_DELAY_SECONDS = 20;
@@ -32,6 +36,8 @@ interface ISendTxReturnType {
 
 let wsProvider: WsProvider;
 let polkadotApi: ApiPromise;
+let wsProviderTest: WsProvider;
+let polkadotApiTest: ApiPromise;
 let healthCheckInProgress = false;
 
 /**
@@ -126,6 +132,28 @@ export const getApi = async (
   }
 };
 
+export const getApiTest = async (
+  wsEndpoints: string[] = WS_ENDPOINTS_TEST,
+  retry = 0,
+): Promise<ApiPromise> => {
+  if (wsProviderTest && polkadotApiTest && polkadotApiTest.isConnected) return polkadotApiTest;
+  const [primaryEndpoint, secondaryEndpoint, ...otherEndpoints] = wsEndpoints;
+
+  try {
+    const provider = await getProvider(wsEndpoints);
+    polkadotApiTest = await ApiPromise.create({ provider });
+    await polkadotApiTest.isReady;
+    return polkadotApiTest;
+  } catch (error: any) {
+    if (retry < MAX_RETRIES) {
+      // If we have reached maximum number of retries on the primaryEndpoint, let's move it to the end of array and try the secondary endpoint
+      return await getApiTest([secondaryEndpoint, ...otherEndpoints, primaryEndpoint], retry + 1);
+    } else {
+      return polkadotApiTest;
+    }
+  }
+};
+
 export const initAccount = (): KeyringPair => {
   const keyring = new Keyring({ type: "sr25519" });
   const account = keyring.addFromUri(process.env.MNEMONIC);
@@ -187,7 +215,7 @@ export const sendAndFinalize = async (
   retry = 0,
 ): Promise<ISendTxReturnType> => {
   return new Promise(async (resolve, reject) => {
-    const api = await getApi();
+    const api = params.settings.isTest ? await getApiTest() : await getApi() ;
 
     const returnObject: ISendTxReturnType = { success: false, hash: undefined, included: [], finalized: [], block: 0 }
 
@@ -265,7 +293,7 @@ export const getTransactionCost = async (
     //get mint and transfer cost
     const remarks = toSendRemarks;
     const txs = [];
-    const api = await getApi();
+    const api = params.settings.isTest ? await getApiTest() : await getApi() ;
     for (const remark of remarks) {
       txs.push(api.tx.system.remark(remark));
     }
@@ -292,7 +320,7 @@ export const mintAndSend = async (remarks: string[]): Promise<{
   // );
   // logger.info("total expected cost: ", info.partialFee.toHuman())
   const txs = [];
-  const api = await getApi();
+  const api = params.settings.isTest ? await getApiTest() : await getApi() ;
   for (const remark of remarks) {
     txs.push(api.tx.system.remark(remark));
   }
