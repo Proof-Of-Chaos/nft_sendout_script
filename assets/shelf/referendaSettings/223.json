@@ -1,0 +1,175 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "112",
+    "default": {
+        "transferable": 1,
+        "symbol": "CS",
+        "text": "'Celebrity Sneakers'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+        "artist": "LokiKot(@LokiPages)",
+        "rarity": "common",
+        "itemName": "Celebrity Sneakers",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "223/option3/resource1/main.png",
+                "thumb": "223/option3/resource1/thumb.png",
+                "text": "'Celebrity Sneakers'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+                "artist": "LokiKot(@LokiPages)",
+                "rarity": "common",
+                "itemName": "Celebrity Sneakers",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "223/option3/resource2/main.png",
+                "thumb": "223/option3/resource2/thumb.png",
+                "text": "'Celebrity Sneakers: Equippable on Shelf'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+                "artist": "LokiKot(@LokiPages)",
+                "rarity": "common",
+                "itemName": "Celebrity Sneakers",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_223"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "NFTS",
+            "text": "'NFT Sneakers'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+            "artist": "@kseniashikh",
+            "rarity": "epic",
+            "itemName": "NFT Sneakers",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "223/option1/resource1/main.png",
+                    "thumb": "223/option1/resource1/thumb.png",
+                    "text": "'NFT Sneakers'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+                    "artist": "@kseniashikh",
+                    "rarity": "epic",
+                    "itemName": "NFT Sneakers",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "223/option1/resource2/main.png",
+                    "thumb": "223/option1/resource2/thumb.png",
+                    "text": "'NFT Sneakers: Equippable on Shelf'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+                    "artist": "@kseniashikh",
+                    "rarity": "epic",
+                    "itemName": "NFT Sneakers",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_223"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "LES",
+            "text": "'Limited Edition Sneakers'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+            "artist": "LokiKot(@LokiPages)",
+            "rarity": "rare",
+            "itemName": "Limited Edition Sneakers",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "223/option2/resource1/main.png",
+                    "thumb": "223/option2/resource1/thumb.png",
+                    "text": "'Limited Edition Sneakers'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "rare",
+                    "itemName": "Limited Edition Sneakers",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "223/option2/resource2/main.png",
+                    "thumb": "223/option2/resource2/thumb.png",
+                    "text": "'Limited Edition Sneakers: Equippable on Shelf'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "rare",
+                    "itemName": "Limited Edition Sneakers",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_223"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "CS",
+            "text": "'Celebrity Sneakers'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+            "artist": "LokiKot(@LokiPages)",
+            "rarity": "common",
+            "itemName": "Celebrity Sneakers",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "223/option3/resource1/main.png",
+                    "thumb": "223/option3/resource1/thumb.png",
+                    "text": "'Celebrity Sneakers'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "common",
+                    "itemName": "Celebrity Sneakers",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "223/option3/resource2/main.png",
+                    "thumb": "223/option3/resource2/thumb.png",
+                    "text": "'Celebrity Sneakers: Equippable on Shelf'\n\nIn Referendum 223 the community voted on whether to upgrade the Statemine Run(time) to v9270. This release introduces the ability to buy and sell NFTs in the Uniques pallet.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "rarity": "common",
+                    "itemName": "Celebrity Sneakers",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_223"
+                }
+            ]
+        }
+    ]
+}
