@@ -7,7 +7,7 @@ import fs from 'fs';
 import { Base, Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { INftProps, VoteConviction } from "../types.js";
-import { getApi, getApiTest, getDecimal, mintAndSend } from "../tools/substrateUtils.js";
+import { getApi, getApiTest, getDecimal, sendBatchTransactions } from "../tools/substrateUtils.js";
 import { amountToHumanString, getDragonBonusFile, getSettingsFile, sleep } from "../tools/utils.js";
 import { AccountId, VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
 import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
@@ -45,7 +45,7 @@ const extractVotes = (mapped: [AccountId, PalletDemocracyVoteVoting][], referend
         );
 }
 
-const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
+const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, atExpiry: Boolean, passed: Boolean) => {
     const allVoting = await api.query.democracy.votingOf.entries()
     //logger.info("allVoting", allVoting)
     const mapped = allVoting.map(([{ args: [accountId] }, voting]): [AccountId, PalletDemocracyVoteVoting] => [accountId, voting]);
@@ -71,10 +71,25 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN) => {
         }
     });
     const LOCKS = [1, 10, 20, 30, 40, 50, 60];
-    votes = votes.map((vote) => {
-        const convictionBalance = vote.balance.muln(LOCKS[vote.vote.conviction.toNumber()]).div(new BN(10)).toString();
-        return { ...vote, convictionBalance }
-    })
+    if (atExpiry) {
+        votes = votes.map((vote) => {
+            const convictionBalance = vote.balance.muln(LOCKS[vote.vote.conviction.toNumber()]).div(new BN(10)).toString();
+            return { ...vote, convictionBalance }
+        })
+    }
+    else {
+        votes = votes.map((vote) => {
+            let convictionBalance;
+            //only consider conviction when tokens are actually locked up => when vote is in line with ref outcome
+            if ((vote.vote.isAye && passed) || (!vote.vote.isAye && !passed)){
+                convictionBalance = vote.balance.muln(LOCKS[vote.vote.conviction.toNumber()]).div(new BN(10)).toString();
+            }
+            else {
+                convictionBalance = vote.balance.toString()
+            }
+            return { ...vote, convictionBalance }
+        })
+    }
     return votes;
 }
 
@@ -98,7 +113,7 @@ const filterVotes = async (referendumId: BN, votes: VoteConviction[], totalIssua
     return filtered
 }
 
-const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, settings?): Promise<[String, VoteConviction[]]> => {
+const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, passed, settings?): Promise<[String, VoteConviction[]]> => {
     const api = await getApi();
     const info = await api.query.democracy.referendumInfoOf(referendumIndex);
 
@@ -123,7 +138,7 @@ const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, setti
     const blockHash = await api.rpc.chain.getBlockHash(cutOffBlock);
     const blockApi = await api.at(blockHash);
     const totalIssuance = (await blockApi.query.balances.totalIssuance()).toString()
-    return [totalIssuance, await votesCurr(blockApi, referendumIndex)];
+    return [totalIssuance, await votesCurr(blockApi, referendumIndex, atExpiry, passed)];
 }
 
 const getShelflessAccounts = async (votes: VoteConviction[], collectionId): Promise<AccountId[]> => {
@@ -249,7 +264,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const chunkSizeDefault = params.settings.chunkSizeDefault;
     const chunkSizeShelf = params.settings.chunkSizeShelf;
 
-    [totalIssuanceRefExpiry, totalVotes] = await getVotesAndIssuance(referendumIndex, true)
+    [totalIssuanceRefExpiry, totalVotes] = await getVotesAndIssuance(referendumIndex, true, passed)
     logger.info("Number of votes: ", totalVotes.length)
 
     let settingsFile = await getSettingsFile(referendumIndex);
@@ -276,7 +291,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const toddlerWallets = toddlerDragons.map(({ wallet }) => wallet);
     const adolescentWallets = adolescentDragons.map(({ wallet }) => wallet);
     const adultWallets = adultDragons.map(({ wallet }) => wallet);
-    [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, false, settings);
+    [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, false, passed, settings);
 
     // fs.writeFile(`assets/shelf/votes/${referendumIndex}.txt`, JSON.stringify(totalVotes), (err) => {
 
@@ -327,9 +342,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     })
     const voteAmounts = await Promise.all(promises);
     let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, settings.minAmount)
-    console.log("min", minValue);
-    console.log("median", median);
-    console.log("max", maxValue);
     await sleep(10000);
     minValue = minValue < await getDecimal(minVote.convictionBalance.toString()) ? await getDecimal(minVote.convictionBalance.toString()) : minValue
 
@@ -514,7 +526,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             }
             logger.info("shelfRemarks", JSON.stringify(shelfRemarks))
             if (shelfRemarks.length > 0) {
-                const { block, success, hash, fee } = await mintAndSend(shelfRemarks);
+                const { block, success, hash, fee } = await sendBatchTransactions(shelfRemarks);
                 logger.info(`Shelf NFTs minted at block ${block}: ${success} for a total fee of ${fee}`)
                 //wait until remark block has caught up with block
                 while ((await params.remarkBlockCountAdapter.get()) < block) {
@@ -571,7 +583,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 }
                 logger.info("addBaseRemarks: ", JSON.stringify(addBaseRemarks))
                 // split remarks into sets of 400?
-                const { block: addBaseBlock, success: addBaseSuccess, hash: addBaseHash, fee: addBaseFee } = await mintAndSend(addBaseRemarks);
+                const { block: addBaseBlock, success: addBaseSuccess, hash: addBaseHash, fee: addBaseFee } = await sendBatchTransactions(addBaseRemarks);
                 logger.info(`Base added at block ${addBaseBlock}: ${addBaseSuccess} for a total fee of ${addBaseFee}`)
                 while ((await params.remarkBlockCountAdapter.get()) < addBaseBlock) {
                     await sleep(3000);
@@ -606,7 +618,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 }
 
                 logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
-                const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await mintAndSend(sendRemarks);
+                const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await sendBatchTransactions(sendRemarks);
                 logger.info(`NFTs sent at block ${sendBlock}: ${sendSuccess} for a total fee of ${sendFee}`)
 
                 while ((await params.remarkBlockCountAdapter.get()) < sendBlock) {
@@ -645,6 +657,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         type: "string",
         value: settings.default.artist,
     }
+    const creativeDirectorAttribute: IAttribute = {
+        type: "string",
+        value: settings.default.creativeDirector,
+    }
     const refIndexAttribute: IAttribute = {
         type: "string",
         value: referendumIndex.toString(),
@@ -678,6 +694,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 "artist": {
                     ...artistAttribute
                 },
+                "creative_director": {
+                    ...creativeDirectorAttribute
+                },
                 "referendum_index": {
                     ...refIndexAttribute
                 },
@@ -704,6 +723,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 },
                 "artist": {
                     ...artistAttribute
+                },
+                "creative_director": {
+                    ...creativeDirectorAttribute
                 },
                 "referendum_index": {
                     ...refIndexAttribute
@@ -756,6 +778,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             type: "string",
             value: resource.artist,
         }
+        const creativeDirectorAttribute: IAttribute = {
+            type: "string",
+            value: resource.creativeDirector,
+        }
         const refIndexAttribute: IAttribute = {
             type: "string",
             value: referendumIndex.toString(),
@@ -777,6 +803,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     },
                     "artist": {
                         ...artistAttribute
+                    },
+                    "creative_director": {
+                        ...creativeDirectorAttribute
                     },
                     "referendum_index": {
                         ...refIndexAttribute
@@ -845,7 +874,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         if (mintRemarks.length > 0) {
             let blockMint, successMint, hashMint, feeMint;
             // if (chunkCount > 3) {
-            ({ block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks));
+            ({ block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await sendBatchTransactions(mintRemarks));
             if (!successMint) {
                 logger.info(`Failure minting default NFTs at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
                 return;
@@ -913,7 +942,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             }
 
             logger.info("addResRemarks: ", JSON.stringify(addResRemarks))
-            const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addResRemarks);
+            const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await sendBatchTransactions(addResRemarks);
             logger.info(`Resource(s) added to default NFTs at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
             while ((await params.remarkBlockCountAdapter.get()) < resAddBlock) {
                 await sleep(3000);
@@ -966,7 +995,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             // put this for testing
             logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
             //split remarks into sets of 100?
-            const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await mintAndSend(sendRemarks);
+            const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await sendBatchTransactions(sendRemarks);
             logger.info(`Default NFTs sent at block ${sendBlock}: ${sendSuccess} for a total fee of ${sendFee}`)
             while ((await params.remarkBlockCountAdapter.get()) < sendBlock) {
                 await sleep(3000);
@@ -992,6 +1021,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         const artistAttribute: IAttribute = {
             type: "string",
             value: option.artist,
+        }
+        const creativeDirectorAttribute: IAttribute = {
+            type: "string",
+            value: option.creativeDirector,
         }
         const refIndexAttribute: IAttribute = {
             type: "string",
@@ -1025,6 +1058,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     "artist": {
                         ...artistAttribute
                     },
+                    "creative_director": {
+                        ...creativeDirectorAttribute
+                    },
                     "referendum_index": {
                         ...refIndexAttribute
                     },
@@ -1051,6 +1087,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     },
                     "artist": {
                         ...artistAttribute
+                    },
+                    "creative_director": {
+                        ...creativeDirectorAttribute
                     },
                     "referendum_index": {
                         ...refIndexAttribute
@@ -1112,6 +1151,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 type: "string",
                 value: resource.artist,
             }
+            const creativeDirectorAttribute: IAttribute = {
+                type: "string",
+                value: resource.creativeDirector,
+            }
             const refIndexAttribute: IAttribute = {
                 type: "string",
                 value: referendumIndex.toString(),
@@ -1133,6 +1176,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         },
                         "artist": {
                             ...artistAttribute
+                        },
+                        "creative_director": {
+                            ...creativeDirectorAttribute
                         },
                         "referendum_index": {
                             ...refIndexAttribute
@@ -1212,7 +1258,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         if (mintRemarks.length > 0) {
             let blockMint, successMint, hashMint, feeMint;
             // if (chunkCount > 7) {
-            ({ block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await mintAndSend(mintRemarks));
+            ({ block: blockMint, success: successMint, hash: hashMint, fee: feeMint } = await sendBatchTransactions(mintRemarks));
             if (!successMint) {
                 logger.info(`Failure minting NFTs at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
                 return;
@@ -1284,7 +1330,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 }
             }
             logger.info("addResRemarks: ", JSON.stringify(addResRemarks))
-            const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await mintAndSend(addResRemarks);
+            const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await sendBatchTransactions(addResRemarks);
             logger.info(`Resource(s) added to NFTs at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
             while ((await params.remarkBlockCountAdapter.get()) < resAddBlock) {
                 await sleep(3000);
@@ -1334,7 +1380,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 }
             }
             logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
-            const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await mintAndSend(sendRemarks);
+            const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await sendBatchTransactions(sendRemarks);
             logger.info(`NFTs sent at block ${sendBlock}: ${sendSuccess} for a total fee of ${sendFee}`)
             while ((await params.remarkBlockCountAdapter.get()) < sendBlock) {
                 await sleep(3000);
@@ -1367,12 +1413,21 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             baseEquippableRemarks.push(baseConsolidated.equippable({ slot: slot, collections: [itemCollectionId], operator: "+" }))
         }
         logger.info("baseEquippableRemarks: ", JSON.stringify(baseEquippableRemarks))
-        const { block: equippableBlock, success: equippableSuccess, hash: equippableHash, fee: equippableFee } = await mintAndSend(baseEquippableRemarks);
+        const { block: equippableBlock, success: equippableSuccess, hash: equippableHash, fee: equippableFee } = await sendBatchTransactions(baseEquippableRemarks);
         logger.info(`Collection whitelisted at block ${equippableBlock}: ${equippableSuccess} for a total fee of ${equippableFee}`)
         while ((await params.remarkBlockCountAdapter.get()) < equippableBlock) {
             await sleep(3000);
         }
     }
+    let luckAndSettingsRemarks = []
+    logger.info("Writing Luck and Settings to Chain")
+    //write luckArray to chain
+    luckAndSettingsRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::LUCK::' + JSON.stringify(luckArray))
+    //write settings to chain
+    luckAndSettingsRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::SETTINGS::' + JSON.stringify(settings))
+    logger.info("luckAndSettingsRemarks: ", JSON.stringify(luckAndSettingsRemarks))
+    const { block: writtenBlock, success: writtenSuccess, hash: writtenHash, fee: writtenFee } = await sendBatchTransactions(luckAndSettingsRemarks);
+    logger.info(`Luck and Settings written to chain at block ${writtenBlock}: ${writtenSuccess} for a total fee of ${writtenFee}`)
 
     logger.info(`Sendout complete for Referendum ${referendumIndex}`);
 }

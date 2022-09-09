@@ -308,7 +308,7 @@ export const getTransactionCost = async (
   }
 };
 
-export const mintAndSend = async (remarks: string[]): Promise<{
+export const sendBatchTransactions = async (remarks: string[]): Promise<{
   block?: number;
   success: boolean;
   hash?: string;
