@@ -1,0 +1,187 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "Lettuce",
+    "default": {
+        "transferable": 1,
+        "symbol": "BMTV",
+        "text": "'Black Mirror TV'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+        "artist": "@kseniashikh",
+        "creativeDirector": "MIES",
+        "rarity": "common",
+        "itemName": "Black Mirror TV",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "224/option3/resource1/main.png",
+                "thumb": "224/option3/resource1/thumb.png",
+                "text": "'Black Mirror TV'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+                "artist": "@kseniashikh",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Black Mirror TV",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "224/option3/resource2/main.png",
+                "thumb": "224/option3/resource2/thumb.png",
+                "text": "'Black Mirror TV: Equippable on Shelf'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+                "artist": "@kseniashikh",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Black Mirror TV",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_224"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "MT",
+            "text": "'Merklebot Telescope'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Merklebot Telescope",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "224/option1/resource1/main.png",
+                    "thumb": "224/option1/resource1/thumb.png",
+                    "text": "'Merklebot Telescope'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Merklebot Telescope",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "224/option1/resource2/main.png",
+                    "thumb": "224/option1/resource2/thumb.png",
+                    "text": "'Merklebot Telescope: Equippable on Shelf'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Merklebot Telescope",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_224"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "DD",
+            "text": "'Drone Delivery'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Drone Delivery",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "224/option2/resource1/main.png",
+                    "thumb": "224/option2/resource1/thumb.png",
+                    "text": "'Drone Delivery'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Drone Delivery",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "224/option2/resource2/main.png",
+                    "thumb": "224/option2/resource2/thumb.png",
+                    "text": "'Drone Delivery: Equippable on Shelf'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Drone Delivery",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_224"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "BMTV",
+            "text": "'Black Mirror TV'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Black Mirror TV",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "224/option3/resource1/main.png",
+                    "thumb": "224/option3/resource1/thumb.png",
+                    "text": "'Black Mirror TV'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Black Mirror TV",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "224/option3/resource2/main.png",
+                    "thumb": "224/option3/resource2/thumb.png",
+                    "text": "'Black Mirror TV: Equippable on Shelf'\n\nIn Referendum 224 the community voted again on whether to open a bi-directional HRMP channel between Robonomics and Statemine. While a previous referendum (207) on the topic did pass community vote, the execution call failed due to an insufficient weight.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Black Mirror TV",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_224"
+                }
+            ]
+        }
+    ]
+}
