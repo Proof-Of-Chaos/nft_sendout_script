@@ -1,14 +1,8 @@
-# Governance Vote Rewarder
+# Proof of Chaos NFT send-out Script
 
-With this program all referendum vote participants will be rewarded with NFTs upon referendum completion.
+With this program all referendum voter will be rewarded with NFTs upon referendum completion.
 
-This project is open-source and your contributions more than welcome!!!
-
-My goal with this project is to drive up community participance in governance. If you would like to support this and future projects:
-
-KSM: FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic
-
-Much appreciated!
+For more info click [here](https://medium.com/@governanceincentivizer/nft-voting-rewards-6a6365d0ff4d).
 
 ## Installation
 
