@@ -232,13 +232,14 @@ const getMinMaxMedian = (someArray, criticalValue) => {
     } else {
         median = values[Math.floor(values.length / 2 + 1)];
     }
-    console.log("q1", q1)
-    console.log("q3", q3)
-    console.log("medium", median)
+    logger.info("q1", q1);
+    logger.info("q3", q3);
+    logger.info("median", median);
     iqr = q3 - q1;
     maxValue = q3 + iqr * 1.5;
     minValue = q1 - iqr * 1.5;
-    console.log("maxi", maxValue)
+    logger.info("maxi", maxValue);
+    logger.info("mini", minValue);
     return { minValue, maxValue, median };
 }
 
@@ -322,7 +323,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     logger.info("Number of votes after filter: ", filteredVotes.length)
 
     //get votes not in filtered
-    const votesNotMeetingRequirements = totalVotes.filter(vote => {
+    const votesNotMeetingRequirements = votes.filter(vote => {
         return !filteredVotes.some(o => {
             return o.accountId.toString() === vote.accountId.toString()
                 && o.vote.toString() === vote.vote.toString()
