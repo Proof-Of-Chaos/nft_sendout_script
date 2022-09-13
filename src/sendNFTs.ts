@@ -85,7 +85,8 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, atExpi
                 convictionBalance = vote.balance.muln(LOCKS[vote.vote.conviction.toNumber()]).div(new BN(10)).toString();
             }
             else {
-                convictionBalance = vote.balance.toString()
+                //immediately unlocked => conviction multiplier = 0.1
+                convictionBalance = vote.balance.muln(LOCKS[0]).div(new BN(10)).toString();
             }
             return { ...vote, convictionBalance }
         })
