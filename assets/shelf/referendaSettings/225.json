@@ -1,0 +1,187 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "Indiana Jones",
+    "default": {
+        "transferable": 1,
+        "symbol": "SD",
+        "text": "'Sundial'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+        "artist": "@kseniashikh",
+        "creativeDirector": "MIES",
+        "rarity": "common",
+        "itemName": "Sundial",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "225/option3/resource1/main.png",
+                "thumb": "225/option3/resource1/thumb.png",
+                "text": "'Sundial'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+                "artist": "@kseniashikh",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Sundial",
+                "title": "Thumb",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "225/option3/resource2/main.png",
+                "thumb": "225/option3/resource2/thumb.png",
+                "text": "'Sundial: Equippable on Shelf'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+                "artist": "@kseniashikh",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Sundial",
+                "title": "Equippable Shelf",
+                "slot": "base-11922668-SBP.REFERENDUM_225"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "DC",
+            "text": "'Digital Clock'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Digital Clock",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "225/option1/resource1/main.png",
+                    "thumb": "225/option1/resource1/thumb.png",
+                    "text": "'Digital Clock'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Digital Clock",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "225/option1/resource2/main.png",
+                    "thumb": "225/option1/resource2/thumb.png",
+                    "text": "'Digital Clock: Equippable on Shelf'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Digital Clock",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_225"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "MC",
+            "text": "'Mechanical Clock'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Mechanical Clock",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "225/option2/resource1/main.png",
+                    "thumb": "225/option2/resource1/thumb.png",
+                    "text": "'Mechanical Clock'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Mechanical Clock",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "225/option2/resource2/main.png",
+                    "thumb": "225/option2/resource2/thumb.png",
+                    "text": "'Mechanical Clock: Equippable on Shelf'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Mechanical Clock",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_225"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "SD",
+            "text": "'Sundial'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Sundial",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "225/option3/resource1/main.png",
+                    "thumb": "225/option3/resource1/thumb.png",
+                    "text": "'Sundial'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Sundial",
+                    "title": "Thumb",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "225/option3/resource2/main.png",
+                    "thumb": "225/option3/resource2/thumb.png",
+                    "text": "'Sundial: Equippable on Shelf'\n\nIn Referendum 225 the community voted on whether to upgrade the Kusama (run)time to version 0.9.27-1.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Sundial",
+                    "title": "Equippable Shelf",
+                    "slot": "base-11922668-SBP.REFERENDUM_225"
+                }
+            ]
+        }
+    ]
+}
