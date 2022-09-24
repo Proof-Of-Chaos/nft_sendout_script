@@ -908,7 +908,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
                 for (const [index, vote] of chunk.entries()) {
                     const nftProps: INftProps = {
-                        block: blockMint,
+                        block: chunkCount == 7 ? 14593347 : blockMint,
                         sn: ('00000000' + ((chunkCount * chunkSizeDefault) + count++).toString()).slice(-8),
                         owner: encodeAddress(params.account.address, params.settings.network.prefix),
                         transferable: 1,
@@ -980,7 +980,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
                     // block: chunkCount == 3 ? 12007826 : blockMint,
                     const nftProps: INftProps = {
-                        block: blockMint,
+                        block: chunkCount == 7 ? 14593347 : blockMint,
                         sn: ('00000000' + ((chunkCount * chunkSizeDefault) + count++).toString()).slice(-8),
                         owner: encodeAddress(params.account.address, params.settings.network.prefix),
                         transferable: 1, //parseInt(selectedOption.transferable)
