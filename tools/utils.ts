@@ -32,12 +32,12 @@ export const amountToHumanString = async (amount: string, afterCommas?: number):
   return value + tokenString;
 };
 
-export const getSettingsFile = async (referendumId: BN) => {
+export const getConfigFile = async (referendumId: BN) => {
   try {
 
-    const settings = await fsPromises.readFile(`${process.cwd()}/assets/shelf/referendaSettings/${referendumId}.json`, 'utf8');
-    logger.info(`reading settings from /assets/shelf/referendaSettings/${referendumId}.json`);
-    return settings
+    const config = await fsPromises.readFile(`${process.cwd()}/assets/shelf/referendaSettings/${referendumId}.json`, 'utf8');
+    logger.info(`reading config from /assets/shelf/referendaSettings/${referendumId}.json`);
+    return config
   }
   catch (e) {
     logger.info(`No settings file specified. Exiting.`);
