@@ -6,9 +6,9 @@ import { pinSingleFileFromDir, pinSingleMetadataWithoutFile, pinSingleWithThumbM
 import fs from 'fs';
 import { Base, Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
-import { INftProps, VoteConviction } from "../types.js";
+import { INftProps, VoteConviction, VoteConvictionDragon } from "../types.js";
 import { getApi, getApiTest, getDecimal, sendBatchTransactions } from "../tools/substrateUtils.js";
-import { amountToHumanString, getDragonBonusFile, getSettingsFile, sleep } from "../tools/utils.js";
+import { amountToHumanString, getDragonBonusFile, getConfigFile, sleep } from "../tools/utils.js";
 import { AccountId, VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
 import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
@@ -81,7 +81,7 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, atExpi
         votes = votes.map((vote) => {
             let convictionBalance;
             //only consider conviction when tokens are actually locked up => when vote is in line with ref outcome
-            if ((vote.vote.isAye && passed) || (!vote.vote.isAye && !passed)){
+            if ((vote.vote.isAye && passed) || (!vote.vote.isAye && !passed)) {
                 convictionBalance = vote.balance.muln(LOCKS[vote.vote.conviction.toNumber()]).div(new BN(10)).toString();
             }
             else {
@@ -94,7 +94,7 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, atExpi
     return votes;
 }
 
-const filterVotes = async (referendumId: BN, votes: VoteConviction[], totalIssuance: string, settings): Promise<VoteConviction[]> => {
+const filterVotes = async (votes: VoteConvictionDragon[], totalIssuance: string, settings): Promise<VoteConvictionDragon[]> => {
     const minVote = BN.max(new BN(settings.min), new BN("0"));
     const maxVote = BN.min(new BN(settings.max), new BN(totalIssuance));
     logger.info("min:", minVote.toString());
@@ -114,7 +114,7 @@ const filterVotes = async (referendumId: BN, votes: VoteConviction[], totalIssua
     return filtered
 }
 
-const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, passed, settings?): Promise<[String, VoteConviction[]]> => {
+const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, passed, config?): Promise<[String, VoteConviction[]]> => {
     const api = await getApi();
     const info = await api.query.democracy.referendumInfoOf(referendumIndex);
 
@@ -127,10 +127,10 @@ const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, passe
         return;
     }
 
-    let cutOffBlock;
+    let cutOffBlock: BN;
     if (!atExpiry) {
-        cutOffBlock = settings.blockCutOff && settings.blockCutOff !== "-1" ?
-            settings.blockCutOff : blockNumber
+        cutOffBlock = config.blockCutOff && config.blockCutOff !== "-1" ?
+            new BN(config.blockCutOff) : blockNumber
         logger.info("Cut-off Block: ", cutOffBlock.toString())
     }
     else {
@@ -173,8 +173,7 @@ const getRandom = (rng, weights) => {
 
 
 
-const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyWallets, toddlerWallets, adolescentWallets, adultWallets, account, babyBonus, toddlerBonus, adolescentBonus, adultBonus, minAmount) => {
-
+const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonus, toddlerBonus, adolescentBonus, adultBonus, minAmount, dragonEquipped) => {
     n = await getDecimal(n);
     minOut = parseInt(minOut);
     maxOut = parseInt(maxOut);
@@ -195,19 +194,18 @@ const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyWall
 
     }
     //check if dragon bonus
-    if (adultWallets.includes(account)) {
-        n = n * (1 + (adultBonus / 100))
+    switch (dragonEquipped) {
+        case "Adult":
+            return n = n * (1 + (adultBonus / 100))
+        case "Adolescent":
+            return n = n * (1 + (adolescentBonus / 100))
+        case "Toddler":
+            return n = n * (1 + (toddlerBonus / 100))
+        case "Baby":
+            return n = n * (1 + (babyBonus / 100))
+        case "No":
+            return n
     }
-    else if (adolescentWallets.includes(account)) {
-        n = n * (1 + (adolescentBonus / 100))
-    }
-    else if (toddlerWallets.includes(account)) {
-        n = n * (1 + (toddlerBonus / 100))
-    }
-    else if (babyWallets.includes(account)) {
-        n = n * (1 + (babyBonus / 100))
-    }
-    return n
 }
 
 const getMinMaxMedian = (someArray, criticalValue) => {
@@ -261,6 +259,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     let votes: VoteConviction[] = [];
     let totalIssuance: String;
     let totalVotes: VoteConviction[];
+    let votesWithDragon: VoteConvictionDragon[];
     let totalIssuanceRefExpiry: String;
     const chunkSize = params.settings.chunkSize;
     const chunkSizeDefault = params.settings.chunkSizeDefault;
@@ -269,12 +268,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     [totalIssuanceRefExpiry, totalVotes] = await getVotesAndIssuance(referendumIndex, true, passed)
     logger.info("Number of votes: ", totalVotes.length)
 
-    let settingsFile = await getSettingsFile(referendumIndex);
-    if (settingsFile === "") {
+    let configFile = await getConfigFile(referendumIndex);
+    if (configFile === "") {
         return;
     }
-    let settings = await JSON.parse(settingsFile);
-    const rng = seedrandom(referendumIndex.toString() + settings.seed);
+    let config = await JSON.parse(configFile);
+    const rng = seedrandom(referendumIndex.toString() + config.seed);
     let bonusFile = await getDragonBonusFile(referendumIndex);
     if (bonusFile === "") {
         return;
@@ -293,8 +292,27 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const toddlerWallets = toddlerDragons.map(({ wallet }) => wallet);
     const adolescentWallets = adolescentDragons.map(({ wallet }) => wallet);
     const adultWallets = adultDragons.map(({ wallet }) => wallet);
-    [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, false, passed, settings);
+    [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, false, passed, config);
+    votesWithDragon = votes.map((vote) => {
+        let dragonEquipped
+        if (adultWallets.includes(vote.accountId.toString())) {
+            dragonEquipped = "Adult"
+        }
+        else if (adolescentWallets.includes(vote.accountId.toString())) {
+            dragonEquipped = "Adolescent"
+        }
+        else if (toddlerWallets.includes(vote.accountId.toString())) {
+            dragonEquipped = "Toddler"
 
+        }
+        else if (babyWallets.includes(vote.accountId.toString())) {
+            dragonEquipped = "Baby"
+        }
+        else {
+            dragonEquipped = "No"
+        }
+        return { ...vote, dragonEquipped }
+    })
     // fs.writeFile(`assets/shelf/votes/${referendumIndex}.txt`, JSON.stringify(totalVotes), (err) => {
 
     //     // In case of a error throw err.
@@ -320,11 +338,11 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     }
     // // for testing only
     // totalIssuance = "12312312312342312314"
-    const filteredVotes = await filterVotes(referendumIndex, votes, totalIssuance.toString(), settings)
+    const filteredVotes: VoteConvictionDragon[] = await filterVotes(votesWithDragon, totalIssuance.toString(), config)
     logger.info("Number of votes after filter: ", filteredVotes.length)
 
     //get votes not in filtered
-    const votesNotMeetingRequirements = votes.filter(vote => {
+    const votesNotMeetingRequirements: VoteConvictionDragon[] = votesWithDragon.filter(vote => {
         return !filteredVotes.some(o => {
             return o.accountId.toString() === vote.accountId.toString()
                 && o.vote.toString() === vote.vote.toString()
@@ -334,7 +352,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     logger.info(`${votesNotMeetingRequirements.length} votes not meeting the requirements.`)
 
-    let luckArray = [];
+    let distribution = [];
     const minVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).lt(new BN(curr.convictionBalance)) ? prev : curr);
     const maxVote = filteredVotes.reduce((prev, curr) => new BN(prev.convictionBalance).gt(new BN(curr.convictionBalance)) ? prev : curr);
     logger.info("minVote", minVote.convictionBalance.toString())
@@ -343,73 +361,64 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         return await getDecimal(vote.convictionBalance.toString())
     })
     const voteAmounts = await Promise.all(promises);
-    let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, settings.minAmount)
+    let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, config.minAmount)
     await sleep(10000);
     minValue = minValue < await getDecimal(minVote.convictionBalance.toString()) ? await getDecimal(minVote.convictionBalance.toString()) : minValue
 
     let selectedIndexArray = [];
     for (const vote of filteredVotes) {
-        let luck;
+        let chance;
         let selectedIndex;
         let counter = 0;
-        for (const option of settings.options) {
-            if (counter < settings.options.length - 1) {
+        for (const option of config.options) {
+            if (counter < config.options.length - 1) {
                 if (await getDecimal(vote.convictionBalance.toString()) < median) {
-                    // if (await getDecimal(vote.convictionBalance.toString()) < settings.minAmount) {
-                    //     luck = option.minProbability;
-                    // }
-                    // else {
-                    luck = await calculateLuck(vote.convictionBalance.toString(),
+                    chance = await calculateLuck(vote.convictionBalance.toString(),
                         minValue,
                         median,
                         option.minProbability,
                         option.sweetspotProbability,
                         3,
-                        babyWallets,
-                        toddlerWallets,
-                        adolescentWallets,
-                        adultWallets,
-                        vote.accountId.toString(),
-                        settings.babyBonus,
-                        settings.toddlerBonus,
-                        settings.adolescentBonus,
-                        settings.adultBonus,
-                        settings.minAmount)
-                    // }
+                        config.babyBonus,
+                        config.toddlerBonus,
+                        config.adolescentBonus,
+                        config.adultBonus,
+                        config.minAmount,
+                        vote.dragonEquipped)
                 }
                 else {
-                    // if (await getDecimal(vote.convictionBalance.toString()) > maxValue) {
-                    //     luck = option.maxProbability;
-                    // }
-                    // else {
-                    luck = await calculateLuck(vote.convictionBalance.toString(),
+                    chance = await calculateLuck(vote.convictionBalance.toString(),
                         median,
                         maxValue,
                         option.sweetspotProbability,
                         option.maxProbability,
                         0.4,
-                        babyWallets,
-                        toddlerWallets,
-                        adolescentWallets,
-                        adultWallets,
-                        vote.accountId.toString(),
-                        settings.babyBonus,
-                        settings.toddlerBonus,
-                        settings.adolescentBonus,
-                        settings.adultBonus,
-                        settings.minAmount)
-                    // }
+                        config.babyBonus,
+                        config.toddlerBonus,
+                        config.adolescentBonus,
+                        config.adultBonus,
+                        config.minAmount,
+                        vote.dragonEquipped)
                 }
-                selectedIndex = getRandom(rng, [luck / 100, (100 - luck) / 100]);
+                selectedIndex = getRandom(rng, [chance / 100, (100 - chance) / 100]);
                 if (selectedIndex === 0) {
                     selectedIndex = counter;
                     break;
                 }
             }
             selectedIndex = counter;
+            if (selectedIndex === config.options.length - 1) {
+                chance = 100 - chance
+            }
             counter++;
         }
-        luckArray.push([vote.convictionBalance.toString(), luck, selectedIndex, vote.accountId.toString()])
+        distribution.push({
+            wallet: vote.accountId.toString(),
+            amountConsidered: vote.convictionBalance.toString(),
+            chance,
+            selectedIndex,
+            dragonEquipped: vote.dragonEquipped,
+        })
         selectedIndexArray.push(selectedIndex)
     }
     var uniqs = selectedIndexArray.reduce((acc, val) => {
@@ -422,10 +431,16 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     logger.info(uniqs)
     for (const vote of votesNotMeetingRequirements) {
-        luckArray.push([vote.convictionBalance.toString(), 0, parseInt(commonIndex), vote.accountId.toString()])
+        distribution.push({
+            wallet: vote.accountId.toString(),
+            amountConsidered: vote.convictionBalance.toString(),
+            chance: 100,
+            selectedIndex: parseInt(commonIndex),
+            dragonEquipped: vote.dragonEquipped,
+        })
     }
 
-    fs.writeFile(`assets/shelf/luck/${referendumIndex}.txt`, JSON.stringify(luckArray), (err) => {
+    fs.writeFile(`assets/shelf/luck/${referendumIndex}.txt`, JSON.stringify(distribution), (err) => {
 
         // In case of a error throw err.
         if (err) throw err;
@@ -439,14 +454,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     let itemCollectionId;
     //create collection if required
 
-    if (settings.createNewCollection) {
+    if (config.createNewCollection) {
         itemCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
-            settings.newCollectionSymbol
+            config.newCollectionSymbol
         );
         let collection = await params.remarkStorageAdapter.getCollectionById(itemCollectionId);
         if (!collection) {
-            await createNewCollection(itemCollectionId, settings);
+            await createNewCollection(itemCollectionId, config);
         }
         else {
             logger.info("New collection already exists.")
@@ -649,7 +664,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     const rarityAttribute: IAttribute = {
         type: "string",
-        value: settings.default.rarity,
+        value: config.default.rarity,
     }
     const supplyAttribute: IAttribute = {
         type: "number",
@@ -657,11 +672,11 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     }
     const artistAttribute: IAttribute = {
         type: "string",
-        value: settings.default.artist,
+        value: config.default.artist,
     }
     const creativeDirectorAttribute: IAttribute = {
         type: "string",
-        value: settings.default.creativeDirector,
+        value: config.default.creativeDirector,
     }
     const refIndexAttribute: IAttribute = {
         type: "string",
@@ -669,7 +684,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     }
     const nameAttribute: IAttribute = {
         type: "string",
-        value: settings.default.itemName,
+        value: config.default.itemName,
     }
     const typeOfVoteDirectAttribute: IAttribute = {
         type: "string",
@@ -685,7 +700,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const metadataCidDirectDefault = await pinSingleMetadataWithoutFile(
         `Referendum ${referendumIndex}`,
         {
-            description: settings.default.text,
+            description: config.default.text,
             properties: {
                 "rarity": {
                     ...rarityAttribute
@@ -715,7 +730,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const metadataCidDelegatedDefault = await pinSingleMetadataWithoutFile(
         `Referendum ${referendumIndex}`,
         {
-            description: settings.default.text,
+            description: config.default.text,
             properties: {
                 "rarity": {
                     ...rarityAttribute
@@ -751,8 +766,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     let resourceCidsDefault = []
 
-    for (let i = 0; i < settings.default.resources.length; i++) {
-        const resource = settings.default.resources[i]
+    for (let i = 0; i < config.default.resources.length; i++) {
+        const resource = config.default.resources[i]
         let mainCid = await pinSingleFileFromDir("/assets/shelf/referenda",
             resource.main,
             resource.name)
@@ -766,8 +781,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     let resourceMetadataCidsDefault = []
 
-    for (let i = 0; i < settings.default.resources.length; i++) {
-        const resource = settings.default.resources[i]
+    for (let i = 0; i < config.default.resources.length; i++) {
+        const resource = config.default.resources[i]
         const rarityAttribute: IAttribute = {
             type: "string",
             value: resource.rarity,
@@ -833,7 +848,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
             let metadataCid = vote.isDelegating ? metadataCidDelegatedDefault : metadataCidDirectDefault
 
-            const randRoyaltyInRange = Math.floor(rng() * (settings.default.royalty[1] - settings.default.royalty[0] + 1) + settings.default.royalty[0])
+            const randRoyaltyInRange = Math.floor(rng() * (config.default.royalty[1] - config.default.royalty[0] + 1) + config.default.royalty[0])
             const itemRoyaltyProperty: IRoyaltyAttribute = {
                 type: "royalty",
                 value: {
@@ -852,7 +867,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 transferable: 1, //parseInt(selectedOption.transferable)
                 metadata: metadataCid,
                 collection: itemCollectionId,
-                symbol: referendumIndex.toString() + settings.default.symbol,
+                symbol: referendumIndex.toString() + config.default.symbol,
                 properties: {
                     royaltyInfo: {
                         ...itemRoyaltyProperty
@@ -896,11 +911,11 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     transferable: 1,
                     metadata: usedMetadataCidsDefault[index],
                     collection: itemCollectionId,
-                    symbol: referendumIndex.toString() + settings.default.symbol,
+                    symbol: referendumIndex.toString() + config.default.symbol,
                 };
                 const nft = new NFT(nftProps);
-                for (let i = 0; i < settings.default.resources.length; i++) {
-                    let resource = settings.default.resources[i]
+                for (let i = 0; i < config.default.resources.length; i++) {
+                    let resource = config.default.resources[i]
                     let mainCid = resourceCidsDefault[i][0]
                     let thumbCid = resourceCidsDefault[i][1]
                     if (params.settings.isTest && (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
@@ -968,7 +983,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     transferable: 1, //parseInt(selectedOption.transferable)
                     metadata: usedMetadataCidsDefault[index],
                     collection: itemCollectionId,
-                    symbol: referendumIndex.toString() + settings.default.symbol,
+                    symbol: referendumIndex.toString() + config.default.symbol,
                 };
                 const nft = new NFT(nftProps);
                 //get the parent nft
@@ -1011,14 +1026,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
 
     const metadataCids = []
-    for (const option of settings.options) {
+    for (const option of config.options) {
         const rarityAttribute: IAttribute = {
             type: "string",
             value: option.rarity,
         }
         const supplyAttribute: IAttribute = {
             type: "number",
-            value: uniqs[settings.options.indexOf(option).toString()],
+            value: uniqs[config.options.indexOf(option).toString()],
         }
         const artistAttribute: IAttribute = {
             type: "string",
@@ -1119,7 +1134,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     chunkCount = 0
 
     let resourceCids = []
-    for (const option of settings.options) {
+    for (const option of config.options) {
         let optionResourceCids = []
         for (let i = 0; i < option.resources.length; i++) {
             const resource = option.resources[i]
@@ -1137,7 +1152,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     logger.info("resourceCids", resourceCids);
 
     let resourceMetadataCids = []
-    for (const option of settings.options) {
+    for (const option of config.options) {
         let optionResourceMetadataCids = []
         for (let i = 0; i < option.resources.length; i++) {
             const resource = option.resources[i]
@@ -1147,7 +1162,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             }
             const supplyAttribute: IAttribute = {
                 type: "number",
-                value: uniqs[settings.options.indexOf(option).toString()],
+                value: uniqs[config.options.indexOf(option).toString()],
             }
             const artistAttribute: IAttribute = {
                 type: "string",
@@ -1210,7 +1225,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
         for (let j = 0; j < chunk.length; j++) {
             const vote = chunk[j]
-            const selectedOption = settings.options[selectedIndexArray[i + j]];
+            const selectedOption = config.options[selectedIndexArray[i + j]];
             selectedOptions.push(selectedOption);
             const selectedMetadata = metadataCids[selectedIndexArray[i + j]];
 
@@ -1290,8 +1305,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 const nft = new NFT(nftProps);
                 for (let i = 0; i < selectedOption.resources.length; i++) {
                     let resource = selectedOption.resources[i]
-                    let mainCid = resourceCids[settings.options.indexOf(selectedOption)][i][0]
-                    let thumbCid = resourceCids[settings.options.indexOf(selectedOption)][i][1]
+                    let mainCid = resourceCids[config.options.indexOf(selectedOption)][i][0]
+                    let thumbCid = resourceCids[config.options.indexOf(selectedOption)][i][1]
                     if (params.settings.isTest && (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                         || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
                         || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
@@ -1410,8 +1425,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         base.metadata
     )
     const baseEquippableRemarks = [];
-    if (settings.createNewCollection) {
-        for (const slot of settings.makeEquippable) {
+    if (config.createNewCollection) {
+        for (const slot of config.makeEquippable) {
             baseEquippableRemarks.push(baseConsolidated.equippable({ slot: slot, collections: [itemCollectionId], operator: "+" }))
         }
         logger.info("baseEquippableRemarks: ", JSON.stringify(baseEquippableRemarks))
@@ -1421,15 +1436,15 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             await sleep(3000);
         }
     }
-    let luckAndSettingsRemarks = []
-    logger.info("Writing Luck and Settings to Chain")
+    let distributionAndConfigRemarks = []
+    logger.info("Writing Distribution and Config to Chain")
     //write luckArray to chain
-    luckAndSettingsRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::LUCK::' + JSON.stringify(luckArray))
-    //write settings to chain
-    luckAndSettingsRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::SETTINGS::' + JSON.stringify(settings))
-    logger.info("luckAndSettingsRemarks: ", JSON.stringify(luckAndSettingsRemarks))
-    const { block: writtenBlock, success: writtenSuccess, hash: writtenHash, fee: writtenFee } = await sendBatchTransactions(luckAndSettingsRemarks);
-    logger.info(`Luck and Settings written to chain at block ${writtenBlock}: ${writtenSuccess} for a total fee of ${writtenFee}`)
+    distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::DISTRIBUTION::' + JSON.stringify(distribution))
+    //write config to chain
+    distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::CONFIG::' + JSON.stringify(config))
+    logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
+    const { block: writtenBlock, success: writtenSuccess, hash: writtenHash, fee: writtenFee } = await sendBatchTransactions(distributionAndConfigRemarks);
+    logger.info(`Distribution and Config written to chain at block ${writtenBlock}: ${writtenSuccess} for a total fee of ${writtenFee}`)
 
     logger.info(`Sendout complete for Referendum ${referendumIndex}`);
 }
