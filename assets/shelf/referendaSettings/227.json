@@ -1,0 +1,179 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "Modules",
+    "default": {
+        "transferable": 1,
+        "symbol": "PB",
+        "text": "'Pool Balls'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+        "artist": "LokiKot(@LokiPages)",
+        "creativeDirector": "MIES",
+        "rarity": "common",
+        "itemName": "Pool Balls",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "227/option3/resource1/main.png",
+                "thumb": "227/option3/resource1/thumb.png",
+                "text": "'Pool Balls'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+                "artist": "LokiKot(@LokiPages)",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Pool Balls",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "227/option3/resource2/main.png",
+                "thumb": "227/option3/resource2/thumb.png",
+                "text": "'Pool Balls: Equippable on Shelf'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+                "artist": "LokiKot(@LokiPages)",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Pool Balls",
+                "slot": "base-11922668-SBP.REFERENDUM_227"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "PT",
+            "text": "'Pool Table'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Pool Table",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "227/option1/resource1/main.png",
+                    "thumb": "227/option1/resource1/thumb.png",
+                    "text": "'Pool Table'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Pool Table",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "227/option1/resource2/main.png",
+                    "thumb": "227/option1/resource2/thumb.png",
+                    "text": "'Pool Table: Equippable on Shelf'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Pool Table",
+                    "slot": "base-11922668-SBP.REFERENDUM_227"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "PBT",
+            "text": "'Pool Ball Tray'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Pool Ball Tray",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "227/option2/resource1/main.png",
+                    "thumb": "227/option2/resource1/thumb.png",
+                    "text": "'Pool Ball Tray'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Pool Ball Tray",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "227/option2/resource2/main.png",
+                    "thumb": "227/option2/resource2/thumb.png",
+                    "text": "'Pool Ball Tray: Equippable on Shelf'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Pool Ball Tray",
+                    "slot": "base-11922668-SBP.REFERENDUM_227"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "PB",
+            "text": "'Pool Balls'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Pool Balls",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "227/option3/resource1/main.png",
+                    "thumb": "227/option3/resource1/thumb.png",
+                    "text": "'Pool Balls'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Pool Balls",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "227/option3/resource2/main.png",
+                    "thumb": "227/option3/resource2/thumb.png",
+                    "text": "'Pool Balls: Equippable on Shelf'\n\nIn Referendum 227 the community voted on whether to lift the limits imposed on the nomination pools by motion 495.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Pool Balls",
+                    "slot": "base-11922668-SBP.REFERENDUM_227"
+                }
+            ]
+        }
+    ]
+}
