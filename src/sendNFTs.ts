@@ -196,13 +196,13 @@ const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonu
     //check if dragon bonus
     switch (dragonEquipped) {
         case "Adult":
-            return n = n * (1 + (adultBonus / 100))
+            return n * (1 + (adultBonus / 100))
         case "Adolescent":
-            return n = n * (1 + (adolescentBonus / 100))
+            return n * (1 + (adolescentBonus / 100))
         case "Toddler":
-            return n = n * (1 + (toddlerBonus / 100))
+            return n * (1 + (toddlerBonus / 100))
         case "Baby":
-            return n = n * (1 + (babyBonus / 100))
+            return n * (1 + (babyBonus / 100))
         case "No":
             return n
     }
@@ -236,9 +236,9 @@ const getMinMaxMedian = (someArray, criticalValue) => {
     logger.info("median", median);
     iqr = q3 - q1;
     maxValue = q3 + iqr * 1.5;
-    minValue = q1 - iqr * 1.5;
-    logger.info("maxi", maxValue);
-    logger.info("mini", minValue);
+    minValue = Math.max(q1 - iqr * 1.5, 0);
+    logger.info("maxValue", maxValue);
+    logger.info("minValue", minValue);
     return { minValue, maxValue, median };
 }
 
@@ -313,21 +313,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         }
         return { ...vote, dragonEquipped }
     })
-    // fs.writeFile(`assets/shelf/votes/${referendumIndex}.txt`, JSON.stringify(totalVotes), (err) => {
-
-    //     // In case of a error throw err.
-    //     if (err) throw err;
-    // })
-    // // for testing only
-    // let data = await fs.readFileSync(`assets/shelf/votes/${referendumIndex}.txt`).toString('utf-8')
-    // let data2 = JSON.parse(data)
-    // for (const vote of data2) {
-    //     let new1 = vote as unknown;
-    //     let new2 = new1 as VoteConviction;
-    //     votes.push(new2)
-    // }
-    // console.log(votes)
-
 
     const shelfRoyaltyProperty: IRoyaltyAttribute = {
         type: "royalty",
@@ -336,8 +321,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             royaltyPercentFloat: 90
         }
     }
-    // // for testing only
-    // totalIssuance = "12312312312342312314"
     const filteredVotes: VoteConvictionDragon[] = await filterVotes(votesWithDragon, totalIssuance.toString(), config)
     logger.info("Number of votes after filter: ", filteredVotes.length)
 
@@ -362,6 +345,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     })
     const voteAmounts = await Promise.all(promises);
     let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, config.minAmount)
+    config.minValue = minValue
+    config.maxValue = maxValue
+    config.median = median
     await sleep(10000);
     minValue = minValue < await getDecimal(minVote.convictionBalance.toString()) ? await getDecimal(minVote.convictionBalance.toString()) : minValue
 
@@ -440,7 +426,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         })
     }
 
-    fs.writeFile(`assets/shelf/luck/${referendumIndex}.txt`, JSON.stringify(distribution), (err) => {
+    fs.writeFile(`assets/shelf/luck/${referendumIndex}.json`, JSON.stringify(distribution), (err) => {
 
         // In case of a error throw err.
         if (err) throw err;
@@ -453,7 +439,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     let itemCollectionId;
     //create collection if required
-
+    config.newCollectionMetadataCid = ""
     if (config.createNewCollection) {
         itemCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
@@ -461,7 +447,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         );
         let collection = await params.remarkStorageAdapter.getCollectionById(itemCollectionId);
         if (!collection) {
-            await createNewCollection(itemCollectionId, config);
+            config.newCollectionMetadataCid = await createNewCollection(itemCollectionId, config);
         }
         else {
             logger.info("New collection already exists.")
@@ -482,23 +468,26 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     //check which wallets don't have the shelf nft
     const accountsWithoutShelf: AccountId[] = await getShelflessAccounts(totalVotes, shelfCollectionId)
+    //upload shelf to pinata
+    const [shelfMetadataCid, shelfMainCid, shelfThumbCid] = await pinSingleWithThumbMetadataFromDir("/assets",
+        "shelf/shelf.png",
+        `Your Shelf`,
+        {
+            description: `Each time you vote on a referendum, a new item will be added to this shelf.`,
+            properties: {},
+        },
+        "shelf/shelf_thumb.png"
+    );
+    await sleep(2000);
+    if (!shelfMetadataCid) {
+        logger.error(`parentMetadataCid is null: ${shelfMetadataCid}. exiting.`)
+        return;
+    }
+    config.parentMainCid = "ipfs://ipfs/" + shelfMainCid
+    config.parentThumbCid = "ipfs://ipfs/" + shelfThumbCid
+    config.parentMetadataCid = shelfMetadataCid
     //send shelf to wallets that don't have one yet
     if (accountsWithoutShelf.length > 0) {
-        //upload shelf to pinata
-        const [shelfMetadataCid, shelfMainCid, shelfThumbCid] = await pinSingleWithThumbMetadataFromDir("/assets",
-            "shelf/shelf.png",
-            `Your Shelf`,
-            {
-                description: `Each time you vote on a referendum, a new item will be added to this shelf.`,
-                properties: {},
-            },
-            "shelf/shelf_thumb.png"
-        );
-        await sleep(2000);
-        if (!shelfMetadataCid) {
-            logger.error(`parentMetadataCid is null: ${shelfMetadataCid}. exiting.`)
-            return;
-        }
         //get base
         const bases = await params.remarkStorageAdapter.getAllBases();
         const baseId = bases.find(({ issuer, symbol }) => {
@@ -661,7 +650,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         return;
     }
 
-
     const rarityAttribute: IAttribute = {
         type: "string",
         value: config.default.rarity,
@@ -727,6 +715,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         }
     );
 
+    config.default.metadataCidDirect = metadataCidDirectDefault
+
     const metadataCidDelegatedDefault = await pinSingleMetadataWithoutFile(
         `Referendum ${referendumIndex}`,
         {
@@ -757,6 +747,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         }
     );
 
+    config.default.metadataCidDelegated = metadataCidDelegatedDefault
+
     if (!metadataCidDirectDefault || !metadataCidDelegatedDefault) {
         logger.error(`one of metadataCids is null: dir: ${metadataCidDirectDefault} del: ${metadataCidDelegatedDefault}. exiting.`)
         return;
@@ -774,6 +766,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         let thumbCid = await pinSingleFileFromDir("/assets/shelf/referenda",
             resource.thumb,
             resource.name + "_thumb")
+        config.default.resources[i].mainCid = "ipfs://ipfs/" + mainCid
+        config.default.resources[i].thumbCid = "ipfs://ipfs/" + thumbCid
         resourceCidsDefault.push([mainCid, thumbCid])
     }
 
@@ -833,6 +827,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 }
             }
         );
+        config.default.resources[i].metadataCid = metadataResource
         resourceMetadataCidsDefault.push(metadataResource)
     }
 
@@ -1093,6 +1088,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 }
             }
         );
+        option.metadataCidDirect = metadataCidDirect
 
         const metadataCidDelegated = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
@@ -1123,6 +1119,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 }
             }
         );
+        option.metadataCidDelegated = metadataCidDelegated
 
         if (!metadataCidDirect || !metadataCidDelegated) {
             logger.error(`one of metadataCids is null: dir: ${metadataCidDirect} del: ${metadataCidDelegated}. exiting.`)
@@ -1147,6 +1144,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             let thumbCid = await pinSingleFileFromDir("/assets/shelf/referenda",
                 resource.thumb,
                 resource.name + "_thumb")
+            option.resources[i].mainCid = "ipfs://ipfs/" + mainCid
+            option.resources[i].thumbCid = "ipfs://ipfs/" + thumbCid
             optionResourceCids.push([mainCid, thumbCid])
         }
         resourceCids.push(optionResourceCids)
@@ -1209,10 +1208,17 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     }
                 }
             );
+            option.resources[i].metadataCid = metadataResource
             optionResourceMetadataCids.push(metadataResource)
         }
         resourceMetadataCids.push(optionResourceMetadataCids)
     }
+
+    fs.writeFile(`assets/shelf/sendoutConfig/${referendumIndex}.json`, JSON.stringify(config), (err) => {
+
+        // In case of a error throw err.
+        if (err) throw err;
+    })
 
     logger.info("resourceMetadataCids", resourceMetadataCids);
 
