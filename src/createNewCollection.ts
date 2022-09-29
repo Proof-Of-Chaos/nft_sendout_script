@@ -51,6 +51,7 @@ export const createNewCollection = async (newCollectionId, settings) => {
         );
         logger.info("NEW COLLECTION CREATION REMARK: ", NewCollection.create());
         logger.info("Collection created at block: ", block);
+        return collectionMetadataCid
 
     } catch (error: any) {
         logger.error(error);
