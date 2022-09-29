@@ -9,6 +9,7 @@ assets/mosaic/*
 assets/referenda
 assets/referendaSettings
 assets/shelf/luck/*
+assets/shelf/sendoutConfig/*
 assets/shelf/votes/*
 assets/shelf/difference/*
 # assets/shelf/referenda/*
