@@ -1,0 +1,179 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "Roll the dice",
+    "default": {
+        "transferable": 1,
+        "symbol": "WBC",
+        "text": "'Wood Block Castle'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+        "artist": "@kseniashikh",
+        "creativeDirector": "MIES",
+        "rarity": "common",
+        "itemName": "Wood Block Castle",
+        "royalty": [
+            95,
+            95
+        ],
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "228/option3/resource1/main.png",
+                "thumb": "228/option3/resource1/thumb.png",
+                "text": "'Wood Block Castle'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+                "artist": "@kseniashikh",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Wood Block Castle",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "228/option3/resource2/main.png",
+                "thumb": "228/option3/resource2/thumb.png",
+                "text": "'Wood Block Castle: Equippable on Shelf'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+                "artist": "@kseniashikh",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Wood Block Castle",
+                "slot": "base-11922668-SBP.REFERENDUM_228"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "KFW",
+            "text": "'K'nex Ferris Wheel'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "K'nex Ferris Wheel",
+            "royalty": [
+                25,
+                35
+            ],
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "228/option1/resource1/main.png",
+                    "thumb": "228/option1/resource1/thumb.png",
+                    "text": "'K'nex Ferris Wheel'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "K'nex Ferris Wheel",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "228/option1/resource2/main.png",
+                    "thumb": "228/option1/resource2/thumb.png",
+                    "text": "'K'nex Ferris Wheel: Equippable on Shelf'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "K'nex Ferris Wheel",
+                    "slot": "base-11922668-SBP.REFERENDUM_228"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "LR",
+            "text": "'Lego Rocket'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Lego Rocket",
+            "royalty": [
+                20,
+                30
+            ],
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "228/option2/resource1/main.png",
+                    "thumb": "228/option2/resource1/thumb.png",
+                    "text": "'Lego Rocket'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Lego Rocket",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "228/option2/resource2/main.png",
+                    "thumb": "228/option2/resource2/thumb.png",
+                    "text": "'Lego Rocket: Equippable on Shelf'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Lego Rocket",
+                    "slot": "base-11922668-SBP.REFERENDUM_228"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "WBC",
+            "text": "'Wood Block Castle'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Wood Block Castle",
+            "royalty": [
+                15,
+                25
+            ],
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "228/option3/resource1/main.png",
+                    "thumb": "228/option3/resource1/thumb.png",
+                    "text": "'Wood Block Castle'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Wood Block Castle",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "228/option3/resource2/main.png",
+                    "thumb": "228/option3/resource2/thumb.png",
+                    "text": "'Wood Block Castle: Equippable on Shelf'\n\nIn Referendum 228 the community voted on whether to upgrade the Kusama runtime to version 0.9.28.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Wood Block Castle",
+                    "slot": "base-11922668-SBP.REFERENDUM_228"
+                }
+            ]
+        }
+    ]
+}
