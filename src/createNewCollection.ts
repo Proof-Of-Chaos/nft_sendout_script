@@ -4,7 +4,7 @@ import { NFT, Collection } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../tools/pinataUtils.js";
-import { getApi, sendAndFinalize } from "../tools/substrateUtils.js";
+import { getApi, getApiTest, sendAndFinalize } from "../tools/substrateUtils.js";
 import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
 
 export const createNewCollection = async (newCollectionId, settings) => {
@@ -43,7 +43,7 @@ export const createNewCollection = async (newCollectionId, settings) => {
             collectionMetadataCid
         );
 
-        const api = await getApi()
+        const api = params.settings.isTest ? await getApiTest() : await getApi() ;
 
         const { block } = await sendAndFinalize(
             api.tx.system.remark(NewCollection.create()),
