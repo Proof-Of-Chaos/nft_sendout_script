@@ -801,7 +801,15 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             type: "string",
             value: resource.itemName,
         }
-        const metadataResource = await pinSingleMetadataWithoutFile(
+        const typeOfVoteDirectAttribute: IAttribute = {
+            type: "string",
+            value: "direct",
+        }
+        const typeOfVoteDelegatedAttribute: IAttribute = {
+            type: "string",
+            value: "delegated",
+        }
+        const metadataResourceDirect = await pinSingleMetadataWithoutFile(
             `Referendum ${referendumIndex}`,
             {
                 description: resource.text,
@@ -823,12 +831,45 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     },
                     "name": {
                         ...nameAttribute
+                    },
+                    "type_of_vote": {
+                        ...typeOfVoteDirectAttribute
                     }
                 }
             }
         );
-        config.default.resources[i].metadataCid = metadataResource
-        resourceMetadataCidsDefault.push(metadataResource)
+        config.default.resources[i].metadataCidDirect = metadataResourceDirect
+        const metadataResourceDelegated = await pinSingleMetadataWithoutFile(
+            `Referendum ${referendumIndex}`,
+            {
+                description: resource.text,
+                properties: {
+                    "rarity": {
+                        ...rarityAttribute
+                    },
+                    "total_supply": {
+                        ...supplyAttribute
+                    },
+                    "artist": {
+                        ...artistAttribute
+                    },
+                    "creative_director": {
+                        ...creativeDirectorAttribute
+                    },
+                    "referendum_index": {
+                        ...refIndexAttribute
+                    },
+                    "name": {
+                        ...nameAttribute
+                    },
+                    "type_of_vote": {
+                        ...typeOfVoteDelegatedAttribute
+                    }
+                }
+            }
+        );
+        config.default.resources[i].metadataCidDelegated = metadataResourceDelegated
+        resourceMetadataCidsDefault.push([metadataResourceDirect, metadataResourceDelegated])
     }
 
     logger.info("resourceMetadataCidsDefault", resourceMetadataCidsDefault);
@@ -927,12 +968,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
                                     slot: `${resource.slot}`,
-                                    metadata: resourceMetadataCidsDefault[i]
+                                    metadata: vote.isDelegating ? resourceMetadataCidsDefault[i][1] : resourceMetadataCidsDefault[i][0] 
                                 }) : nft.resadd({
                                     src: `ipfs://ipfs/${mainCid}`,
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
-                                    metadata: resourceMetadataCidsDefault[i]
+                                    metadata: vote.isDelegating ? resourceMetadataCidsDefault[i][1] : resourceMetadataCidsDefault[i][0] 
                                 })
                         );
                     }
@@ -944,12 +985,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
                                     slot: `${resource.slot}`,
-                                    metadata: resourceMetadataCidsDefault[i]
+                                    metadata: vote.isDelegating ? resourceMetadataCidsDefault[i][1] : resourceMetadataCidsDefault[i][0]
                                 }) : nft.resadd({
                                     src: `ipfs://ipfs/${mainCid}`,
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
-                                    metadata: resourceMetadataCidsDefault[i]
+                                    metadata: vote.isDelegating ? resourceMetadataCidsDefault[i][1] : resourceMetadataCidsDefault[i][0]
                                 })
                         );
                     }
@@ -1053,7 +1094,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             type: "string",
             value: "direct",
         }
-
         const typeOfVoteDelegatedAttribute: IAttribute = {
             type: "string",
             value: "delegated",
@@ -1182,7 +1222,15 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 type: "string",
                 value: resource.itemName,
             }
-            const metadataResource = await pinSingleMetadataWithoutFile(
+            const typeOfVoteDirectAttribute: IAttribute = {
+                type: "string",
+                value: "direct",
+            }
+            const typeOfVoteDelegatedAttribute: IAttribute = {
+                type: "string",
+                value: "delegated",
+            }
+            const metadataResourceDirect = await pinSingleMetadataWithoutFile(
                 `Referendum ${referendumIndex}`,
                 {
                     description: resource.text,
@@ -1204,17 +1252,52 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         },
                         "name": {
                             ...nameAttribute
+                        },
+                        "type_of_vote": {
+                            ...typeOfVoteDirectAttribute
                         }
                     }
                 }
             );
-            option.resources[i].metadataCid = metadataResource
-            optionResourceMetadataCids.push(metadataResource)
+            option.resources[i].metadataCidDirect = metadataResourceDirect
+
+            const metadataResourceDelegated = await pinSingleMetadataWithoutFile(
+                `Referendum ${referendumIndex}`,
+                {
+                    description: resource.text,
+                    properties: {
+                        "rarity": {
+                            ...rarityAttribute
+                        },
+                        "total_supply": {
+                            ...supplyAttribute
+                        },
+                        "artist": {
+                            ...artistAttribute
+                        },
+                        "creative_director": {
+                            ...creativeDirectorAttribute
+                        },
+                        "referendum_index": {
+                            ...refIndexAttribute
+                        },
+                        "name": {
+                            ...nameAttribute
+                        },
+                        "type_of_vote": {
+                            ...typeOfVoteDelegatedAttribute
+                        }
+                    }
+                }
+            );
+            option.resources[i].metadataCidDelegated = metadataResourceDelegated
+
+            optionResourceMetadataCids.push([metadataResourceDirect, metadataResourceDelegated])
         }
         resourceMetadataCids.push(optionResourceMetadataCids)
     }
 
-    if (params.settings.isTest){
+    if (params.settings.isTest) {
         fs.writeFile(`assets/shelf/sendoutConfig/${referendumIndex}.json`, JSON.stringify(config), (err) => {
             // In case of a error throw err.
             if (err) throw err;
@@ -1328,12 +1411,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
                                     slot: `${resource.slot}`,
-                                    metadata: usedResourceMetadataCids[index][i]
+                                    metadata: vote.isDelegating ? usedResourceMetadataCids[index][i][1] : usedResourceMetadataCids[index][i][0]
                                 }) : nft.resadd({
                                     src: `ipfs://ipfs/${mainCid}`,
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
-                                    metadata: usedResourceMetadataCids[index][i]
+                                    metadata: vote.isDelegating ? usedResourceMetadataCids[index][i][1] : usedResourceMetadataCids[index][i][0]
                                 })
                         );
                     }
@@ -1345,12 +1428,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
                                     slot: `${resource.slot}`,
-                                    metadata: usedResourceMetadataCids[index][i]
+                                    metadata: vote.isDelegating ? usedResourceMetadataCids[index][i][1] : usedResourceMetadataCids[index][i][0]
                                 }) : nft.resadd({
                                     src: `ipfs://ipfs/${mainCid}`,
                                     thumb: `ipfs://ipfs/${thumbCid}`,
                                     id: nanoid(16),
-                                    metadata: usedResourceMetadataCids[index][i]
+                                    metadata: vote.isDelegating ? usedResourceMetadataCids[index][i][1] : usedResourceMetadataCids[index][i][0]
                                 })
                         );
                     }
@@ -1448,11 +1531,11 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     }
     let distributionAndConfigRemarks = []
     logger.info("Writing Distribution and Config to Chain")
-    //write luckArray to chain
+    //write distribution to chain
     distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::DISTRIBUTION::' + JSON.stringify(distribution))
     //write config to chain
     distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::CONFIG::' + JSON.stringify(config))
-    logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
+    // logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
     const { block: writtenBlock, success: writtenSuccess, hash: writtenHash, fee: writtenFee } = await sendBatchTransactions(distributionAndConfigRemarks);
     logger.info(`Distribution and Config written to chain at block ${writtenBlock}: ${writtenSuccess} for a total fee of ${writtenFee}`)
 
