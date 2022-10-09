@@ -355,7 +355,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     for (const vote of filteredVotes) {
         let chance;
         let selectedIndex;
+        let zeroOrOne;
         let counter = 0;
+        let chances = [];
         for (const option of config.options) {
             if (counter < config.options.length - 1) {
                 if (await getDecimal(vote.convictionBalance.toString()) < median) {
@@ -386,22 +388,27 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         config.minAmount,
                         vote.dragonEquipped)
                 }
-                selectedIndex = getRandom(rng, [chance / 100, (100 - chance) / 100]);
-                if (selectedIndex === 0) {
+                zeroOrOne = getRandom(rng, [chance / 100, (100 - chance) / 100]);
+                if (zeroOrOne === 0 && selectedIndex == null) {
                     selectedIndex = counter;
-                    break;
                 }
             }
-            selectedIndex = counter;
-            if (selectedIndex === config.options.length - 1) {
-                chance = 100 - chance
+            
+            if (counter === config.options.length - 1) {
+                chances.push(100 - chance)
+                if (selectedIndex == null){
+                    selectedIndex = counter
+                }
+            }
+            else {
+                chances.push(chance)
             }
             counter++;
         }
         distribution.push({
             wallet: vote.accountId.toString(),
             amountConsidered: vote.convictionBalance.toString(),
-            chance,
+            chances,
             selectedIndex,
             dragonEquipped: vote.dragonEquipped,
         })
@@ -411,16 +418,18 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         acc[val] = acc[val] === undefined ? 1 : acc[val] += 1;
         return acc;
     }, {});
-    var commonIndex = Object.keys(uniqs).sort().pop();
+    let commonIndex = Object.keys(uniqs).sort().pop();
     console.log("commonIndex", commonIndex)
     uniqs[commonIndex] = uniqs[commonIndex] + votesNotMeetingRequirements.length
 
     logger.info(uniqs)
     for (const vote of votesNotMeetingRequirements) {
+        const chances = new Array(parseInt(commonIndex)).fill(0)
+        chances.push(100)
         distribution.push({
             wallet: vote.accountId.toString(),
             amountConsidered: vote.convictionBalance.toString(),
-            chance: 100,
+            chances,
             selectedIndex: parseInt(commonIndex),
             dragonEquipped: vote.dragonEquipped,
         })
