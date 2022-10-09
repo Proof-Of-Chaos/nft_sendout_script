@@ -1,0 +1,261 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": "-1",
+    "blockCutOff": "-1",
+    "directOnly": false,
+    "createNewCollection": true,
+    "newCollectionSymbol": "itemxarchiverse",
+    "newCollectionPath": "/assets/shelf/collections",
+    "newCollectionFile": "archiverse.png",
+    "newCollectionName": "Items x Archiverse",
+    "newCollectionDescription": "A special collection for the Referendum 229 collaboration items with [Archiverse](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS_ITEMS).\n\nThe main collection can be found [here](https://singular.app/collections/3208723ec6f65df810-ITEM).",
+    "makeEquippable": [
+        "REFERENDUM_229"
+    ],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "88",
+    "default": {
+        "transferable": 1,
+        "symbol": "ADT",
+        "text": "'Arc de Triomphe'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+        "artist": "@kseniashikh",
+        "creativeDirector": "MIES",
+        "rarity": "common",
+        "itemName": "Arc de Triomphe",
+        "minRoyalty": 95,
+        "maxRoyalty": 95,
+        "resources": [
+            {
+                "name": "defaultresource1",
+                "main": "229/option3/resource1/main.png",
+                "thumb": "229/option3/resource1/thumb.png",
+                "text": "'Arc de Triomphe'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                "artist": "@kseniashikh",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Arc de Triomphe",
+                "slot": null
+            },
+            {
+                "name": "defaultresource2",
+                "main": "229/option3/resource2/main.png",
+                "thumb": "229/option3/resource2/thumb.png",
+                "text": "'Arc de Triomphe: Equippable on Shelf'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                "artist": "@kseniashikh",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Arc de Triomphe",
+                "slot": "base-11922668-SBP.REFERENDUM_229"
+            },
+            {
+                "name": "defaultresource3",
+                "main": "229/option3/resource3/main.png",
+                "thumb": "229/option3/resource3/thumb.png",
+                "text": "'Banner Badge Common: Equippable on Banner (L1)'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                "artist": "Archiverse",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Banner Badge Common",
+                "slot": "base-12543113-ARCHIVERSE_BASE_BANNER.L1"
+            },
+            {
+                "name": "defaultresource4",
+                "main": "229/option3/resource4/main.png",
+                "thumb": "229/option3/resource4/thumb.png",
+                "text": "'Banner Badge Common: Equippable on Banner (R5)'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                "artist": "Archiverse",
+                "creativeDirector": "MIES",
+                "rarity": "common",
+                "itemName": "Banner Badge Common",
+                "slot": "base-12543113-ARCHIVERSE_BASE_BANNER.R5"
+            }
+        ]
+    },
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "PR",
+            "text": "'Pyramid'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Pyramid",
+            "minRoyalty": 25,
+            "maxRoyalty": 35,
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "229/option1/resource1/main.png",
+                    "thumb": "229/option1/resource1/thumb.png",
+                    "text": "'Pyramid'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Pyramid",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "229/option1/resource2/main.png",
+                    "thumb": "229/option1/resource2/thumb.png",
+                    "text": "'Pyramid: Equippable on Shelf'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Pyramid",
+                    "slot": "base-11922668-SBP.REFERENDUM_229"
+                },
+                {
+                    "name": "option1resource3",
+                    "main": "229/option1/resource3/main.png",
+                    "thumb": "229/option1/resource3/thumb.png",
+                    "text": "'Banner Badge Epic: Equippable on Banner (L5)'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "Archiverse",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Banner Badge Epic",
+                    "slot": "base-12543113-ARCHIVERSE_BASE_BANNER.L5"
+                },
+                {
+                    "name": "option1resource4",
+                    "main": "229/option1/resource4/main.png",
+                    "thumb": "229/option1/resource4/thumb.png",
+                    "text": "'Banner Badge Epic: Equippable on Banner (R1)'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "Archiverse",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Banner Badge Epic",
+                    "slot": "base-12543113-ARCHIVERSE_BASE_BANNER.R1"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "CL",
+            "text": "'Colosseum'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Colosseum",
+            "minRoyalty": 20,
+            "maxRoyalty": 30,
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "229/option2/resource1/main.png",
+                    "thumb": "229/option2/resource1/thumb.png",
+                    "text": "'Colosseum'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Colosseum",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "229/option2/resource2/main.png",
+                    "thumb": "229/option2/resource2/thumb.png",
+                    "text": "'Colosseum: Equippable on Shelf'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Colosseum",
+                    "slot": "base-11922668-SBP.REFERENDUM_229"
+                },
+                {
+                    "name": "option2resource3",
+                    "main": "229/option2/resource3/main.png",
+                    "thumb": "229/option2/resource3/thumb.png",
+                    "text": "'Banner Badge Rare: Equippable on Banner (L3)'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "Archiverse",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Banner Badge Rare",
+                    "slot": "base-12543113-ARCHIVERSE_BASE_BANNER.L3"
+                },
+                {
+                    "name": "option2resource4",
+                    "main": "229/option2/resource4/main.png",
+                    "thumb": "229/option2/resource4/thumb.png",
+                    "text": "'Banner Badge Rare: Equippable on Banner (R3)'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "Archiverse",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Banner Badge Rare",
+                    "slot": "base-12543113-ARCHIVERSE_BASE_BANNER.R3"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "ADT",
+            "text": "'Arc de Triomphe'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Arc de Triomphe",
+            "minRoyalty": 15,
+            "maxRoyalty": 25,
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "229/option3/resource1/main.png",
+                    "thumb": "229/option3/resource1/thumb.png",
+                    "text": "'Arc de Triomphe'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Arc de Triomphe",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "229/option3/resource2/main.png",
+                    "thumb": "229/option3/resource2/thumb.png",
+                    "text": "'Arc de Triomphe: Equippable on Shelf'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Arc de Triomphe",
+                    "slot": "base-11922668-SBP.REFERENDUM_229"
+                },
+                {
+                    "name": "defaultresource3",
+                    "main": "229/option3/resource3/main.png",
+                    "thumb": "229/option3/resource3/thumb.png",
+                    "text": "'Banner Badge Common: Equippable on Banner (L1)'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "Archiverse",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Banner Badge Common",
+                    "slot": "base-12543113-ARCHIVERSE_BASE_BANNER.L1"
+                },
+                {
+                    "name": "option3resource4",
+                    "main": "229/option3/resource4/main.png",
+                    "thumb": "229/option3/resource4/thumb.png",
+                    "text": "'Banner Badge Common: Equippable on Banner (R5)'\n\nIn Referendum 229 the community voted on a proposal which seems to have been created by mistake.\n\nThis NFT can be equipped onto both the [Shelf](https://singular.app/collections/3208723ec6f65df810-SHELF) and [Archiverse Banners](https://singular.app/collectibles/kusama/36bad3dc147db9792b-ARCHIVERSE_BANNERS).",
+                    "artist": "Archiverse",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Banner Badge Common",
+                    "slot": "base-12543113-ARCHIVERSE_BASE_BANNER.R5"
+                }
+            ]
+        }
+    ]
+}
