@@ -1,5 +1,5 @@
 import "@polkadot/api-augment";
-import { params, getLocalStorage, getDb, getRemarkStorage } from "./config.js";
+import { params, getLocalStorage, getRemarkStorage } from "./config.js";
 import { getSettings } from "./tools/settings.js";
 import { CountAdapter } from "./tools/countAdapter.js";
 import dotenv from "dotenv";
@@ -15,9 +15,6 @@ import { createShelfCollection } from "./tools/startScripts/createShelfCollectio
 import { createBase } from "./tools/startScripts/createBase.js";
 import { createItemCollection } from "./tools/startScripts/createItemCollection.js";
 import { logger } from "./tools/logger.js";
-import { sendNFTs } from "./src/sendNFTs.js";
-import { BN } from '@polkadot/util';
-import { upsertReferendaInDB } from "./src/saveVotesToDB.js";
 import { sleep } from "./tools/utils.js";
 
 
@@ -42,8 +39,6 @@ class Incentivizer {
   }
 
   async run() {
-    await getDb();
-    // params.api = this.api;
     params.localStorage = this.localStorage;
     params.remarkStorage = this.remarkStorage;
     params.account = this.account
@@ -66,12 +61,6 @@ class Incentivizer {
       params.blockCountAdapter = new CountAdapter(params.localStorage, "headerBlock");
       params.blockListener = new BlockListener(this.api,
         params.blockCountAdapter);
-      if (this.settings.saveDB) {
-        upsertReferendaInDB();
-        const interval = setInterval(async () => {
-          upsertReferendaInDB();
-        }, 300000);
-      }
     }
     //setup remark listener for minting listener
     params.remarkStorageAdapter = new RemarkStorageAdapter(params.remarkStorage);

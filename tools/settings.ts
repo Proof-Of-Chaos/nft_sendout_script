@@ -15,7 +15,6 @@ export const getSettings = () => {
     foregroundCollectionSymbol: process.env.FOREGROUND_COLLECTION_SYMBOL.toString(),
     baseSymbol: process.env.BASE_SYMBOL.toString(),
     shelfNFTSymbol: process.env.SHELF_NFT_SYMBOL.toString(),
-    saveDB: process.env.SAVE_DB === "true",
     externalUrl: process.env.EXTERNAL_URL.toString(),
     chunkSize: parseInt(process.env.CHUNK_SIZE),
     chunkSizeDefault: parseInt(process.env.CHUNK_SIZE_DEFAULT),

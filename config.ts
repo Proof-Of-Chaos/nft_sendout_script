@@ -4,7 +4,6 @@ import { CountAdapter } from './tools/countAdapter.js';
 import { BlockListener } from './src/blockListener.js';
 import { PinataClient } from '@pinata/sdk';
 import { KeyringPair } from '@polkadot/keyring/types';
-import { initDb } from './src/mongo/index.js';
 import { RemarkStorageAdapter } from './tools/remarkStorageAdapter.js';
 
 type Params = {
@@ -31,10 +30,6 @@ export const params: Params = {
   account: null,
   remarkBlockCountAdapter: null,
   remarkStorageAdapter: null,
-};
-
-export const getDb = async (): Promise<void> => {
-  await initDb();
 };
 
 export const getLocalStorage = (): Low => {
