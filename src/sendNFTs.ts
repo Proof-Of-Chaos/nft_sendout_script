@@ -94,22 +94,24 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, atExpi
     return votes;
 }
 
-const filterVotes = async (votes: VoteConvictionDragon[], totalIssuance: string, settings): Promise<VoteConvictionDragon[]> => {
-    const minVote = BN.max(new BN(settings.min), new BN("0"));
-    const maxVote = BN.min(new BN(settings.max), new BN(totalIssuance));
+const filterVotes = async (votes: VoteConvictionDragon[], totalIssuance: string, config): Promise<VoteConvictionDragon[]> => {
+    const minVote = BN.max(new BN(config.min), new BN("0"));
+    const maxVote = BN.min(new BN(config.max), new BN(totalIssuance));
     logger.info("min:", minVote.toString());
     logger.info("minHuman:", await amountToHumanString(minVote.toString()))
+    config.min = await getDecimal(minVote.toString())
     logger.info("max:", maxVote.toString());
     logger.info("maxHuman:", await amountToHumanString(maxVote.toString()))
+    config.max = await getDecimal(maxVote.toString())
     let filtered = votes.filter((vote) => {
         return (new BN(vote.convictionBalance).gte(minVote) &&
             new BN(vote.convictionBalance).lte(maxVote))
     })
-    if (settings.directOnly) {
+    if (config.directOnly) {
         filtered = votes.filter((vote) => !vote.isDelegating)
     }
-    if (settings.first !== "-1") {
-        return filtered.slice(0, parseInt(settings.first))
+    if (config.first !== "-1") {
+        return filtered.slice(0, parseInt(config.first))
     }
     return filtered
 }
@@ -345,11 +347,11 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     })
     const voteAmounts = await Promise.all(promises);
     let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, config.minAmount)
-    config.minValue = minValue
+    minValue = Math.max(minValue, await getDecimal(minVote.convictionBalance.toString()))
+    config.minValue = Math.max(minValue, config.minAmount)
     config.maxValue = maxValue
     config.median = median
     await sleep(10000);
-    minValue = minValue < await getDecimal(minVote.convictionBalance.toString()) ? await getDecimal(minVote.convictionBalance.toString()) : minValue
 
     let selectedIndexArray = [];
     for (const vote of filteredVotes) {
@@ -371,7 +373,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         config.toddlerBonus,
                         config.adolescentBonus,
                         config.adultBonus,
-                        config.minAmount,
+                        config.minValue,
                         vote.dragonEquipped)
                 }
                 else {
@@ -385,7 +387,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                         config.toddlerBonus,
                         config.adolescentBonus,
                         config.adultBonus,
-                        config.minAmount,
+                        config.minValue,
                         vote.dragonEquipped)
                 }
                 zeroOrOne = getRandom(rng, [chance / 100, (100 - chance) / 100]);
@@ -1544,7 +1546,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::DISTRIBUTION::' + JSON.stringify(distribution))
     //write config to chain
     distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::CONFIG::' + JSON.stringify(config))
-    // logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
+    logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
     const { block: writtenBlock, success: writtenSuccess, hash: writtenHash, fee: writtenFee } = await sendBatchTransactions(distributionAndConfigRemarks);
     logger.info(`Distribution and Config written to chain at block ${writtenBlock}: ${writtenSuccess} for a total fee of ${writtenFee}`)
 
