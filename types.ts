@@ -21,3 +21,7 @@ export interface VoteConviction extends DeriveReferendumVote {
 export interface VoteConvictionDragon extends VoteConviction {
     dragonEquipped: string
 }
+
+export interface VoteConvictionRequirements extends VoteConvictionDragon {
+    meetsRequirements: boolean
+}
