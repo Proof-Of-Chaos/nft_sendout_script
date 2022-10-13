@@ -1,0 +1,137 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": null,
+    "blockCutOff": null,
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": 20,
+    "minAmount": 0.2,
+    "seed": "That’s a fairy good idea!",
+    "defaultRoyalty": 95,
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "SF",
+            "text": "'Shelf Fairies'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Shelf Fairies",
+            "minRoyalty": 25,
+            "maxRoyalty": 35,
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "230/option1/resource1/main.png",
+                    "thumb": "230/option1/resource1/thumb.png",
+                    "text": "'Shelf Fairies'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Shelf Fairies",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "230/option1/resource2/main.png",
+                    "thumb": "230/option1/resource2/thumb.png",
+                    "text": "'Shelf Fairies: Equippable on Shelf'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Shelf Fairies",
+                    "slot": "base-11922668-SBP.REFERENDUM_230"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "SG",
+            "text": "'Shelf Gnomes'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Shelf Gnomes",
+            "minRoyalty": 20,
+            "maxRoyalty": 30,
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "230/option2/resource1/main.png",
+                    "thumb": "230/option2/resource1/thumb.png",
+                    "text": "'Shelf Gnomes'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Shelf Gnomes",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "230/option2/resource2/main.png",
+                    "thumb": "230/option2/resource2/thumb.png",
+                    "text": "'Shelf Gnomes: Equippable on Shelf'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Shelf Gnomes",
+                    "slot": "base-11922668-SBP.REFERENDUM_230"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 40,
+            "maxProbability": 67,
+            "minProbability": 28,
+            "transferable": 1,
+            "symbol": "SS",
+            "text": "'Shelf Snails'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Shelf Snails",
+            "minRoyalty": 15,
+            "maxRoyalty": 25,
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "230/option3/resource1/main.png",
+                    "thumb": "230/option3/resource1/thumb.png",
+                    "text": "'Shelf Snails'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Shelf Snails",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "230/option3/resource2/main.png",
+                    "thumb": "230/option3/resource2/thumb.png",
+                    "text": "'Shelf Snails: Equippable on Shelf'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Shelf Snails",
+                    "slot": "base-11922668-SBP.REFERENDUM_230"
+                }
+            ]
+        }
+    ]
+}
