@@ -96,9 +96,9 @@
             ]
         },
         {
-            "sweetspotProbability": 40,
-            "maxProbability": 67,
-            "minProbability": 28,
+            "sweetspotProbability": null,
+            "maxProbability": null,
+            "minProbability": null,
             "transferable": 1,
             "symbol": "SS",
             "text": "'Shelf Snails'\n\nIn Referendum 230 the community voted on whether to test if governance can control two anonymous proxy accounts.",
