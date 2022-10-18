@@ -414,7 +414,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 chances,
                 selectedIndex,
                 dragonEquipped: vote.dragonEquipped,
-                meetsRequirements: vote.meetsRequirements
+                meetsRequirements: vote.meetsRequirements,
+                quizCorrect: null,
+                identity: null,
             })
             selectedIndexArray.push(selectedIndex)
         }
@@ -428,7 +430,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 chances,
                 selectedIndex: commonIndex,
                 dragonEquipped: vote.dragonEquipped,
-                meetsRequirements: vote.meetsRequirements
+                meetsRequirements: vote.meetsRequirements,
+                quizCorrect: null,
+                identity: null,
             })
             selectedIndexArray.push(commonIndex)
         }
