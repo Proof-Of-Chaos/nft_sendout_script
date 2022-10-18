@@ -1,0 +1,139 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": null,
+    "blockCutOff": null,
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": [],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": null,
+    "quizBonus": null,
+    "identityBonus": null,
+    "minAmount": 0.2,
+    "seed": "We are the champions",
+    "defaultRoyalty": 95,
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "FHT",
+            "text": "'Futuristic Hologram Trophy'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Futuristic Hologram Trophy",
+            "minRoyalty": 25,
+            "maxRoyalty": 35,
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "231/option1/resource1/main.png",
+                    "thumb": "231/option1/resource1/thumb.png",
+                    "text": "'Futuristic Hologram Trophy'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Futuristic Hologram Trophy",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "231/option1/resource2/main.png",
+                    "thumb": "231/option1/resource2/thumb.png",
+                    "text": "'Futuristic Hologram Trophy: Equippable on Shelf'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Futuristic Hologram Trophy",
+                    "slot": "base-11922668-SBP.REFERENDUM_231"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "THT",
+            "text": "'Teal Hologram Trophy'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Teal Hologram Trophy",
+            "minRoyalty": 20,
+            "maxRoyalty": 30,
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "231/option2/resource1/main.png",
+                    "thumb": "231/option2/resource1/thumb.png",
+                    "text": "'Teal Hologram Trophy'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Teal Hologram Trophy",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "231/option2/resource2/main.png",
+                    "thumb": "231/option2/resource2/thumb.png",
+                    "text": "'Teal Hologram Trophy: Equippable on Shelf'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Teal Hologram Trophy",
+                    "slot": "base-11922668-SBP.REFERENDUM_231"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": null,
+            "maxProbability": null,
+            "minProbability": null,
+            "transferable": 1,
+            "symbol": "BHT",
+            "text": "'Blue Hologram Trophy'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Blue Hologram Trophy",
+            "minRoyalty": 15,
+            "maxRoyalty": 25,
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "231/option3/resource1/main.png",
+                    "thumb": "231/option3/resource1/thumb.png",
+                    "text": "'Blue Hologram Trophy'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Blue Hologram Trophy",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "231/option3/resource2/main.png",
+                    "thumb": "231/option3/resource2/thumb.png",
+                    "text": "'Blue Hologram Trophy: Equippable on Shelf'\n\nIn Referendum 231 the community voted on whether to upgrade the Kusama runtime to version 0.9.29. A bug was found in this version while the referendum was up for vote.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Blue Hologram Trophy",
+                    "slot": "base-11922668-SBP.REFERENDUM_231"
+                }
+            ]
+        }
+    ]
+}
