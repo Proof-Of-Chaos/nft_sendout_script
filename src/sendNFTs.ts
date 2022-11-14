@@ -2,9 +2,9 @@ import seedrandom from "seedrandom";
 import { params } from "../config.js";
 import { BN } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
-import { pinSingleFileFromDir, pinSingleMetadataWithoutFile, pinSingleWithThumbMetadataFromDir } from "../tools/pinataUtils.js";
+import { pinSingleFileFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
-import { Base, Collection, NFT } from "rmrk-tools";
+import { Collection, NFT } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { INftProps, VoteConviction, VoteConvictionDragon, VoteConvictionRequirements } from "../types.js";
 import { getApi, getApiTest, getDecimal, sendBatchTransactions } from "../tools/substrateUtils.js";
@@ -16,8 +16,8 @@ import { encodeAddress } from "@polkadot/util-crypto";
 import { nanoid } from "nanoid";
 import { IAttribute, IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
 import { createNewCollection } from "./createNewCollection.js";
-import { BaseConsolidated } from "rmrk-tools/dist/tools/consolidator/consolidator";
 import { objectSpread } from '@polkadot/util';
+import { locks } from "./locks.js";
 
 const extractVotes = (mapped: [AccountId, PalletDemocracyVoteVoting][], referendumId: BN) => {
     return mapped
@@ -45,9 +45,8 @@ const extractVotes = (mapped: [AccountId, PalletDemocracyVoteVoting][], referend
         );
 }
 
-const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, atExpiry: Boolean, passed: Boolean) => {
+const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, expiryBlock: BN) => {
     const allVoting = await api.query.democracy.votingOf.entries()
-    //logger.info("allVoting", allVoting)
     const mapped = allVoting.map(([{ args: [accountId] }, voting]): [AccountId, PalletDemocracyVoteVoting] => [accountId, voting]);
     let votes: VoteConviction[] = extractVotes(mapped, referendumId);
     const delegations = mapped
@@ -71,26 +70,32 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, atExpi
         }
     });
     const LOCKS = [1, 10, 20, 30, 40, 50, 60];
-    if (atExpiry) {
-        votes = votes.map((vote) => {
-            const convictionBalance = vote.balance.muln(LOCKS[vote.vote.conviction.toNumber()]).div(new BN(10)).toString();
-            return { ...vote, convictionBalance }
-        })
-    }
-    else {
-        votes = votes.map((vote) => {
-            let convictionBalance;
-            //only consider conviction when tokens are actually locked up => when vote is in line with ref outcome
-            if ((vote.vote.isAye && passed) || (!vote.vote.isAye && !passed)) {
-                convictionBalance = vote.balance.muln(LOCKS[vote.vote.conviction.toNumber()]).div(new BN(10)).toString();
+    const LOCKPERIODS = [0, 1, 2, 4, 8, 16, 32];
+    const sevenDaysBlocks = api.consts.democracy.voteLockingPeriod || api.consts.democracy.enactmentPeriod
+    const promises = votes.map(async (vote) => {
+        let maxLockedWithConviction = new BN(0);
+        const userVotes = await locks(api, vote.accountId)
+        let userLockedBalancesWithConviction: BN[] = []
+        userVotes.map((userVote) => {
+            if (userVote.unlockAt.sub(expiryBlock).gte(new BN(0)) || userVote.unlockAt.eqn(0)) {
+                const lockPeriods = userVote.unlockAt.eqn(0) ? 0 : Math.floor((userVote.unlockAt.sub(expiryBlock)).muln(10).div(sevenDaysBlocks).toNumber() / 10)
+                let matchingPeriod = 0
+                for (let i = 0; i < LOCKPERIODS.length; i++) {
+                    matchingPeriod = lockPeriods >= LOCKPERIODS[i] ? i : matchingPeriod
+                }
+                const lockedBalanceWithConviction = (userVote.balance.muln(LOCKS[matchingPeriod])).div(new BN(10))
+                userLockedBalancesWithConviction.push(lockedBalanceWithConviction)
             }
-            else {
-                //immediately unlocked => conviction multiplier = 0.1
-                convictionBalance = vote.balance.muln(LOCKS[0]).div(new BN(10)).toString();
-            }
-            return { ...vote, convictionBalance }
+
         })
-    }
+
+        //take max lockedBalanceWithConviction
+        for (let i = 0; i < userLockedBalancesWithConviction.length; ++i) {
+            maxLockedWithConviction = BN.max(userLockedBalancesWithConviction[i], maxLockedWithConviction)
+        }
+        return { ...vote, lockedWithConviction: maxLockedWithConviction }
+    })
+    votes = await Promise.all(promises);
     return votes;
 }
 
@@ -105,8 +110,8 @@ const checkVotesMeetingRequirements = async (votes: VoteConvictionDragon[], tota
     config.max = await getDecimal(maxVote.toString())
     let filtered = [];
     for (let i = 0; i < votes.length; i++) {
-        if (new BN(votes[i].convictionBalance).lt(minVote)
-            || new BN(votes[i].convictionBalance).gt(maxVote)
+        if (votes[i].lockedWithConviction.lt(minVote)
+            || votes[i].lockedWithConviction.gt(maxVote)
             || (config.directOnly && votes[i].isDelegating)
             || (config.first !== null && i > config.first)
         ) {
@@ -119,7 +124,7 @@ const checkVotesMeetingRequirements = async (votes: VoteConvictionDragon[], tota
     return filtered
 }
 
-const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, passed, config?): Promise<[String, VoteConviction[]]> => {
+const getVotesAndIssuance = async (referendumIndex: BN, config?): Promise<[String, VoteConviction[]]> => {
     const api = await getApi();
     const info = await api.query.democracy.referendumInfoOf(referendumIndex);
 
@@ -133,33 +138,14 @@ const getVotesAndIssuance = async (referendumIndex: BN, atExpiry: boolean, passe
     }
 
     let cutOffBlock: BN;
-    if (!atExpiry) {
-        cutOffBlock = config.blockCutOff !== null ?
-            new BN(config.blockCutOff) : blockNumber
-        logger.info("Cut-off Block: ", cutOffBlock.toString())
-    }
-    else {
-        cutOffBlock = blockNumber
-    }
-    const blockHash = await api.rpc.chain.getBlockHash(cutOffBlock);
-    const blockApi = await api.at(blockHash);
-    const totalIssuance = (await blockApi.query.balances.totalIssuance()).toString()
-    return [totalIssuance, await votesCurr(blockApi, referendumIndex, atExpiry, passed)];
-}
 
-const getShelflessAccounts = async (votes: VoteConviction[], collectionId): Promise<AccountId[]> => {
-    let accounts: AccountId[] = [];
-    for (const vote of votes) {
-        let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(collectionId);
-        if (!allNFTs.find(({ owner, rootowner, symbol, burned }) => {
-            return rootowner === vote.accountId.toString() &&
-                symbol === params.settings.shelfNFTSymbol &&
-                burned === ""
-        })) {
-            accounts.push(vote.accountId)
-        }
-    }
-    return accounts;
+    cutOffBlock = config.blockCutOff !== null ?
+        new BN(config.blockCutOff) : blockNumber
+    logger.info("Cut-off Block: ", cutOffBlock.toString())
+    const blockHashEnd = await api.rpc.chain.getBlockHash(blockNumber);
+    const blockApiEnd = await api.at(blockHashEnd);
+    const totalIssuance = (await blockApiEnd.query.balances.totalIssuance()).toString()
+    return [totalIssuance, await votesCurr(blockApiEnd, referendumIndex, blockNumber)];
 }
 
 const getRandom = (rng, weights) => {
@@ -248,27 +234,13 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     //wait a bit since blocks after will be pretty full
     await sleep(10000);
     let api = await getApi();
-    //wait until remark block has caught up with block
-    let currentFinalized = (await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
     if (params.settings.isTest) {
         api = await getApiTest();
     }
-    while ((await params.remarkBlockCountAdapter.get()) < currentFinalized) {
-        logger.info(`waiting for remark (Block: ${await params.remarkBlockCountAdapter.get()}) to get to current block: ${currentFinalized}`);
-        await sleep(3000);
-        currentFinalized = (await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead())).block.header.number.toNumber()
-    }
     let votes: VoteConviction[] = [];
     let totalIssuance: String;
-    let totalVotes: VoteConviction[];
     let votesWithDragon: VoteConvictionDragon[];
-    let totalIssuanceRefExpiry: String;
     const chunkSize = params.settings.chunkSize;
-    const chunkSizeDefault = params.settings.chunkSizeDefault;
-    const chunkSizeShelf = params.settings.chunkSizeShelf;
-
-    [totalIssuanceRefExpiry, totalVotes] = await getVotesAndIssuance(referendumIndex, true, passed)
-    logger.info("Number of votes: ", totalVotes.length)
 
     let configFile = await getConfigFile(referendumIndex);
     if (configFile === "") {
@@ -294,7 +266,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     const toddlerWallets = toddlerDragons.map(({ wallet }) => wallet);
     const adolescentWallets = adolescentDragons.map(({ wallet }) => wallet);
     const adultWallets = adultDragons.map(({ wallet }) => wallet);
-    [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, false, passed, config);
+    [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, config);
+    logger.info("Number of votes: ", votes.length)
     votesWithDragon = votes.map((vote) => {
         let dragonEquipped
         if (adultWallets.includes(vote.accountId.toString())) {
@@ -315,13 +288,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         return { ...vote, dragonEquipped }
     })
 
-    const shelfRoyaltyProperty: IRoyaltyAttribute = {
-        type: "royalty",
-        value: {
-            receiver: encodeAddress(params.account.address, params.settings.network.prefix),
-            royaltyPercentFloat: 90
-        }
-    }
     const mappedVotes: VoteConvictionRequirements[] = await checkVotesMeetingRequirements(votesWithDragon, totalIssuance.toString(), config)
 
     const votesMeetingRequirements: VoteConvictionRequirements[] = mappedVotes.filter(vote => {
@@ -337,16 +303,16 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     logger.info(`${votesNotMeetingRequirements.length} votes not meeting the requirements.`)
 
     let distribution = [];
-    const minVote = votesMeetingRequirements.reduce((prev, curr) => new BN(prev.convictionBalance).lt(new BN(curr.convictionBalance)) ? prev : curr);
-    const maxVote = votesMeetingRequirements.reduce((prev, curr) => new BN(prev.convictionBalance).gt(new BN(curr.convictionBalance)) ? prev : curr);
-    logger.info("minVote", minVote.convictionBalance.toString())
-    logger.info("maxVote", maxVote.convictionBalance.toString())
+    const minVote = votesMeetingRequirements.reduce((prev, curr) => prev.lockedWithConviction.lt(curr.lockedWithConviction) ? prev : curr);
+    const maxVote = votesMeetingRequirements.reduce((prev, curr) => prev.lockedWithConviction.gt(curr.lockedWithConviction) ? prev : curr);
+    logger.info("minVote", minVote.lockedWithConviction.toString())
+    logger.info("maxVote", maxVote.lockedWithConviction.toString())
     const promises = votesMeetingRequirements.map(async (vote) => {
-        return await getDecimal(vote.convictionBalance.toString())
+        return await getDecimal(vote.lockedWithConviction.toString())
     })
     const voteAmounts = await Promise.all(promises);
     let { minValue, maxValue, median } = getMinMaxMedian(voteAmounts, config.minAmount)
-    minValue = Math.max(minValue, await getDecimal(minVote.convictionBalance.toString()))
+    minValue = Math.max(minValue, await getDecimal(minVote.lockedWithConviction.toString()))
     config.minValue = Math.max(minValue, config.minAmount)
     logger.info("minValue", minValue)
     config.maxValue = maxValue
@@ -365,8 +331,8 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         if (vote.meetsRequirements) {
             for (const option of config.options) {
                 if (counter < config.options.length - 1) {
-                    if (await getDecimal(vote.convictionBalance.toString()) < median) {
-                        chance = await calculateLuck(vote.convictionBalance.toString(),
+                    if (await getDecimal(vote.lockedWithConviction.toString()) < median) {
+                        chance = await calculateLuck(vote.lockedWithConviction.toString(),
                             minValue,
                             median,
                             option.minProbability,
@@ -379,7 +345,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                             vote.dragonEquipped)
                     }
                     else {
-                        chance = await calculateLuck(vote.convictionBalance.toString(),
+                        chance = await calculateLuck(vote.lockedWithConviction.toString(),
                             median,
                             maxValue,
                             option.sweetspotProbability,
@@ -410,7 +376,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             }
             distribution.push({
                 wallet: vote.accountId.toString(),
-                amountConsidered: vote.convictionBalance.toString(),
+                amountConsidered: vote.lockedWithConviction.toString(),
                 chances,
                 selectedIndex,
                 dragonEquipped: vote.dragonEquipped,
@@ -426,7 +392,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             chances.push(100)
             distribution.push({
                 wallet: vote.accountId.toString(),
-                amountConsidered: vote.convictionBalance.toString(),
+                amountConsidered: vote.lockedWithConviction.toString(),
                 chances,
                 selectedIndex: commonIndex,
                 dragonEquipped: vote.dragonEquipped,
@@ -444,16 +410,11 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
 
     logger.info(uniqs)
 
-    fs.writeFile(`assets/shelf/luck/${referendumIndex}.json`, JSON.stringify(distribution), (err) => {
+    fs.writeFile(`assets/frame/luck/${referendumIndex}.json`, JSON.stringify(distribution), (err) => {
 
         // In case of a error throw err.
         if (err) throw err;
     })
-
-    const shelfCollectionId = Collection.generateId(
-        u8aToHex(params.account.publicKey),
-        params.settings.parentCollectionSymbol
-    );
 
     let itemCollectionId;
     //create collection if required
@@ -463,209 +424,17 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             u8aToHex(params.account.publicKey),
             config.newCollectionSymbol
         );
-        let collection = await params.remarkStorageAdapter.getCollectionById(itemCollectionId);
-        if (!collection) {
-            config.newCollectionMetadataCid = await createNewCollection(itemCollectionId, config);
-        }
-        else {
-            logger.info("New collection already exists.")
-        }
+        config.newCollectionMetadataCid = await createNewCollection(itemCollectionId, config);
     }
     else {
         itemCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
-            params.settings.itemCollectionSymbol
+            "BITS"
         );
     }
     logger.info("collectionID Item: ", itemCollectionId)
 
     await sleep(10000);
-
-    // //remove this
-
-    //check which wallets don't have the shelf nft
-    const accountsWithoutShelf: AccountId[] = await getShelflessAccounts(totalVotes, shelfCollectionId)
-    //upload shelf to pinata
-    const [shelfMetadataCid, shelfMainCid, shelfThumbCid] = await pinSingleWithThumbMetadataFromDir("/assets",
-        "shelf/shelf.png",
-        `Your Shelf`,
-        {
-            description: `Each time you vote on a referendum, a new item will be added to this shelf.`,
-            properties: {},
-        },
-        "shelf/shelf_thumb.png"
-    );
-    await sleep(2000);
-    if (!shelfMetadataCid) {
-        logger.error(`parentMetadataCid is null: ${shelfMetadataCid}. exiting.`)
-        return;
-    }
-    config.parentMainCid = "ipfs://ipfs/" + shelfMainCid
-    config.parentThumbCid = "ipfs://ipfs/" + shelfThumbCid
-    config.parentMetadataCid = shelfMetadataCid
-    //send shelf to wallets that don't have one yet
-    if (accountsWithoutShelf.length > 0) {
-        //get base
-        const bases = await params.remarkStorageAdapter.getAllBases();
-        const baseId = bases.find(({ issuer, symbol }) => {
-            return issuer === encodeAddress(params.account.address, params.settings.network.prefix).toString() &&
-                symbol === params.settings.baseSymbol
-        }).id
-        logger.info("baseId: ", baseId)
-
-        let chunkCount = 0
-        logger.info("accountsWithoutShelf", accountsWithoutShelf.length)
-        for (let i = 0; i < accountsWithoutShelf.length; i += chunkSizeShelf) {
-            const shelfRemarks: string[] = [];
-            const chunk = accountsWithoutShelf.slice(i, i + chunkSizeShelf);
-            logger.info(`Chunk ${chunkCount}: ${chunk.length}`)
-            let count = 0
-            for (const account of chunk) {
-
-                const nftProps: INftProps = {
-                    block: 0,
-                    sn: ('00000000' + ((chunkCount * chunkSizeShelf) + count++).toString()).slice(-8),
-                    owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                    transferable: 1,
-                    metadata: shelfMetadataCid,
-                    collection: shelfCollectionId,
-                    symbol: params.settings.shelfNFTSymbol,
-                    properties: {
-                        royaltyInfo: {
-                            ...shelfRoyaltyProperty
-                        }
-                    }
-                };
-                const nft = new NFT(nftProps);
-                if (params.settings.isTest && (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                    || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                    || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                    || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK")) {
-                    shelfRemarks.push(nft.mint());
-                }
-                else if (!params.settings.isTest) {
-                    shelfRemarks.push(nft.mint());
-                }
-            }
-            logger.info("shelfRemarks", JSON.stringify(shelfRemarks))
-            if (shelfRemarks.length > 0) {
-                const { block, success, hash, fee } = await sendBatchTransactions(shelfRemarks);
-                logger.info(`Shelf NFTs minted at block ${block}: ${success} for a total fee of ${fee}`)
-                //wait until remark block has caught up with block
-                while ((await params.remarkBlockCountAdapter.get()) < block) {
-                    await sleep(3000);
-                }
-                await sleep(60000);
-                // add base resource to shelf nfts
-                const addBaseRemarks: string[] = [];
-
-                count = 0;
-                for (const account of chunk) {
-
-                    const nftProps: INftProps = {
-                        block: block,
-                        sn: ('00000000' + ((chunkCount * chunkSizeShelf) + count++).toString()).slice(-8),
-                        owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                        transferable: 1,
-                        metadata: shelfMetadataCid,
-                        collection: shelfCollectionId,
-                        symbol: params.settings.shelfNFTSymbol,
-                    };
-                    const nft = new NFT(nftProps);
-                    let parts = [];
-                    parts.push("background");
-                    parts.push("shelf");
-                    parts.push("decoration");
-                    for (let i = params.settings.startReferendum; i <= params.settings.startReferendum + params.settings.itemCount; i++) {
-                        parts.push(`REFERENDUM_${i.toString()}`)
-                    }
-                    parts.push("foreground");
-                    if (params.settings.isTest && (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                        || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                        || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                        || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK")) {
-                        addBaseRemarks.push(
-                            nft.resadd({
-                                base: baseId,
-                                id: nanoid(16),
-                                parts: parts,
-                                thumb: `ipfs://ipfs/${shelfThumbCid}`,
-                            })
-                        );
-                    }
-                    else if (!params.settings.isTest) {
-                        addBaseRemarks.push(
-                            nft.resadd({
-                                base: baseId,
-                                id: nanoid(16),
-                                parts: parts,
-                                thumb: `ipfs://ipfs/${shelfThumbCid}`,
-                            })
-                        );
-                    }
-                }
-                logger.info("addBaseRemarks: ", JSON.stringify(addBaseRemarks))
-                // split remarks into sets of 400?
-                const { block: addBaseBlock, success: addBaseSuccess, hash: addBaseHash, fee: addBaseFee } = await sendBatchTransactions(addBaseRemarks);
-                logger.info(`Base added at block ${addBaseBlock}: ${addBaseSuccess} for a total fee of ${addBaseFee}`)
-                while ((await params.remarkBlockCountAdapter.get()) < addBaseBlock) {
-                    await sleep(3000);
-                }
-                await sleep(60000);
-
-                // send out shelf nfts
-                const sendRemarks: string[] = [];
-
-                count = 0;
-                for (const account of chunk) {
-
-                    const nftProps: INftProps = {
-                        block: block,
-                        sn: ('00000000' + ((chunkCount * chunkSizeShelf) + count++).toString()).slice(-8),
-                        owner: encodeAddress(params.account.address, params.settings.network.prefix),
-                        transferable: 1,
-                        metadata: shelfMetadataCid,
-                        collection: shelfCollectionId,
-                        symbol: params.settings.shelfNFTSymbol,
-                    };
-                    const nft = new NFT(nftProps);
-                    if (params.settings.isTest && (account.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
-                        || account.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
-                        || account.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
-                        || account.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK")) {
-                        sendRemarks.push(nft.send(account.toString()))
-                    }
-                    else if (!params.settings.isTest) {
-                        sendRemarks.push(nft.send(account.toString()))
-                    }
-                }
-
-                logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
-                const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await sendBatchTransactions(sendRemarks);
-                logger.info(`NFTs sent at block ${sendBlock}: ${sendSuccess} for a total fee of ${sendFee}`)
-
-                while ((await params.remarkBlockCountAdapter.get()) < sendBlock) {
-                    await sleep(3000);
-                }
-                await sleep(60000);
-            }
-            chunkCount++;
-        }
-
-    }
-    await sleep(3000);
-    let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
-
-    const withoutSend = allNFTs.filter(({ changes, symbol, burned }) => {
-        return changes.length === 0 &&
-            symbol === params.settings.shelfNFTSymbol &&
-            burned === ""
-    })
-
-    if (withoutSend && withoutSend.length > 0) {
-        logger.error(`${withoutSend.length} send transactions not registered: ${JSON.stringify(withoutSend)}. Exiting...`)
-        return;
-    }
 
     const metadataCids = []
     for (const option of config.options) {
@@ -781,10 +550,10 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         let optionResourceCids = []
         for (let i = 0; i < option.resources.length; i++) {
             const resource = option.resources[i]
-            let mainCid = await pinSingleFileFromDir("/assets/shelf/referenda",
+            let mainCid = await pinSingleFileFromDir("/assets/frame/referenda",
                 resource.main,
                 resource.name)
-            let thumbCid = await pinSingleFileFromDir("/assets/shelf/referenda",
+            let thumbCid = await pinSingleFileFromDir("/assets/frame/referenda",
                 resource.thumb,
                 resource.name + "_thumb")
             option.resources[i].mainCid = "ipfs://ipfs/" + mainCid
@@ -901,7 +670,7 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     }
 
     if (params.settings.isTest) {
-        fs.writeFile(`assets/shelf/sendoutConfig/${referendumIndex}.json`, JSON.stringify(config), (err) => {
+        fs.writeFile(`assets/frame/sendoutConfig/${referendumIndex}.json`, JSON.stringify(config), (err) => {
             // In case of a error throw err.
             if (err) throw err;
         })
@@ -977,9 +746,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                 return;
             }
             logger.info(`NFTs minted at block ${blockMint}: ${successMint} for a total fee of ${feeMint}`)
-            while ((await params.remarkBlockCountAdapter.get()) < blockMint) {
-                await sleep(3000);
-            }
             // }
             // if (chunkCount > 7) {
             // add res to nft
@@ -1045,9 +811,6 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             logger.info("addResRemarks: ", JSON.stringify(addResRemarks))
             const { block: resAddBlock, success: resAddSuccess, hash: resAddHash, fee: resAddFee } = await sendBatchTransactions(addResRemarks);
             logger.info(`Resource(s) added to NFTs at block ${resAddBlock}: ${resAddSuccess} for a total fee of ${resAddFee}`)
-            while ((await params.remarkBlockCountAdapter.get()) < resAddBlock) {
-                await sleep(3000);
-            }
             if (chunkCount == 0) {
                 await sleep(300000);
             }
@@ -1070,23 +833,12 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
                     symbol: referendumIndex.toString() + selectedOption.symbol,
                 };
                 const nft = new NFT(nftProps);
-                //get the parent nft
-                let allNFTs = await params.remarkStorageAdapter.getNFTsByCollection(shelfCollectionId);
 
-                const accountShelfNFTId = allNFTs.find(({ owner, rootowner, symbol, burned }) => {
-                    return rootowner === vote.accountId.toString() &&
-                        symbol === params.settings.shelfNFTSymbol &&
-                        burned === ""
-                })
-
-                if (!accountShelfNFTId) {
-                    logger.info(`couldn't find parent for rootowner: ${vote.accountId.toString()}`)
-                }
                 if (params.settings.isTest && (vote.accountId.toString() === "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic"
                     || vote.accountId.toString() === "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3"
                     || vote.accountId.toString() === "HWP8QiZRs3tVbHUFJwA4NANgCx2HbbSSsevgJWhHJaGNLeV"
                     || vote.accountId.toString() === "D2v2HoA6Kgd4czRT3Yo1uUq6XYntAk81GuYpCgVNjmZaETK")) {
-                    sendRemarks.push(nft.send(accountShelfNFTId.id.toString()))
+                    sendRemarks.push(nft.send(vote.accountId.toString()))
                 }
                 else if (!params.settings.isTest) {
                     sendRemarks.push(nft.send(vote.accountId.toString()))
@@ -1095,42 +847,19 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
             logger.info("sendRemarks: ", JSON.stringify(sendRemarks))
             const { block: sendBlock, success: sendSuccess, hash: sendHash, fee: sendFee } = await sendBatchTransactions(sendRemarks);
             logger.info(`NFTs sent at block ${sendBlock}: ${sendSuccess} for a total fee of ${sendFee}`)
-            while ((await params.remarkBlockCountAdapter.get()) < sendBlock) {
-                await sleep(3000);
-            }
             // }
         }
         chunkCount++;
     }
 
-    //equip new collection to base
-    //get base
-    const bases = await params.remarkStorageAdapter.getAllBases();
-    const base: BaseConsolidated = bases.find(({ issuer, symbol }) => {
-        return issuer === encodeAddress(params.account.address, params.settings.network.prefix).toString() &&
-            symbol === params.settings.baseSymbol
-    })
-    logger.info("baseId: ", base.id)
-    const baseConsolidated = new Base(
-        base.block,
-        base.symbol,
-        base.issuer,
-        base.type,
-        base.parts,
-        base.themes,
-        base.metadata
-    )
     const baseEquippableRemarks = [];
-    if (config.createNewCollection) {
+    if (config.makeEquippable?.length > 0) {
         for (const slot of config.makeEquippable) {
-            baseEquippableRemarks.push(baseConsolidated.equippable({ slot: slot, collections: [itemCollectionId], operator: "+" }))
+            baseEquippableRemarks.push(`RMRK::EQUIPPABLE::2.0.0::base-15322902-FBP::${slot}::+${itemCollectionId}`)
         }
         logger.info("baseEquippableRemarks: ", JSON.stringify(baseEquippableRemarks))
         const { block: equippableBlock, success: equippableSuccess, hash: equippableHash, fee: equippableFee } = await sendBatchTransactions(baseEquippableRemarks);
         logger.info(`Collection whitelisted at block ${equippableBlock}: ${equippableSuccess} for a total fee of ${equippableFee}`)
-        while ((await params.remarkBlockCountAdapter.get()) < equippableBlock) {
-            await sleep(3000);
-        }
     }
     let distributionAndConfigRemarks = []
     logger.info("Writing Distribution and Config to Chain")
@@ -1138,7 +867,9 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
     distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::DISTRIBUTION::' + JSON.stringify(distribution))
     //write config to chain
     distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::CONFIG::' + JSON.stringify(config))
-    logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
+    if (!params.settings.isTest) {
+        logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
+    }
     const { block: writtenBlock, success: writtenSuccess, hash: writtenHash, fee: writtenFee } = await sendBatchTransactions(distributionAndConfigRemarks);
     logger.info(`Distribution and Config written to chain at block ${writtenBlock}: ${writtenSuccess} for a total fee of ${writtenFee}`)
 

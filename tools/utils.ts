@@ -1,9 +1,5 @@
 import { params } from "../config.js";
-import { GenericCall } from "@polkadot/types";
 import { logger } from "../tools/logger.js";
-import { createKeyMulti, encodeAddress } from "@polkadot/util-crypto";
-import { hexToU8a, u8aToHex } from "@polkadot/util";
-import { Modules, MultisigMethods, ProxyMethods, UtilityMethods } from "./constants.js";
 import BigNumber from "bignumber.js";
 import { BN } from '@polkadot/util';
 import fs from "fs";
@@ -35,8 +31,8 @@ export const amountToHumanString = async (amount: string, afterCommas?: number):
 export const getConfigFile = async (referendumId: BN) => {
   try {
 
-    const config = await fsPromises.readFile(`${process.cwd()}/assets/shelf/referendaSettings/${referendumId}.json`, 'utf8');
-    logger.info(`reading config from /assets/shelf/referendaSettings/${referendumId}.json`);
+    const config = await fsPromises.readFile(`${process.cwd()}/assets/frame/referendaSettings/${referendumId}.json`, 'utf8');
+    logger.info(`reading config from /assets/frame/referendaSettings/${referendumId}.json`);
     return config
   }
   catch (e) {
@@ -48,8 +44,8 @@ export const getConfigFile = async (referendumId: BN) => {
 export const getDragonBonusFile = async (referendumId: BN) => {
   try {
 
-    const bonuses = await fsPromises.readFile(`${process.cwd()}/assets/shelf/dragonBonus/${referendumId}.json`, 'utf8');
-    logger.info(`reading bonuses from /assets/shelf/dragonBonus/${referendumId}.json`);
+    const bonuses = await fsPromises.readFile(`${process.cwd()}/assets/frame/dragonBonus/${referendumId}.json`, 'utf8');
+    logger.info(`reading bonuses from /assets/frame/dragonBonus/${referendumId}.json`);
     return bonuses
   }
   catch (e) {

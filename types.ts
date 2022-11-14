@@ -15,7 +15,7 @@ export interface INftProps {
 }
 
 export interface VoteConviction extends DeriveReferendumVote {
-    convictionBalance?: string
+    lockedWithConviction?: BN
 }
 
 export interface VoteConvictionDragon extends VoteConviction {

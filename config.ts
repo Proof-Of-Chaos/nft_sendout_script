@@ -4,7 +4,6 @@ import { CountAdapter } from './tools/countAdapter.js';
 import { BlockListener } from './src/blockListener.js';
 import { PinataClient } from '@pinata/sdk';
 import { KeyringPair } from '@polkadot/keyring/types';
-import { RemarkStorageAdapter } from './tools/remarkStorageAdapter.js';
 
 type Params = {
   api: ApiPromise,
@@ -14,9 +13,7 @@ type Params = {
   blockCountAdapter: CountAdapter,
   blockListener: BlockListener,
   pinata: PinataClient,
-  account: KeyringPair,
-  remarkBlockCountAdapter: CountAdapter,
-  remarkStorageAdapter: RemarkStorageAdapter,
+  account: KeyringPair
 };
 
 export const params: Params = {
@@ -27,9 +24,7 @@ export const params: Params = {
   blockCountAdapter: null,
   blockListener: null,
   pinata: null,
-  account: null,
-  remarkBlockCountAdapter: null,
-  remarkStorageAdapter: null,
+  account: null
 };
 
 export const getLocalStorage = (): Low => {
@@ -37,8 +32,4 @@ export const getLocalStorage = (): Low => {
   return db;
 };
 
-export const getRemarkStorage = (): Low => {
-  const db = new Low(new JSONFile(process.env.REMARK_STORAGE_DB_FILE_PATH));
-  return db;
-};
 

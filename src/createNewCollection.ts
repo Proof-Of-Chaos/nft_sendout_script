@@ -25,7 +25,7 @@ export const createNewCollection = async (newCollectionId, settings) => {
             settings.newCollectionName,
             {
                 description: settings.newCollectionDescription,
-                external_url: params.settings.externalUrl,
+                external_url: "https://www.proofofchaos.app/",
                 properties: {
                     royaltyInfo: {
                         ...royaltyProperty

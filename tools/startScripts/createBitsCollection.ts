@@ -1,5 +1,5 @@
 import { params } from "../../config.js";
-import { NFT, Collection } from "rmrk-tools";
+import { Collection } from "rmrk-tools";
 import { u8aToHex } from "@polkadot/util";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../pinataUtils.js";
@@ -7,13 +7,13 @@ import { getApi, getApiTest, sendAndFinalize } from "../substrateUtils.js";
 import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
 import { logger } from "../logger.js";
 
-export const createItemCollection = async () => {
+export const createBitsCollection = async () => {
     try {
-        const itemCollectionId = Collection.generateId(
+        const bitsCollectionId = Collection.generateId(
             u8aToHex(params.account.publicKey),
-            params.settings.itemCollectionSymbol
+            "BITS"
         );
-        logger.info(`Item Collection Id: `, itemCollectionId);
+        logger.info(`Bits Collection Id: `, bitsCollectionId);
 
         const royaltyProperty: IRoyaltyAttribute = {
             type: "royalty",
@@ -24,12 +24,12 @@ export const createItemCollection = async () => {
         }
 
         const collectionMetadataCid = await pinSingleMetadataFromDir(
-            "/assets/shelf/collections",
-            `item.png`,
-            `Items`,
+            "/assets/frame/collections",
+            `bits.png`,
+            `The Bits`,
             {
-                description: `A collection of items airdropped to Kusama referendum voters.`,
-                external_url: params.settings.externalUrl,
+                description: `A collection of bits and pieces airdropped to Kusama referendum voters.`,
+                external_url: "https://www.proofofchaos.app/",
                 properties: {
                     royaltyInfo: {
                         ...royaltyProperty
@@ -38,22 +38,22 @@ export const createItemCollection = async () => {
             }
         );
 
-        const ItemCollection = new Collection(
+        const BitsCollection = new Collection(
             0,
             0,
             encodeAddress(params.account.address, params.settings.network.prefix),
-            params.settings.itemCollectionSymbol,
-            itemCollectionId,
+            "BITS",
+            bitsCollectionId,
             collectionMetadataCid
         );
 
         const api = params.settings.isTest ? await getApiTest() : await getApi() ;
 
         const { block } = await sendAndFinalize(
-            api.tx.system.remark(ItemCollection.create()),
+            api.tx.system.remark(BitsCollection.create()),
             params.account
         );
-        logger.info("COLLECTION CREATION REMARK: ", ItemCollection.create());
+        logger.info("COLLECTION CREATION REMARK: ", BitsCollection.create());
         logger.info("Collection created at block: ", block);
 
     } catch (error: any) {

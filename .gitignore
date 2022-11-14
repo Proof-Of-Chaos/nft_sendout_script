@@ -5,12 +5,9 @@ dist/
 log/
 localStorage/localStorage.json
 localStorage/remarkStorage.json
-assets/mosaic/*
 assets/referenda
 assets/referendaSettings
 assets/shelf/luck/*
 assets/shelf/sendoutConfig/*
-assets/shelf/votes/*
-assets/shelf/difference/*
-# assets/shelf/referenda/*
-# assets/shelf/referendaSettings/*
+assets/frame/luck/*
+assets/frame/sendoutConfig/*

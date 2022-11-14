@@ -1,22 +1,17 @@
 import "@polkadot/api-augment";
-import { params, getLocalStorage, getRemarkStorage } from "./config.js";
+import { params, getLocalStorage } from "./config.js";
 import { getSettings } from "./tools/settings.js";
 import { CountAdapter } from "./tools/countAdapter.js";
 import dotenv from "dotenv";
-import { getApi, getApiTest, initAccount } from "./tools/substrateUtils.js";
+import { getApi, initAccount } from "./tools/substrateUtils.js";
 import { ApiPromise } from "@polkadot/api";
 import { Low } from "lowdb/lib";
 import { BlockListener } from "./src/blockListener.js";
 import pinataSDK from "@pinata/sdk";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { Consolidator, RemarkListener } from "rmrk-tools";
-import { RemarkStorageAdapter } from "./tools/remarkStorageAdapter.js";
-import { createShelfCollection } from "./tools/startScripts/createShelfCollection.js";
-import { createBase } from "./tools/startScripts/createBase.js";
-import { createItemCollection } from "./tools/startScripts/createItemCollection.js";
+import { createBitsCollection } from "./tools/startScripts/createBitsCollection.js";
 import { logger } from "./tools/logger.js";
 import { sleep } from "./tools/utils.js";
-
 
 dotenv.config();
 
@@ -35,12 +30,10 @@ class Incentivizer {
     this.api = api;
     this.account = account;
     this.localStorage = getLocalStorage();
-    this.remarkStorage = getRemarkStorage();
   }
 
   async run() {
     params.localStorage = this.localStorage;
-    params.remarkStorage = this.remarkStorage;
     params.account = this.account
     const networkProperties = await this.api.rpc.system.properties();
     if (!this.settings.network.prefix && networkProperties.ss58Format) {
@@ -62,28 +55,6 @@ class Incentivizer {
       params.blockListener = new BlockListener(this.api,
         params.blockCountAdapter);
     }
-    //setup remark listener for minting listener
-    params.remarkStorageAdapter = new RemarkStorageAdapter(params.remarkStorage);
-    const consolidateFunction = async (remarks) => {
-      const consolidator = new Consolidator(2, params.remarkStorageAdapter);
-      return consolidator.consolidate(remarks);
-    };
-    params.remarkBlockCountAdapter = new CountAdapter(params.localStorage, "remarkBlock")
-    const startListening = async () => {
-      const listener = new RemarkListener({
-        polkadotApi: params.settings.isTest ? await getApiTest() : this.api,
-        prefixes: ['0x726d726b', '0x524d524b'],
-        consolidateFunction,
-        storageProvider: params.remarkBlockCountAdapter
-      });
-      const subscriber = listener.initialiseObservable();
-      subscriber.subscribe(async (val) => {
-        // if (val.invalid.length > 0){
-        //   logger.info("invalid", val.invalid)
-        // }
-      });
-    };
-    await startListening();
 
     //setup pinata
     params.pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET);
@@ -96,15 +67,10 @@ class Incentivizer {
       logger.info(err);
     }
     if (process.env.SETUP_COMPLETE !== "true") {
+      await createBitsCollection();
       await sleep(3000)
-      await createShelfCollection();
-      await sleep(3000)
-      await createItemCollection();
-      await sleep(3000)
-      await createBase();
       logger.info("complete")
     }
-    // sendNFTs(true, new BN("193"))
   }
 }
 
