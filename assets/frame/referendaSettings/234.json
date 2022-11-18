@@ -1,0 +1,139 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": null,
+    "blockCutOff": null,
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": ["REF_234"],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": null,
+    "quizBonus": null,
+    "identityBonus": null,
+    "minAmount": 0.2,
+    "seed": "This is just the beginning",
+    "defaultRoyalty": 95,
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "P1P3E",
+            "text": "'Puzzle 1 - Piece 3 - Epic'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Puzzle 1 - Piece 3 - Epic",
+            "minRoyalty": 25,
+            "maxRoyalty": 35,
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "234/option1/resource1/main.png",
+                    "thumb": "234/option1/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 3 - Epic'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Puzzle 1 - Piece 3 - Epic",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "234/option1/resource2/main.png",
+                    "thumb": "234/option1/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 3 - Epic: Equippable on Shelf'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Puzzle 1 - Piece 3 - Epic",
+                    "slot": "base-15322902-FBP.REF_234"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "P1P3R",
+            "text": "'Puzzle 1 - Piece 3 - Rare'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Puzzle 1 - Piece 3 - Rare",
+            "minRoyalty": 20,
+            "maxRoyalty": 30,
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "234/option2/resource1/main.png",
+                    "thumb": "234/option2/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 3 - Rare'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Puzzle 1 - Piece 3 - Rare",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "234/option2/resource2/main.png",
+                    "thumb": "234/option2/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 3 - Rare: Equippable on Shelf'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Puzzle 1 - Piece 3 - Rare",
+                    "slot": "base-15322902-FBP.REF_234"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": null,
+            "maxProbability": null,
+            "minProbability": null,
+            "transferable": 1,
+            "symbol": "P1P3C",
+            "text": "'Puzzle 1 - Piece 3 - Common'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Puzzle 1 - Piece 3 - Common",
+            "minRoyalty": 15,
+            "maxRoyalty": 25,
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "234/option3/resource1/main.png",
+                    "thumb": "234/option3/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 3 - Common'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Puzzle 1 - Piece 3 - Common",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "234/option3/resource2/main.png",
+                    "thumb": "234/option3/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 3 - Common: Equippable on Shelf'\n\nIn Referendum 234 the community voted on whether to top up the WagMedia bounty.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Puzzle 1 - Piece 3 - Common",
+                    "slot": "base-15322902-FBP.REF_234"
+                }
+            ]
+        }
+    ]
+}
