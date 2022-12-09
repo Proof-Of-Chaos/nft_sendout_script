@@ -1,0 +1,139 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": null,
+    "blockCutOff": null,
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": ["REF_236"],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": null,
+    "quizBonus": null,
+    "identityBonus": null,
+    "minAmount": 0.2,
+    "seed": "Pop the seed",
+    "defaultRoyalty": 95,
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "P1P5E",
+            "text": "'Puzzle 1 - Piece 5 - Epic'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Puzzle 1 - Piece 5 - Epic",
+            "minRoyalty": 25,
+            "maxRoyalty": 35,
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "236/option1/resource1/main.png",
+                    "thumb": "236/option1/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 5 - Epic'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Puzzle 1 - Piece 5 - Epic",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "236/option1/resource2/main.png",
+                    "thumb": "236/option1/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 5 - Epic: Equippable on Frame'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Puzzle 1 - Piece 5 - Epic",
+                    "slot": "base-15322902-FBP.REF_236"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "P1P5R",
+            "text": "'Puzzle 1 - Piece 5 - Rare'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Puzzle 1 - Piece 5 - Rare",
+            "minRoyalty": 20,
+            "maxRoyalty": 30,
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "236/option2/resource1/main.png",
+                    "thumb": "236/option2/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 5 - Rare'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Puzzle 1 - Piece 5 - Rare",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "236/option2/resource2/main.png",
+                    "thumb": "236/option2/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 5 - Rare: Equippable on Frame'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Puzzle 1 - Piece 5 - Rare",
+                    "slot": "base-15322902-FBP.REF_236"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": null,
+            "maxProbability": null,
+            "minProbability": null,
+            "transferable": 1,
+            "symbol": "P1P5C",
+            "text": "'Puzzle 1 - Piece 5 - Common'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Puzzle 1 - Piece 5 - Common",
+            "minRoyalty": 15,
+            "maxRoyalty": 25,
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "236/option3/resource1/main.png",
+                    "thumb": "236/option3/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 5 - Common'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Puzzle 1 - Piece 5 - Common",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "236/option3/resource2/main.png",
+                    "thumb": "236/option3/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 5 - Common: Equippable on Frame'\n\nIn Referendum 236 the community voted on whether to upgrade the Statemine runtime to v9290.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Puzzle 1 - Piece 5 - Common",
+                    "slot": "base-15322902-FBP.REF_236"
+                }
+            ]
+        }
+    ]
+}
