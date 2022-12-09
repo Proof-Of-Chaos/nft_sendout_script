@@ -288,6 +288,14 @@ export const sendNFTs = async (passed: boolean, referendumIndex: BN, indexer = n
         return { ...vote, dragonEquipped }
     })
 
+    // const votesAddresses = votes.map(vote => {
+    //     return vote.accountId.toString()
+    // })
+    // fs.writeFile(`assets/frame/votes/${referendumIndex}.json`, JSON.stringify(votesAddresses), (err) => {
+    //     // In case of a error throw err.
+    //     if (err) throw err;
+    // })
+
     const mappedVotes: VoteConvictionRequirements[] = await checkVotesMeetingRequirements(votesWithDragon, totalIssuance.toString(), config)
 
     const votesMeetingRequirements: VoteConvictionRequirements[] = mappedVotes.filter(vote => {
