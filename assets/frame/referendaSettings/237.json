@@ -1,0 +1,139 @@
+{
+    "min": "1200000000000",
+    "max": "100000000000000000000000000000000000000000",
+    "first": null,
+    "blockCutOff": null,
+    "directOnly": false,
+    "createNewCollection": false,
+    "newCollectionSymbol": "",
+    "newCollectionPath": "",
+    "newCollectionFile": "",
+    "newCollectionName": "",
+    "newCollectionDescription": "",
+    "makeEquippable": ["REF_237"],
+    "babyBonus": 7,
+    "toddlerBonus": 13,
+    "adolescentBonus": 16,
+    "adultBonus": null,
+    "quizBonus": null,
+    "identityBonus": null,
+    "minAmount": 0.2,
+    "seed": "Looks good to me!",
+    "defaultRoyalty": 95,
+    "options": [
+        {
+            "sweetspotProbability": 16,
+            "maxProbability": 30,
+            "minProbability": 3,
+            "transferable": 1,
+            "symbol": "P1P6E",
+            "text": "'Puzzle 1 - Piece 6 - Epic'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "epic",
+            "itemName": "Puzzle 1 - Piece 6 - Epic",
+            "minRoyalty": 25,
+            "maxRoyalty": 35,
+            "resources": [
+                {
+                    "name": "option1resource1",
+                    "main": "237/option1/resource1/main.png",
+                    "thumb": "237/option1/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 6 - Epic'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Puzzle 1 - Piece 6 - Epic",
+                    "slot": null
+                },
+                {
+                    "name": "option1resource2",
+                    "main": "237/option1/resource2/main.png",
+                    "thumb": "237/option1/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 6 - Epic: Equippable on Frame'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "epic",
+                    "itemName": "Puzzle 1 - Piece 6 - Epic",
+                    "slot": "base-15322902-FBP.REF_237"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": 30,
+            "maxProbability": 45,
+            "minProbability": 15,
+            "transferable": 1,
+            "symbol": "P1P6R",
+            "text": "'Puzzle 1 - Piece 6 - Rare'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless.",
+            "artist": "LokiKot(@LokiPages)",
+            "creativeDirector": "MIES",
+            "rarity": "rare",
+            "itemName": "Puzzle 1 - Piece 6 - Rare",
+            "minRoyalty": 20,
+            "maxRoyalty": 30,
+            "resources": [
+                {
+                    "name": "option2resource1",
+                    "main": "237/option2/resource1/main.png",
+                    "thumb": "237/option2/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 6 - Rare'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless..",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Puzzle 1 - Piece 6 - Rare",
+                    "slot": null
+                },
+                {
+                    "name": "option2resource2",
+                    "main": "237/option2/resource2/main.png",
+                    "thumb": "237/option2/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 6 - Rare: Equippable on Frame'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless.",
+                    "artist": "LokiKot(@LokiPages)",
+                    "creativeDirector": "MIES",
+                    "rarity": "rare",
+                    "itemName": "Puzzle 1 - Piece 6 - Rare",
+                    "slot": "base-15322902-FBP.REF_237"
+                }
+            ]
+        },
+        {
+            "sweetspotProbability": null,
+            "maxProbability": null,
+            "minProbability": null,
+            "transferable": 1,
+            "symbol": "P1P6C",
+            "text": "'Puzzle 1 - Piece 6 - Common'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless.",
+            "artist": "@kseniashikh",
+            "creativeDirector": "MIES",
+            "rarity": "common",
+            "itemName": "Puzzle 1 - Piece 6 - Common",
+            "minRoyalty": 15,
+            "maxRoyalty": 25,
+            "resources": [
+                {
+                    "name": "option3resource1",
+                    "main": "237/option3/resource1/main.png",
+                    "thumb": "237/option3/resource1/thumb.png",
+                    "text": "'Puzzle 1 - Piece 6 - Common'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Puzzle 1 - Piece 6 - Common",
+                    "slot": null
+                },
+                {
+                    "name": "option3resource2",
+                    "main": "237/option3/resource2/main.png",
+                    "thumb": "237/option3/resource2/thumb.png",
+                    "text": "'Puzzle 1 - Piece 6 - Common: Equippable on Frame'\n\nIn Referendum 237 the community voted on whether to return funds taken from Mangata X's sovereign account. The attacker ended up transfering the funds while the referendum was up for vote, rendering it toothless.",
+                    "artist": "@kseniashikh",
+                    "creativeDirector": "MIES",
+                    "rarity": "common",
+                    "itemName": "Puzzle 1 - Piece 6 - Common",
+                    "slot": "base-15322902-FBP.REF_237"
+                }
+            ]
+        }
+    ]
+}
