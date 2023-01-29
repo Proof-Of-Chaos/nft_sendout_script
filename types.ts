@@ -1,18 +1,5 @@
 import { DeriveReferendumVote } from "@polkadot/api-derive/types";
-import { IProperties } from "rmrk-tools/dist/tools/types";
 import { BN } from '@polkadot/util';
-
-export interface INftProps {
-    block: number;
-    collection: string;
-    symbol: string;
-    transferable: number;
-    sn: string;
-    metadata?: string;
-    owner?: string;
-    rootowner?: string;
-    properties?: IProperties;
-}
 
 export interface VoteConviction extends DeriveReferendumVote {
     lockedWithConviction?: BN
@@ -24,4 +11,16 @@ export interface VoteConvictionDragon extends VoteConviction {
 
 export interface VoteConvictionRequirements extends VoteConvictionDragon {
     meetsRequirements: boolean
+}
+
+export type PalletReferenda = 'referenda' | 'rankedPolls' | 'fellowshipReferenda';
+
+export type PalletVote = 'convictionVoting' | 'rankedCollective' | 'fellowshipCollective';
+
+export interface Lock {
+    classId: BN;
+    endBlock: BN;
+    locked: string;
+    refId: BN;
+    total: BN;
 }

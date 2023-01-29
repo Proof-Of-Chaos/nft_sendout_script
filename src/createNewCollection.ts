@@ -1,25 +1,22 @@
 import { logger } from "../tools/logger.js";
-import { params } from "../config.js";
-import { NFT, Collection } from "rmrk-tools";
+// import { params } from "../config.js";
 import { u8aToHex } from "@polkadot/util";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../tools/pinataUtils.js";
-import { getApi, getApiTest, sendAndFinalize } from "../tools/substrateUtils.js";
-import { IRoyaltyAttribute } from "rmrk-tools/dist/tools/types";
+// import { getApi, getApiTest, sendAndFinalize } from "../tools/substrateUtils.js";
 
-export const createNewCollection = async (newCollectionId, settings) => {
+export const createNewCollection = async (pinata, address, settings) => {
     try {
-        logger.info(`New Collection Id: `, newCollectionId);
-
-        const royaltyProperty: IRoyaltyAttribute = {
+        const royaltyProperty = {
             type: "royalty",
             value: {
-                receiver: encodeAddress(params.account.address, params.settings.network.prefix),
+                receiver: encodeAddress(address, settings.network.prefix),
                 royaltyPercentFloat: 5
             }
         }
 
         const collectionMetadataCid = await pinSingleMetadataFromDir(
+            pinata,
             settings.newCollectionPath,
             settings.newCollectionFile,
             settings.newCollectionName,
@@ -33,24 +30,6 @@ export const createNewCollection = async (newCollectionId, settings) => {
                 },
             }
         );
-
-        const NewCollection = new Collection(
-            0,
-            0,
-            encodeAddress(params.account.address, params.settings.network.prefix),
-            settings.newCollectionSymbol,
-            newCollectionId,
-            collectionMetadataCid
-        );
-
-        const api = params.settings.isTest ? await getApiTest() : await getApi() ;
-
-        const { block } = await sendAndFinalize(
-            api.tx.system.remark(NewCollection.create()),
-            params.account
-        );
-        logger.info("NEW COLLECTION CREATION REMARK: ", NewCollection.create());
-        logger.info("Collection created at block: ", block);
         return collectionMetadataCid
 
     } catch (error: any) {

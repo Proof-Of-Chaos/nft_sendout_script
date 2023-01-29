@@ -1,9 +1,8 @@
-import { params } from "../config.js";
+// import { params } from "../config.js";
 import { logger } from "../tools/logger.js";
 import BigNumber from "bignumber.js";
 import { BN } from '@polkadot/util';
 import fs from "fs";
-import { getApi } from "./substrateUtils.js";
 
 const fsPromises = fs.promises;
 
@@ -18,15 +17,15 @@ export const sleep = (ms: number): Promise<void> => {
   });
 };
 
-export const amountToHumanString = async (amount: string, afterCommas?: number): Promise<string> => {
-  const api = await getApi();
-  const token = params.settings.network.token;
-  const value = new BigNumber(amount.toString())
-    .dividedBy(new BigNumber("1e" + api.registry.chainDecimals))
-    .toFixed(afterCommas ? afterCommas : 5, BigNumber.ROUND_FLOOR);
-  const tokenString = token ? " " + token : "";
-  return value + tokenString;
-};
+// export const amountToHumanString = async (amount: string, afterCommas?: number): Promise<string> => {
+//   const api = await getApi();
+//   const token = params.settings.network.token;
+//   const value = new BigNumber(amount.toString())
+//     .dividedBy(new BigNumber("1e" + api.registry.chainDecimals))
+//     .toFixed(afterCommas ? afterCommas : 5, BigNumber.ROUND_FLOOR);
+//   const tokenString = token ? " " + token : "";
+//   return value + tokenString;
+// };
 
 export const getConfigFile = async (referendumId: BN) => {
   try {

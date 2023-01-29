@@ -1,88 +1,180 @@
-import type { AccountId, ReferendumInfoTo239, Vote } from '@polkadot/types/interfaces';
-import type { PalletDemocracyReferendumInfo, PalletDemocracyVoteVoting } from '@polkadot/types/lookup';
+import type { ApiPromise } from '@polkadot/api';
+import type { Option } from '@polkadot/types';
+import type { PalletConvictionVotingVoteCasting, PalletConvictionVotingVoteVoting, PalletReferendaReferendumInfoConvictionVotingTally } from '@polkadot/types/lookup';
 import type { BN } from '@polkadot/util';
+import type { Lock, PalletReferenda, PalletVote } from '../types.js';
 
-import { BN_ZERO, isUndefined } from '@polkadot/util';
-import { DeriveDemocracyLock } from '@polkadot/api-derive/types';
-import { ApiDecoration } from '@polkadot/api/types';
+import { BN_MAX_INTEGER } from '@polkadot/util';
+import { ApiDecoration } from "@polkadot/api/types";
 
-type ReferendumInfoFinished = PalletDemocracyReferendumInfo['asFinished'];
-type VotingDelegating = PalletDemocracyVoteVoting['asDelegating'];
-type VotingDirect = PalletDemocracyVoteVoting['asDirect'];
-type VotingDirectVote = VotingDirect['votes'][0];
+const OPT_CLASS = {
+    transform: (locks: [BN, BN][]): BN[] =>
+        locks.map(([classId]) => classId)
+};
 
-const LOCKUPS = [0, 1, 2, 4, 8, 16, 32];
+const OPT_VOTES = {
+    transform: ([[params], votes]: [[[string, BN][]], PalletConvictionVotingVoteVoting[]]): [classId: BN, refIds: BN[], casting: PalletConvictionVotingVoteCasting][] =>
+        votes
+            .map((v, index): null | [BN, BN[], PalletConvictionVotingVoteCasting] => {
+                if (!v.isCasting) {
+                    return null;
+                }
 
-function parseEnd(api: ApiDecoration<"promise">, vote: Vote, { approved, end }: ReferendumInfoFinished): [BN, BN] {
-    return [
-        end,
-        (approved.isTrue && vote.isAye) || (approved.isFalse && vote.isNay)
-            ? end.add(
-                (
-                    api.consts.democracy.voteLockingPeriod ||
-                    api.consts.democracy.enactmentPeriod
-                ).muln(LOCKUPS[vote.conviction.index])
+                const casting = v.asCasting;
+
+                return [
+                    params[index][1],
+                    casting.votes.map(([refId]) => refId),
+                    casting
+                ];
+            })
+            .filter((v): v is [BN, BN[], PalletConvictionVotingVoteCasting] => !!v),
+    withParamsTransform: true
+};
+
+const OPT_REFS = {
+    transform: ([[params], optTally]: [[BN[]], Option<PalletReferendaReferendumInfoConvictionVotingTally>[]]): [BN, PalletReferendaReferendumInfoConvictionVotingTally][] =>
+        optTally
+            .map((v, index): null | [BN, PalletReferendaReferendumInfoConvictionVotingTally] =>
+                v.isSome
+                    ? [params[index], v.unwrap()]
+                    : null
             )
-            : BN_ZERO
-    ];
-}
+            .filter((v): v is [BN, PalletReferendaReferendumInfoConvictionVotingTally] => !!v),
+    withParamsTransform: true
+};
 
-function parseLock(api: ApiDecoration<"promise">, [referendumId, accountVote]: VotingDirectVote, referendum: PalletDemocracyReferendumInfo): DeriveDemocracyLock {
-    const { balance, vote } = accountVote.asStandard;
-    const [referendumEnd, unlockAt] = referendum.isFinished
-        ? parseEnd(api, vote, referendum.asFinished)
-        : [BN_ZERO, BN_ZERO];
-
-    return { balance, isDelegated: false, isFinished: referendum.isFinished, referendumEnd, referendumId, unlockAt, vote };
-}
-
-const delegateLocks = async (api: ApiDecoration<"promise">, { balance, conviction, target }: VotingDelegating): Promise<DeriveDemocracyLock[]> => {
-    const targetLocks = await locks(api, target)
-    return targetLocks.map(({ isFinished, referendumEnd, referendumId, unlockAt, vote }): DeriveDemocracyLock => ({
-        balance,
-        isDelegated: true,
-        isFinished,
-        referendumEnd,
-        referendumId,
-        unlockAt: unlockAt.isZero()
-            ? unlockAt
-            : referendumEnd.add(
-                (
-                    api.consts.democracy.voteLockingPeriod ||
-                    api.consts.democracy.enactmentPeriod
-                ).muln(LOCKUPS[conviction.index])
-            ),
-        vote: api.registry.createType('Vote', { aye: vote.isAye, conviction })
-    }))
-}
-
-const directLocks = async (api: ApiDecoration<"promise">, { votes }: VotingDirect): Promise<DeriveDemocracyLock[]> => {
-    if (!votes.length) {
-        return [];
+function getVoteParams(accountId: string, lockClasses?: BN[]): [[accountId: string, classId: BN][]] | undefined {
+    if (lockClasses) {
+        return [lockClasses.map((classId) => [accountId, classId])];
     }
 
-    const referendums = await api.query.democracy.referendumInfoOf.multi(votes.map(([referendumId]) => referendumId))
-
-    return votes
-        .map((vote, index): [VotingDirectVote, PalletDemocracyReferendumInfo | ReferendumInfoTo239 | null] =>
-            [vote, referendums[index].unwrapOr(null)]
-        )
-        .filter((item): item is [VotingDirectVote, PalletDemocracyReferendumInfo] =>
-            !!item[1] && isUndefined((item[1] as ReferendumInfoTo239).end) && item[0][1].isStandard
-        )
-        .map(([directVote, referendum]) =>
-            parseLock(api, directVote, referendum)
-        )
+    return undefined;
 }
 
-export const locks = async (api: ApiDecoration<"promise">, accountId: string | AccountId) => {
-    if (api.query.democracy.votingOf) {
-        const voting = await api.query.democracy.votingOf(accountId)
-        return voting.isDirect
-            ? directLocks(api, voting.asDirect)
-            : voting.isDelegating
-                ? delegateLocks(api, voting.asDelegating)
-                : []
+function getRefParams(votes?: [classId: BN, refIds: BN[], casting: PalletConvictionVotingVoteCasting][]): [BN[]] | undefined {
+    if (votes && votes.length) {
+        const refIds = votes.reduce<BN[]>((all, [, refIds]) => all.concat(refIds), []);
+
+        if (refIds.length) {
+            return [refIds];
+        }
     }
-    return []
+
+    return undefined;
 }
+
+function getLocks(api: ApiDecoration<"promise">, palletVote: PalletVote, votes: [classId: BN, refIds: BN[], casting: PalletConvictionVotingVoteCasting][], referenda: [BN, PalletReferendaReferendumInfoConvictionVotingTally][]): Lock[] {
+    const lockPeriod = api.consts[palletVote].voteLockingPeriod as BN;
+    const locks: Lock[] = [];
+
+    for (let i = 0; i < votes.length; i++) {
+        const [classId, , casting] = votes[i];
+
+        for (let i = 0; i < casting.votes.length; i++) {
+            const [refId, accountVote] = casting.votes[i];
+            const refInfo = referenda.find(([id]) => id.eq(refId));
+
+            if (refInfo) {
+                const [, tally] = refInfo;
+                let total: BN | undefined;
+                let endBlock: BN | undefined;
+                let conviction = 0;
+                let locked = 'None';
+
+                if (accountVote.isStandard) {
+                    const { balance, vote } = accountVote.asStandard;
+
+                    total = balance;
+
+                    if ((tally.isApproved && vote.isAye) || (tally.isRejected && vote.isNay)) {
+                        conviction = vote.conviction.index;
+                        locked = vote.conviction.type;
+                    }
+                } else if (accountVote.isSplit) {
+                    const { aye, nay } = accountVote.asSplit;
+
+                    total = aye.add(nay);
+                } else if (accountVote.isSplitAbstain) {
+                    const { abstain, aye, nay } = accountVote.asSplitAbstain;
+
+                    total = aye.add(nay).add(abstain);
+                } else {
+                    console.error(`Unable to handle ${accountVote.type}`);
+                }
+
+                if (tally.isOngoing) {
+                    endBlock = BN_MAX_INTEGER;
+                } else if (tally.isKilled) {
+                    endBlock = tally.asKilled;
+                } else if (tally.isCancelled || tally.isTimedOut) {
+                    endBlock = tally.isCancelled
+                        ? tally.asCancelled[0]
+                        : tally.asTimedOut[0];
+                } else if (tally.isApproved || tally.isRejected) {
+                    endBlock = lockPeriod
+                        .muln(conviction)
+                        .add(
+                            tally.isApproved
+                                ? tally.asApproved[0]
+                                : tally.asRejected[0]
+                        );
+                } else {
+                    console.error(`Unable to handle ${tally.type}`);
+                }
+
+                if (total && endBlock) {
+                    locks.push({ classId, endBlock, locked, refId, total });
+                }
+            }
+        }
+    }
+
+    return locks;
+}
+
+export async function useAccountLocksImpl(api: ApiDecoration<"promise">, palletReferenda: PalletReferenda, palletVote: PalletVote, accountId: string): Promise<Lock[]> {
+    const locks: [BN, BN][] = await api.query.convictionVoting?.classLocksFor(accountId)
+    const lockClassesFormatted: BN[] = locks.map(([classId]) => classId)
+    const voteParams: [[string, BN][]] = getVoteParams(accountId, lockClassesFormatted)
+    let [params]: [[string, BN][]] = voteParams
+    const votes: PalletConvictionVotingVoteVoting[] = await api.query.convictionVoting?.votingFor.multi(params)
+    const votesFormatted: [classId: BN, refIds: BN[], casting: PalletConvictionVotingVoteCasting][] = votes
+        .map((v, index): null | [BN, BN[], PalletConvictionVotingVoteCasting] => {
+            if (!v.isCasting) {
+                return null;
+            }
+
+            const casting = v.asCasting;
+
+            return [
+                params[index][1],
+                casting.votes.map(([refId]) => refId),
+                casting
+            ];
+        })
+        .filter((v): v is [BN, BN[], PalletConvictionVotingVoteCasting] => !!v)
+
+    if (votesFormatted.length == 0) {
+        return []
+    }
+
+    const refParams: [BN[]] = getRefParams(votesFormatted)
+    
+    const [paramsref]: [BN[]] = refParams
+    
+    const optTally: Option<PalletReferendaReferendumInfoConvictionVotingTally>[] = await api.query.referenda?.referendumInfoFor.multi(paramsref)
+
+    const referendaFormatted: [BN, PalletReferendaReferendumInfoConvictionVotingTally][] = optTally
+        .map((v, index): null | [BN, PalletReferendaReferendumInfoConvictionVotingTally] =>
+            v.isSome
+                ? [paramsref[index], v.unwrap()]
+                : null
+        )
+        .filter((v): v is [BN, PalletReferendaReferendumInfoConvictionVotingTally] => !!v)
+    
+    // combine the referenda outcomes and the votes into locks
+    return getLocks(api, palletVote, votesFormatted, referendaFormatted)
+ 
+}
+

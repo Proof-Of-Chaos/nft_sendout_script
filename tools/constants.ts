@@ -123,6 +123,7 @@ export const Modules = Object.freeze({
   Staking: "staking",
   Identity: "identity",
   Democracy: "democracy",
+  Referenda: "referenda",
   ElectionsPhragmen: "electionsPhragmen",
   PhragmenElection: "PhragmenElection",
   Session: "session",
@@ -161,6 +162,13 @@ export const ReferendumMethods = Object.freeze({
   Tabled: "Tabled",
   NotPassed: "NotPassed",
   Passed: "Passed"
+});
+
+export const OpenGovReferendumMethods = Object.freeze({
+  Proposed: "Proposed",
+  Confirmed: "Confirmed",
+  Rejected: "Rejected",
+  Canceled: "Canceled"
 });
 
 export const ProxyMethods = Object.freeze({
