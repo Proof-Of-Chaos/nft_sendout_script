@@ -4,247 +4,15 @@ import { BN } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
-import { u8aToHex } from "@polkadot/util";
-import { ConvictionVote, VoteConviction, VoteConvictionDragon, VoteConvictionRequirements } from "../types.js";
-import { getApiKusama, getApiStatemine, getApiTest, getDecimal, initAccount } from "../tools/substrateUtils.js";
+import { ConvictionVote, VoteConvictionDragon } from "../types.js";
+import { getApiKusama, getApiStatemine, getDecimal, initAccount } from "../tools/substrateUtils.js";
 import { getDragonBonusFile, getConfigFile, sleep } from "../tools/utils.js";
-import { VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
-import { PalletDemocracyVoteVoting } from "@polkadot/types/lookup";
-import { ApiDecoration } from "@polkadot/api/types";
-import { cryptoWaitReady, encodeAddress } from "@polkadot/util-crypto";
-import { nanoid } from "nanoid";
+import { cryptoWaitReady } from "@polkadot/util-crypto";
 import { createNewCollection } from "./createNewCollection.js";
-import { objectSpread } from '@polkadot/util';
 import { useAccountLocksImpl } from "./locks.js";
-import { u16 } from "@polkadot/types";
 import { getSettings } from "../tools/settings.js";
 import pinataSDK from "@pinata/sdk";
 import { getApiAt, getConvictionVoting } from "./chainData.js";
-
-function extractAddressAndTrackId(storageKey = "", api) {
-    const sectionRemoved: string | Uint8Array = storageKey.slice(32);
-    const accountHashRemoved: string | Uint8Array = sectionRemoved.slice(8);
-    const accountU8a: string | Uint8Array = accountHashRemoved.slice(0, 32);
-
-    const accountRemoved = accountHashRemoved.slice(32);
-    const classIdU8a = accountRemoved.slice(8);
-
-    const address = encodeAddress(accountU8a, api.registry.chainSS58);
-    const trackId = api.registry.createType("U16", classIdU8a).toNumber();
-
-    return {
-        address,
-        trackId,
-    };
-}
-
-function normalizeVotingOfEntry([storageKey, voting], blockApi) {
-    const { address, trackId } = extractAddressAndTrackId(storageKey, blockApi);
-    return { account: address, trackId, voting };
-}
-
-function extractVotes(mapped, targetReferendumIndex) {
-    return mapped
-        .filter(({ voting }) => voting.isCasting)
-        .map(({ account, voting }) => {
-            return {
-                account,
-                votes: voting.asCasting.votes.filter(([idx]) =>
-                    idx.eq(targetReferendumIndex)
-                ),
-            };
-        })
-        .filter(({ votes }) => votes.length > 0)
-        .map(({ account, votes }) => {
-            return {
-                account,
-                vote: votes[0][1],
-            };
-        })
-        .reduce((result, { account, vote }) => {
-            if (vote.isStandard) {
-                const standard = vote.asStandard;
-                const balance = standard.balance.toBigInt().toString();
-
-                result.push(
-                    objectSpread(
-                        {
-                            account,
-                            isDelegating: false,
-                        },
-                        {
-                            balance,
-                            aye: standard.vote.isAye,
-                            split: standard.vote.isSplit,
-                            splitAbstain: standard.vote.isSplitAbstain,
-                            conviction: standard.vote.conviction.toNumber(),
-                        }
-                    )
-                );
-            }
-            if (vote.isSplit) {
-                const split = vote.asSplit;
-                const { aye, nay } = split;
-
-                const balance = aye.add(nay).toString();
-
-                result.push(
-                    objectSpread(
-                        {
-                            account,
-                            isDelegating: false,
-                        },
-                        {
-                            balance,
-                            aye: split.vote.isAye,
-                            split: split.vote.isSplit,
-                            splitAbstain: split.vote.isSplitAbstain,
-                            conviction: split.vote.conviction.toNumber(),
-                        }
-                    )
-                );
-            }
-            if (vote.isSplitAbstain) {
-                const splitAbstain = vote.asSplitAbstain;
-                const { aye, nay, abstain } = splitAbstain;
-
-                const balance = aye.add(nay).add(abstain).toString();
-
-                result.push(
-                    objectSpread(
-                        {
-                            account,
-                            isDelegating: false,
-                        },
-                        {
-                            balance,
-                            aye: splitAbstain.vote.isAye,
-                            split: splitAbstain.vote.isSplit,
-                            splitAbstain: splitAbstain.vote.isSplitAbstain,
-                            conviction: splitAbstain.vote.conviction.toNumber(),
-                        }
-                    )
-                );
-            }
-
-            return result;
-        }, []);
-}
-
-function getNested(accountId, delegationsInput, track) {
-    //find delegations for towallet
-    const delegations = delegationsInput
-        .filter(({ delegating }) => delegating.target == accountId);
-    if (delegations && delegations.length > 0) {
-        let nestedDelegations = []
-        for (let i = 0; i < delegations.length; i++) {
-            const delegation = delegations[i]
-            nestedDelegations.push(...(getNested(delegation.wallet, delegationsInput, track)))
-        }
-        return [...delegations, ...nestedDelegations]
-    }
-    else {
-        return []
-    }
-
-    // let delegations = await ctx.store.find(ConvictionVotingDelegation, { where: { to: voter, blockNumberEnd: IsNull(), track} })
-    // if (delegations && delegations.length > 0) {
-    //     let nestedDelegations = []
-    //     for (let i = 0; i < delegations.length; i++) {
-    //         const delegation = delegations[i]
-    //         nestedDelegations.push(...(await getAllNestedDelegations(ctx, delegation.wallet, track)))
-    //     }
-    //     return [...delegations, ...nestedDelegations]
-    // }
-    // else {
-    //     return []
-    // }
-}
-
-function extractDelegations(mapped, track, directVotes = []) {
-    // const mywallet = mapped.filter(({account}) => {
-    //     return account == "E8Gips4w5F9PXj5P3RT6Q8fQWP5SrMjbxGMmWtYr7FgS77q"
-    // })
-    // console.log("mywallet", mywallet)
-    const delegations = mapped
-        .filter(({ trackId, voting }) => voting.isDelegating && trackId == track.toString())
-        .map(({ account, voting }) => {
-            return {
-                account,
-                delegating: voting.asDelegating,
-            };
-        });
-    // console.log(delegations[0].account)
-    const delegationVotes = [];
-    directVotes.forEach((directVote) => {
-        const nestedDelegations = getNested(directVote.account, delegations, track.toString())
-        if (nestedDelegations.length > 0) {
-            delegationVotes.push(...nestedDelegations);
-        }
-
-    })
-    console.log("delegationVotes", delegationVotes)
-    // delegations.forEach(
-    //     ({ account, delegating: { balance, conviction, target } }) => {
-    //         const to = directVotes.find(
-    //             ({ account }) => account === target.toString()
-    //         );
-
-    //         if (to) {
-    //             delegationVotes.push({
-    //                 account,
-    //                 balance: balance.toBigInt().toString(),
-    //                 isDelegating: true,
-    //                 aye: to.aye,
-    //                 conviction: conviction.toNumber(),
-    //             });
-    //         }
-    //     }
-    // );
-    return delegationVotes;
-}
-
-const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, trackId: u16, expiryBlock: BN) => {
-    const voting = await api.query.convictionVoting.votingFor.entries();
-    const mapped = voting.map((item) => normalizeVotingOfEntry(item, api));
-
-    const directVotes = extractVotes(mapped, referendumId);
-    // const votesViaDelegating = extractDelegations(mapped, trackId, directVotes);
-    let votes = [
-        ...directVotes,
-        // ...votesViaDelegating,
-    ];
-
-    const LOCKS = [1, 10, 20, 30, 40, 50, 60];
-    const LOCKPERIODS = [0, 1, 2, 4, 8, 16, 32];
-    const sevenDaysBlocks = api.consts.convictionVoting.voteLockingPeriod
-    const promises = votes.map(async (vote) => {
-        let maxLockedWithConviction = new BN(0);
-        // api, vote.account, trackId
-        const userVotes = await useAccountLocksImpl(api, 'referenda', 'convictionVoting', vote.account.toString())
-        let userLockedBalancesWithConviction: BN[] = []
-        userVotes.map((userVote) => {
-            if (userVote.endBlock.sub(expiryBlock).gte(new BN(0)) || userVote.endBlock.eqn(0)) {
-                const lockPeriods = userVote.endBlock.eqn(0) ? 0 : Math.floor((userVote.endBlock.sub(expiryBlock)).muln(10).div(sevenDaysBlocks).toNumber() / 10)
-                let matchingPeriod = 0
-                for (let i = 0; i < LOCKPERIODS.length; i++) {
-                    matchingPeriod = lockPeriods >= LOCKPERIODS[i] ? i : matchingPeriod
-                }
-                const lockedBalanceWithConviction = (userVote.total.muln(LOCKS[matchingPeriod])).div(new BN(10))
-                userLockedBalancesWithConviction.push(lockedBalanceWithConviction)
-            }
-
-        })
-
-        //take max lockedBalanceWithConviction
-        for (let i = 0; i < userLockedBalancesWithConviction.length; ++i) {
-            maxLockedWithConviction = BN.max(userLockedBalancesWithConviction[i], maxLockedWithConviction)
-        }
-        return { ...vote, lockedWithConviction: maxLockedWithConviction }
-    })
-    votes = await Promise.all(promises);
-    return votes;
-}
 
 const getLocks = async (votes: ConvictionVote[], endBlock: number) => {
     const api = await getApiAt(endBlock)
@@ -303,20 +71,6 @@ const checkVotesMeetingRequirements = async (votes: VoteConvictionDragon[], tota
         }
     }
     return filtered
-}
-
-const getVotesAndIssuance = async (referendumIndex: BN, blockNumber: BN, config?) => {
-    const api = await getApiKusama();
-    let cutOffBlock: BN;
-
-    cutOffBlock = config.blockCutOff !== null ?
-        new BN(config.blockCutOff) : blockNumber
-    logger.info("Cut-off Block: ", cutOffBlock.toString())
-    const blockHashEnd = await api.rpc.chain.getBlockHash(blockNumber.subn(1));
-    const blockApiEnd = await api.at(blockHashEnd);
-    const infoOngoing = await blockApiEnd.query.referenda.referendumInfoFor(referendumIndex);
-    const totalIssuance = (await blockApiEnd.query.balances.totalIssuance()).toString()
-    return [totalIssuance, await votesCurr(blockApiEnd, referendumIndex, infoOngoing.unwrap().asOngoing.track, blockNumber)];
 }
 
 const getRandom = (rng, weights) => {
@@ -418,20 +172,6 @@ export const generateCalls = async (referendumIndex: BN) => {
         return;
     }
 
-    // const networkProperties = await apiKusama.rpc.system.properties();
-    // if (!settings.network.prefix && networkProperties.ss58Format) {
-    //     settings.network.prefix = networkProperties.ss58Format.toString();
-    // }
-    // if (!settings.network.decimals && networkProperties.tokenDecimals) {
-    //     settings.network.decimals = networkProperties.tokenDecimals.toString();
-    // }
-    // if (
-    //     settings.network.token === undefined &&
-    //     networkProperties.tokenSymbol
-    // ) {
-    //     settings.network.token = networkProperties.tokenSymbol.toString();
-    // }
-
     //setup pinata
     const pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET);
     try {
@@ -456,10 +196,8 @@ export const generateCalls = async (referendumIndex: BN) => {
     const rng = seedrandom(referendumIndex.toString() + config.seed);
 
 
-    // [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, blockNumber, config);
     const {referendum, totalIssuance, votes } = await getConvictionVoting(54);
     const voteLocks = await getLocks(votes, referendum.confirmationBlockNumber)
-    console.log("one", voteLocks.length)
     logger.info("Number of votes: ", votes.length)
 
 
@@ -617,7 +355,7 @@ export const generateCalls = async (referendumIndex: BN) => {
             const chances = new Array(commonIndex).fill(0)
             chances.push(100)
             distribution.push({
-                wallet: vote.account.toString(),
+                wallet: vote.address.toString(),
                 amountConsidered: vote.lockedWithConviction.toString(),
                 chances,
                 selectedIndex: commonIndex,
