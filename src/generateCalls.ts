@@ -5,7 +5,7 @@ import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
 import { u8aToHex } from "@polkadot/util";
-import { VoteConviction, VoteConvictionDragon, VoteConvictionRequirements } from "../types.js";
+import { ConvictionVote, VoteConviction, VoteConvictionDragon, VoteConvictionRequirements } from "../types.js";
 import { getApiKusama, getApiStatemine, getApiTest, getDecimal, initAccount } from "../tools/substrateUtils.js";
 import { getDragonBonusFile, getConfigFile, sleep } from "../tools/utils.js";
 import { VotingDelegating, VotingDirectVote } from "@polkadot/types/interfaces";
@@ -19,6 +19,7 @@ import { useAccountLocksImpl } from "./locks.js";
 import { u16 } from "@polkadot/types";
 import { getSettings } from "../tools/settings.js";
 import pinataSDK from "@pinata/sdk";
+import { getApiAt, getConvictionVoting } from "./chainData.js";
 
 function extractAddressAndTrackId(storageKey = "", api) {
     const sectionRemoved: string | Uint8Array = storageKey.slice(32);
@@ -130,42 +131,77 @@ function extractVotes(mapped, targetReferendumIndex) {
         }, []);
 }
 
-function extractDelegations(mapped, targetReferendumIndex, track, directVotes = []) {
+function getNested(accountId, delegationsInput, track) {
+    //find delegations for towallet
+    const delegations = delegationsInput
+        .filter(({ delegating }) => delegating.target == accountId);
+    if (delegations && delegations.length > 0) {
+        let nestedDelegations = []
+        for (let i = 0; i < delegations.length; i++) {
+            const delegation = delegations[i]
+            nestedDelegations.push(...(getNested(delegation.wallet, delegationsInput, track)))
+        }
+        return [...delegations, ...nestedDelegations]
+    }
+    else {
+        return []
+    }
+
+    // let delegations = await ctx.store.find(ConvictionVotingDelegation, { where: { to: voter, blockNumberEnd: IsNull(), track} })
+    // if (delegations && delegations.length > 0) {
+    //     let nestedDelegations = []
+    //     for (let i = 0; i < delegations.length; i++) {
+    //         const delegation = delegations[i]
+    //         nestedDelegations.push(...(await getAllNestedDelegations(ctx, delegation.wallet, track)))
+    //     }
+    //     return [...delegations, ...nestedDelegations]
+    // }
+    // else {
+    //     return []
+    // }
+}
+
+function extractDelegations(mapped, track, directVotes = []) {
+    // const mywallet = mapped.filter(({account}) => {
+    //     return account == "E8Gips4w5F9PXj5P3RT6Q8fQWP5SrMjbxGMmWtYr7FgS77q"
+    // })
+    // console.log("mywallet", mywallet)
     const delegations = mapped
-        .filter(({ trackId, voting }) => voting.isDelegating && trackId === track)
+        .filter(({ trackId, voting }) => voting.isDelegating && trackId == track.toString())
         .map(({ account, voting }) => {
             return {
                 account,
-                delegating: voting.asDelegating.votes.filter(([idx]) =>
-                    idx.eq(targetReferendumIndex)
-                ),
+                delegating: voting.asDelegating,
             };
         });
-
-    let newVotes = [];
-    delegations.forEach(
-        ({ account, delegating: { balance, conviction, target } }) => {
-            const toDelegator = delegations.find(
-                ({ account }) => account === target.toString()
-            );
-            const to = directVotes.find(
-                ({ account }) =>
-                    account === (toDelegator ? toDelegator.account : target.toString())
-            );
-
-            if (to) {
-                newVotes.push({
-                    account,
-                    balance: balance.toBigInt().toString(),
-                    isDelegating: true,
-                    aye: to.aye,
-                    conviction: conviction.toNumber(),
-                });
-            }
+    // console.log(delegations[0].account)
+    const delegationVotes = [];
+    directVotes.forEach((directVote) => {
+        const nestedDelegations = getNested(directVote.account, delegations, track.toString())
+        if (nestedDelegations.length > 0) {
+            delegationVotes.push(...nestedDelegations);
         }
-    );
 
-    return newVotes;
+    })
+    console.log("delegationVotes", delegationVotes)
+    // delegations.forEach(
+    //     ({ account, delegating: { balance, conviction, target } }) => {
+    //         const to = directVotes.find(
+    //             ({ account }) => account === target.toString()
+    //         );
+
+    //         if (to) {
+    //             delegationVotes.push({
+    //                 account,
+    //                 balance: balance.toBigInt().toString(),
+    //                 isDelegating: true,
+    //                 aye: to.aye,
+    //                 conviction: conviction.toNumber(),
+    //             });
+    //         }
+    //     }
+    // );
+    return delegationVotes;
 }
 
 const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, trackId: u16, expiryBlock: BN) => {
@@ -173,10 +209,10 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, trackI
     const mapped = voting.map((item) => normalizeVotingOfEntry(item, api));
 
     const directVotes = extractVotes(mapped, referendumId);
-    const votesViaDelegating = extractDelegations(mapped, referendumId, trackId, directVotes);
+    // const votesViaDelegating = extractDelegations(mapped, trackId, directVotes);
     let votes = [
         ...directVotes,
-        ...votesViaDelegating,
+        // ...votesViaDelegating,
     ];
 
     const LOCKS = [1, 10, 20, 30, 40, 50, 60];
@@ -210,6 +246,40 @@ const votesCurr = async (api: ApiDecoration<"promise">, referendumId: BN, trackI
     return votes;
 }
 
+const getLocks = async (votes: ConvictionVote[], endBlock: number) => {
+    const api = await getApiAt(endBlock)
+    const LOCKS = [1, 10, 20, 30, 40, 50, 60];
+    const LOCKPERIODS = [0, 1, 2, 4, 8, 16, 32];
+    const sevenDaysBlocks = api.consts.convictionVoting.voteLockingPeriod
+    const endBlockBN = new BN(endBlock)
+    const promises = votes.map(async (vote) => {
+        let maxLockedWithConviction = new BN(0);
+        // api, vote.account, trackId
+        const userVotes = await useAccountLocksImpl(api, 'referenda', 'convictionVoting', vote.address.toString())
+        let userLockedBalancesWithConviction: BN[] = []
+        userVotes.map((userVote) => {
+            if (userVote.endBlock.sub(endBlockBN).gte(new BN(0)) || userVote.endBlock.eqn(0)) {
+                const lockPeriods = userVote.endBlock.eqn(0) ? 0 : Math.floor((userVote.endBlock.sub(endBlockBN)).muln(10).div(sevenDaysBlocks).toNumber() / 10)
+                let matchingPeriod = 0
+                for (let i = 0; i < LOCKPERIODS.length; i++) {
+                    matchingPeriod = lockPeriods >= LOCKPERIODS[i] ? i : matchingPeriod
+                }
+                const lockedBalanceWithConviction = (userVote.total.muln(LOCKS[matchingPeriod])).div(new BN(10))
+                userLockedBalancesWithConviction.push(lockedBalanceWithConviction)
+            }
+
+        })
+
+        //take max lockedBalanceWithConviction
+        for (let i = 0; i < userLockedBalancesWithConviction.length; ++i) {
+            maxLockedWithConviction = BN.max(userLockedBalancesWithConviction[i], maxLockedWithConviction)
+        }
+        return { ...vote, lockedWithConviction: maxLockedWithConviction }
+    })
+    votes = await Promise.all(promises);
+    return votes;
+}
+
 const checkVotesMeetingRequirements = async (votes: VoteConvictionDragon[], totalIssuance: string, config): Promise<any[]> => {
     const minVote = BN.max(new BN(config.min), new BN("0"));
     const maxVote = BN.min(new BN(config.max), new BN(totalIssuance));
@@ -223,7 +293,7 @@ const checkVotesMeetingRequirements = async (votes: VoteConvictionDragon[], tota
     for (let i = 0; i < votes.length; i++) {
         if (votes[i].lockedWithConviction.lt(minVote)
             || votes[i].lockedWithConviction.gt(maxVote)
-            || (config.directOnly && votes[i].isDelegating)
+            || (config.directOnly && votes[i].voteType == "Delegating")
             || (config.first !== null && i > config.first)
         ) {
             filtered.push({ ...votes[i], meetsRequirements: false })
@@ -348,19 +418,19 @@ export const generateCalls = async (referendumIndex: BN) => {
         return;
     }
 
-    const networkProperties = await apiKusama.rpc.system.properties();
-    if (!settings.network.prefix && networkProperties.ss58Format) {
-        settings.network.prefix = networkProperties.ss58Format.toString();
-    }
-    if (!settings.network.decimals && networkProperties.tokenDecimals) {
-        settings.network.decimals = networkProperties.tokenDecimals.toString();
-    }
-    if (
-        settings.network.token === undefined &&
-        networkProperties.tokenSymbol
-    ) {
-        settings.network.token = networkProperties.tokenSymbol.toString();
-    }
+    // const networkProperties = await apiKusama.rpc.system.properties();
+    // if (!settings.network.prefix && networkProperties.ss58Format) {
+    //     settings.network.prefix = networkProperties.ss58Format.toString();
+    // }
+    // if (!settings.network.decimals && networkProperties.tokenDecimals) {
+    //     settings.network.decimals = networkProperties.tokenDecimals.toString();
+    // }
+    // if (
+    //     settings.network.token === undefined &&
+    //     networkProperties.tokenSymbol
+    // ) {
+    //     settings.network.token = networkProperties.tokenSymbol.toString();
+    // }
 
     //setup pinata
     const pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET);
@@ -372,11 +442,8 @@ export const generateCalls = async (referendumIndex: BN) => {
         //handle error here
         logger.info(err);
     }
-    //wait a bit since blocks after will be pretty full
-    await sleep(10000);
 
-    let votes;
-    let totalIssuance;
+    // let votes;
     let votesWithDragon: VoteConvictionDragon[];
 
 
@@ -389,8 +456,13 @@ export const generateCalls = async (referendumIndex: BN) => {
     const rng = seedrandom(referendumIndex.toString() + config.seed);
 
 
-    [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, blockNumber, config);
+    // [totalIssuance, votes] = await getVotesAndIssuance(referendumIndex, blockNumber, config);
+    const {referendum, totalIssuance, votes } = await getConvictionVoting(54);
+    const voteLocks = await getLocks(votes, referendum.confirmationBlockNumber)
+    console.log("one", voteLocks.length)
     logger.info("Number of votes: ", votes.length)
+
+
 
 
     let bonusFile = await getDragonBonusFile(referendumIndex);
@@ -412,18 +484,18 @@ export const generateCalls = async (referendumIndex: BN) => {
     const adolescentWallets = adolescentDragons.map(({ wallet }) => wallet);
     const adultWallets = adultDragons.map(({ wallet }) => wallet);
 
-    votesWithDragon = votes.map((vote) => {
+    votesWithDragon = voteLocks.map((vote) => {
         let dragonEquipped
-        if (adultWallets.includes(vote.account.toString())) {
+        if (adultWallets.includes(vote.address.toString())) {
             dragonEquipped = "Adult"
         }
-        else if (adolescentWallets.includes(vote.account.toString())) {
+        else if (adolescentWallets.includes(vote.address.toString())) {
             dragonEquipped = "Adolescent"
         }
-        else if (toddlerWallets.includes(vote.account.toString())) {
+        else if (toddlerWallets.includes(vote.address.toString())) {
             dragonEquipped = "Toddler"
         }
-        else if (babyWallets.includes(vote.account.toString())) {
+        else if (babyWallets.includes(vote.address.toString())) {
             dragonEquipped = "Baby"
         }
         else {
@@ -434,7 +506,7 @@ export const generateCalls = async (referendumIndex: BN) => {
 
     if (settings.isTest) {
         const votesAddresses = votes.map(vote => {
-            return vote.account.toString()
+            return vote.address.toString()
         })
         fs.writeFile(`assets/frame/votes/${referendumIndex}.json`, JSON.stringify(votesAddresses), (err) => {
             // In case of a error throw err.
@@ -529,7 +601,7 @@ export const generateCalls = async (referendumIndex: BN) => {
                 counter++;
             }
             distribution.push({
-                wallet: vote.account.toString(),
+                wallet: vote.address.toString(),
                 amountConsidered: vote.lockedWithConviction.toString(),
                 chances,
                 selectedIndex,
@@ -843,7 +915,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     logger.info("resourceMetadataCids", resourceMetadataCids);
 
 
-    for (let i = 0; i < mappedVotes.length; i++) {
+    for (let i = 0; i < 2; i++) {
         const mintRemarks: string[] = [];
         let usedMetadataCids: string[] = [];
         let usedResourceMetadataCids: string[] = [];
@@ -857,13 +929,13 @@ export const generateCalls = async (referendumIndex: BN) => {
 
         let metadataCid = vote.isDelegating ? selectedMetadata[1] : selectedMetadata[0]
         const randRoyaltyInRange = Math.floor(rng() * (selectedOption.maxRoyalty - selectedOption.minRoyalty + 1) + selectedOption.minRoyalty)
-        const itemRoyaltyProperty = {
-            type: "royalty",
-            value: {
-                receiver: encodeAddress(account.address, parseInt(settings.network.prefix)),
-                royaltyPercentFloat: vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty
-            }
-        }
+        // const itemRoyaltyProperty = {
+        //     type: "royalty",
+        //     value: {
+        //         receiver: encodeAddress(account.address, parseInt(settings.network.prefix)),
+        //         royaltyPercentFloat: vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty
+        //     }
+        // }
         if (!metadataCid) {
             logger.error(`metadataCid is null. exiting.`)
             return;
@@ -872,18 +944,48 @@ export const generateCalls = async (referendumIndex: BN) => {
 
         txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet)))
         txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, false)))
-        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.account.toString())))
-        //set attributes?
+        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty)))
+        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc")))
+        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString())))
     }
-    console.log(apiStatemine.tx.utility.batch(txs).toHex())
-
+    const batchtx = apiStatemine.tx.utility.batch(txs).toHex()
+    fs.writeFile(`assets/output/${referendumIndex}.json`, JSON.stringify(batchtx), (err) => {
+        // In case of a error throw err.
+        if (err) throw err;
+    })
+    // console.log(apiStatemine.tx.utility.batch(txs).toHex())
+    const dest = {
+        V1: {
+            interior: {
+                X1: {
+                    parachain: 1000
+                }
+            }
+        }
+    }
+    const message = {
+        V2: {
+            0: {
+                transact: {
+                    call: batchtx,
+                    originType: 'Superuser',
+                    require_weight_at_most: 1000000000
+                }
+            }
+        }
+    }
+    const finalCall = apiKusama.tx.xcmPallet.send(dest, message)
+    fs.writeFile(`assets/output/1.json`, JSON.stringify(finalCall), (err) => {
+        // In case of a error throw err.
+        if (err) throw err;
+    })
 
     let distributionAndConfigRemarks = []
     logger.info("Writing Distribution and Config to Chain")
     //write distribution to chain
-    distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::DISTRIBUTION::' + JSON.stringify(distribution))
+    distributionAndConfigRemarks.push('PROOFOFCHAOS2::' + referendumIndex.toString() + '::DISTRIBUTION::' + JSON.stringify(distribution))
     //write config to chain
-    distributionAndConfigRemarks.push('PROOFOFCHAOS::' + referendumIndex.toString() + '::CONFIG::' + JSON.stringify(config))
+    distributionAndConfigRemarks.push('PROOFOFCHAOS2::' + referendumIndex.toString() + '::CONFIG::' + JSON.stringify(config))
     // if (!settings.isTest) {
     //     logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
     // }

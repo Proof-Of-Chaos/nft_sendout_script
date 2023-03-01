@@ -7,43 +7,6 @@ import type { Lock, PalletReferenda, PalletVote } from '../types.js';
 import { BN_MAX_INTEGER } from '@polkadot/util';
 import { ApiDecoration } from "@polkadot/api/types";
 
-const OPT_CLASS = {
-    transform: (locks: [BN, BN][]): BN[] =>
-        locks.map(([classId]) => classId)
-};
-
-const OPT_VOTES = {
-    transform: ([[params], votes]: [[[string, BN][]], PalletConvictionVotingVoteVoting[]]): [classId: BN, refIds: BN[], casting: PalletConvictionVotingVoteCasting][] =>
-        votes
-            .map((v, index): null | [BN, BN[], PalletConvictionVotingVoteCasting] => {
-                if (!v.isCasting) {
-                    return null;
-                }
-
-                const casting = v.asCasting;
-
-                return [
-                    params[index][1],
-                    casting.votes.map(([refId]) => refId),
-                    casting
-                ];
-            })
-            .filter((v): v is [BN, BN[], PalletConvictionVotingVoteCasting] => !!v),
-    withParamsTransform: true
-};
-
-const OPT_REFS = {
-    transform: ([[params], optTally]: [[BN[]], Option<PalletReferendaReferendumInfoConvictionVotingTally>[]]): [BN, PalletReferendaReferendumInfoConvictionVotingTally][] =>
-        optTally
-            .map((v, index): null | [BN, PalletReferendaReferendumInfoConvictionVotingTally] =>
-                v.isSome
-                    ? [params[index], v.unwrap()]
-                    : null
-            )
-            .filter((v): v is [BN, PalletReferendaReferendumInfoConvictionVotingTally] => !!v),
-    withParamsTransform: true
-};
-
 function getVoteParams(accountId: string, lockClasses?: BN[]): [[accountId: string, classId: BN][]] | undefined {
     if (lockClasses) {
         return [lockClasses.map((classId) => [accountId, classId])];
@@ -142,6 +105,7 @@ export async function useAccountLocksImpl(api: ApiDecoration<"promise">, palletR
     const votesFormatted: [classId: BN, refIds: BN[], casting: PalletConvictionVotingVoteCasting][] = votes
         .map((v, index): null | [BN, BN[], PalletConvictionVotingVoteCasting] => {
             if (!v.isCasting) {
+                //then is delegating
                 return null;
             }
 
