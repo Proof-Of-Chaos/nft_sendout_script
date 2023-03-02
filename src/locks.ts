@@ -1,10 +1,10 @@
 import type { ApiPromise } from '@polkadot/api';
 import type { Option } from '@polkadot/types';
 import type { PalletConvictionVotingVoteCasting, PalletConvictionVotingVoteVoting, PalletReferendaReferendumInfoConvictionVotingTally } from '@polkadot/types/lookup';
-import type { BN } from '@polkadot/util';
+import { BN } from '@polkadot/util';
 import type { Lock, PalletReferenda, PalletVote } from '../types.js';
 
-import { BN_MAX_INTEGER } from '@polkadot/util';
+// import { BN_MAX_INTEGER } from '@polkadot/util';
 import { ApiDecoration } from "@polkadot/api/types";
 
 function getVoteParams(accountId: string, lockClasses?: BN[]): [[accountId: string, classId: BN][]] | undefined {
@@ -18,7 +18,6 @@ function getVoteParams(accountId: string, lockClasses?: BN[]): [[accountId: stri
 function getRefParams(votes?: [classId: BN, refIds: BN[], casting: PalletConvictionVotingVoteCasting][]): [BN[]] | undefined {
     if (votes && votes.length) {
         const refIds = votes.reduce<BN[]>((all, [, refIds]) => all.concat(refIds), []);
-
         if (refIds.length) {
             return [refIds];
         }
@@ -67,7 +66,7 @@ function getLocks(api: ApiDecoration<"promise">, palletVote: PalletVote, votes: 
                 }
 
                 if (tally.isOngoing) {
-                    endBlock = BN_MAX_INTEGER;
+                    endBlock = new BN(0); //BN_MAX_INTEGER
                 } else if (tally.isKilled) {
                     endBlock = tally.asKilled;
                 } else if (tally.isCancelled || tally.isTimedOut) {
@@ -122,8 +121,10 @@ export async function useAccountLocksImpl(api: ApiDecoration<"promise">, palletR
     if (votesFormatted.length == 0) {
         return []
     }
-
     const refParams: [BN[]] = getRefParams(votesFormatted)
+    if (!refParams) {
+        return []
+    }
     
     const [paramsref]: [BN[]] = refParams
     
