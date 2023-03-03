@@ -1095,7 +1095,7 @@ export const getConvictionVoting = async (referendumIndex: number) => {
                                     voteDirection:
                                         abstain >= aye && abstain >= nay
                                             ? "Abstain"
-                                            : aye > +nay
+                                            : aye >= nay
                                                 ? "Aye"
                                                 : "Nay",
                                     // The vote direction type, either "Standard", "Split", or "SplitAbstain"
