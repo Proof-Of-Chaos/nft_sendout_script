@@ -13,17 +13,26 @@ import { useAccountLocksImpl } from "./locks.js";
 import { getSettings } from "../tools/settings.js";
 import pinataSDK from "@pinata/sdk";
 import { getApiAt, getConvictionVoting } from "./chainData.js";
+import { GraphQLClient } from 'graphql-request';
 
 const getLocks = async (votes: ConvictionVote[], endBlock: number) => {
     const api = await getApiAt(endBlock)
     const LOCKS = [1, 10, 20, 30, 40, 50, 60];
     const LOCKPERIODS = [0, 1, 2, 4, 8, 16, 32];
     const sevenDaysBlocks = api.consts.convictionVoting.voteLockingPeriod
+
     const endBlockBN = new BN(endBlock)
     const promises = votes.map(async (vote) => {
         let maxLockedWithConviction = new BN(0);
         // api, vote.account, trackId
         const userVotes = await useAccountLocksImpl(api, 'referenda', 'convictionVoting', vote.address.toString())
+        if (vote.address.toString() == "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic") {
+            console.log(endBlock)
+            console.log(sevenDaysBlocks.toString())
+            userVotes.forEach((vote) => {
+                console.log(vote.endBlock.toString(), vote.refId.toString(), vote.total.toString())
+            })
+        }
         let userLockedBalancesWithConviction: BN[] = []
         userVotes.map((userVote) => {
             if (userVote.endBlock.sub(endBlockBN).gte(new BN(0)) || userVote.endBlock.eqn(0)) {
@@ -89,7 +98,7 @@ const getRandom = (rng, weights) => {
 
 
 
-const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonus, toddlerBonus, adolescentBonus, adultBonus, dragonEquipped) => {
+const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonus, toddlerBonus, adolescentBonus, adultBonus, quizBonus, dragonEquipped, quizCorrect) => {
     n = await getDecimal(n);
     minOut = parseInt(minOut);
     maxOut = parseInt(maxOut);
@@ -109,19 +118,31 @@ const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonu
         n += minOut
 
     }
+
     //check if dragon bonus
     switch (dragonEquipped) {
         case "Adult":
-            return n * (1 + (adultBonus / 100))
+            n = n * (1 + (adultBonus / 100))
+            break
         case "Adolescent":
-            return n * (1 + (adolescentBonus / 100))
+            n = n * (1 + (adolescentBonus / 100))
+            break
         case "Toddler":
-            return n * (1 + (toddlerBonus / 100))
+            n = n * (1 + (toddlerBonus / 100))
+            break
         case "Baby":
-            return n * (1 + (babyBonus / 100))
+            n = n * (1 + (babyBonus / 100))
+            break
         case "No":
-            return n
+            //no change
+            break
     }
+
+    if (quizCorrect) {
+        n = n * (1 + (quizBonus / 100))
+    }
+
+    return n
 }
 
 const getMinMaxMedian = (voteAmounts, criticalValue) => {
@@ -196,9 +217,10 @@ export const generateCalls = async (referendumIndex: BN) => {
     const rng = seedrandom(referendumIndex.toString() + config.seed);
 
 
-    const {referendum, totalIssuance, votes } = await getConvictionVoting(54);
-    const voteLocks = await getLocks(votes, referendum.confirmationBlockNumber)
+    const { referendum, totalIssuance, votes } = await getConvictionVoting(99);
     logger.info("Number of votes: ", votes.length)
+
+    const voteLocks = await getLocks(votes, referendum.confirmationBlockNumber)
 
 
 
@@ -242,15 +264,119 @@ export const generateCalls = async (referendumIndex: BN) => {
         return { ...vote, dragonEquipped }
     })
 
-    if (settings.isTest) {
-        const votesAddresses = votes.map(vote => {
-            return vote.address.toString()
-        })
-        fs.writeFile(`assets/frame/votes/${referendumIndex}.json`, JSON.stringify(votesAddresses), (err) => {
-            // In case of a error throw err.
-            if (err) throw err;
-        })
+
+    //check quizzes
+    //make sure indexer is up to date
+    const queryIndexerBlock = `
+    query {
+        squidStatus {
+          height
+        }
+      }
+  `;
+
+    interface IndexerBlock {
+        height: number;
     }
+
+    let indexerBlock;
+    // Fetch the data using the query
+    (async () => {
+        try {
+            indexerBlock = (await client.request<{ indexerBlock: IndexerBlock }>(queryQuizSubmissions)).indexerBlock.height;
+        } catch (error) {
+            logger.error(error)
+        }
+    })();
+
+    if (indexerBlock < blockNumber) {
+        //indexer has not caught up to end block yet
+        logger.info("Indexer has not caught up to endBlock of Referendum and is possibly stuck")
+        return
+    }
+
+    // Define the GraphQL query
+    const queryQuizSubmissions = `
+  query {
+    quizSubmissions(where: {governanceVersion_eq: 2, referendumIndex_eq: 34}) {
+        blockNumber,
+        quizId,
+        timestamp,
+        version,
+        wallet,
+        answers {
+            isCorrect
+        }
+      }
+  }
+`;
+
+    // Instantiate the GraphQL client
+    const client = new GraphQLClient('https://squid.subsquid.io/referenda-dashboard/v/0/graphql');
+
+    interface QuizSubmission {
+        blockNumber: number;
+        quizId: string;
+        timestamp: string;
+        version: string;
+        wallet: string;
+        answers: Answer[];
+    }
+
+    interface Answer {
+        isCorrect: boolean;
+    }
+    let quizSubmissions;
+    // Fetch the data using the query
+    (async () => {
+        try {
+            quizSubmissions = (await client.request<{ quizSubmissions: QuizSubmission[] }>(queryQuizSubmissions)).quizSubmissions;
+        } catch (error) {
+            logger.error(error)
+        }
+    })();
+
+    //loop over votes and add a quiz correct number to each
+    const votesWithDragonAndQuiz = votesWithDragon.map((vote) => {
+        const walletSubmissions = quizSubmissions.filter(submission => submission.wallet === vote.address);
+
+        // Get the latest submission
+        const latestSubmission = walletSubmissions.reduce((latest, submission) => {
+            return submission.blockNumber > latest.blockNumber ? submission : latest;
+        }, walletSubmissions[0]);
+
+        // Loop over the answers array and check if each answer is correct
+        const someAnswersMissingCorrect = latestSubmission.answers.some(answer => answer.isCorrect === null || answer.isCorrect === undefined);
+
+        // If any answers are incorrect, throw an error
+        if (someAnswersMissingCorrect) {
+            logger.info("Some answers are missing correct answer");
+            return;
+        }
+
+        // Loop over the answers array and check if each answer is correct
+        const allAnswersCorrect = latestSubmission.answers.every(answer => answer.isCorrect);
+
+        // Return 1 if all answers are correct, otherwise return 0
+        const quizCorrect = allAnswersCorrect ? 1 : 0;
+
+        return { ...vote, quizCorrect }
+    })
+
+
+    //check kilt credentials
+    //check if kusama address has a linked kilt did
+    //
+
+    // if (settings.isTest) {
+    //     const votesAddresses = votes.map(vote => {
+    //         return vote.address.toString()
+    //     })
+    //     fs.writeFile(`assets/frame/votes/${referendumIndex}.json`, JSON.stringify(votes), (err) => {
+    //         // In case of a error throw err.
+    //         if (err) throw err;
+    //     })
+    // }
 
     const mappedVotes = await checkVotesMeetingRequirements(votesWithDragon, totalIssuance.toString(), config)
 
@@ -283,7 +409,6 @@ export const generateCalls = async (referendumIndex: BN) => {
     logger.info("maxValue", maxValue)
     config.median = median
     logger.info("median", median)
-    await sleep(10000);
 
     let selectedIndexArray = [];
     for (const vote of mappedVotes) {
@@ -306,7 +431,9 @@ export const generateCalls = async (referendumIndex: BN) => {
                             config.toddlerBonus,
                             config.adolescentBonus,
                             config.adultBonus,
-                            vote.dragonEquipped)
+                            config.quizBonus,
+                            vote.dragonEquipped,
+                            vote.quizCorrect)
                     }
                     else {
                         chance = await calculateLuck(vote.lockedWithConviction.toString(),
@@ -319,7 +446,9 @@ export const generateCalls = async (referendumIndex: BN) => {
                             config.toddlerBonus,
                             config.adolescentBonus,
                             config.adultBonus,
-                            vote.dragonEquipped)
+                            config.quizBonus,
+                            vote.dragonEquipped,
+                            vote.quizCorrect)
                     }
                     zeroOrOne = getRandom(rng, [chance / 100, (100 - chance) / 100]);
                     if (zeroOrOne === 0 && selectedIndex == null) {
@@ -400,8 +529,6 @@ export const generateCalls = async (referendumIndex: BN) => {
 
     }
     logger.info("collectionID Item: ", itemCollectionId)
-
-    await sleep(10000);
 
     const metadataCids = []
     for (const option of config.options) {
@@ -511,8 +638,6 @@ export const generateCalls = async (referendumIndex: BN) => {
         // weights.push(option.probability)
     }
     logger.info("metadataCids", metadataCids);
-
-    let chunkCount = 0
 
     let resourceCids = []
     for (const option of config.options) {
@@ -721,9 +846,9 @@ export const generateCalls = async (referendumIndex: BN) => {
     let distributionAndConfigRemarks = []
     logger.info("Writing Distribution and Config to Chain")
     //write distribution to chain
-    distributionAndConfigRemarks.push('PROOFOFCHAOS2::' + referendumIndex.toString() + '::DISTRIBUTION::' + JSON.stringify(distribution))
+    // distributionAndConfigRemarks.push('PROOFOFCHAOS2::' + referendumIndex.toString() + '::DISTRIBUTION::' + JSON.stringify(distribution))
     //write config to chain
-    distributionAndConfigRemarks.push('PROOFOFCHAOS2::' + referendumIndex.toString() + '::CONFIG::' + JSON.stringify(config))
+    // distributionAndConfigRemarks.push('PROOFOFCHAOS2::' + referendumIndex.toString() + '::CONFIG::' + JSON.stringify(config))
     // if (!settings.isTest) {
     //     logger.info("distributionAndConfigRemarks: ", JSON.stringify(distributionAndConfigRemarks))
     // }
