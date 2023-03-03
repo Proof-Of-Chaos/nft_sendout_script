@@ -12,7 +12,7 @@ import { createNewCollection } from "./createNewCollection.js";
 import { useAccountLocksImpl } from "./locks.js";
 import { getSettings } from "../tools/settings.js";
 import pinataSDK from "@pinata/sdk";
-import { getApiAt, getConvictionVoting } from "./chainData.js";
+import { getApiAt, getConvictionVoting, getDenom } from "./chainData.js";
 import { GraphQLClient } from 'graphql-request';
 
 const getLocks = async (votes: ConvictionVote[], endBlock: number) => {
@@ -26,13 +26,6 @@ const getLocks = async (votes: ConvictionVote[], endBlock: number) => {
         let maxLockedWithConviction = new BN(0);
         // api, vote.account, trackId
         const userVotes = await useAccountLocksImpl(api, 'referenda', 'convictionVoting', vote.address.toString())
-        if (vote.address.toString() == "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic") {
-            console.log(endBlock)
-            console.log(sevenDaysBlocks.toString())
-            userVotes.forEach((vote) => {
-                console.log(vote.endBlock.toString(), vote.refId.toString(), vote.total.toString())
-            })
-        }
         let userLockedBalancesWithConviction: BN[] = []
         userVotes.map((userVote) => {
             if (userVote.endBlock.sub(endBlockBN).gte(new BN(0)) || userVote.endBlock.eqn(0)) {
@@ -326,7 +319,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     interface Answer {
         isCorrect: boolean;
     }
-    let quizSubmissions;
+    let quizSubmissions = [];
     // Fetch the data using the query
     (async () => {
         try {
@@ -340,6 +333,9 @@ export const generateCalls = async (referendumIndex: BN) => {
     const votesWithDragonAndQuiz = votesWithDragon.map((vote) => {
         const walletSubmissions = quizSubmissions.filter(submission => submission.wallet === vote.address);
 
+        if (walletSubmissions.length == 0) {
+            return { ...vote, quizCorrect: 0 }
+        }
         // Get the latest submission
         const latestSubmission = walletSubmissions.reduce((latest, submission) => {
             return submission.blockNumber > latest.blockNumber ? submission : latest;
@@ -378,7 +374,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     //     })
     // }
 
-    const mappedVotes = await checkVotesMeetingRequirements(votesWithDragon, totalIssuance.toString(), config)
+    const mappedVotes = await checkVotesMeetingRequirements(votesWithDragonAndQuiz, totalIssuance.toString(), config)
 
     const votesMeetingRequirements = mappedVotes.filter(vote => {
         return vote.meetsRequirements
@@ -409,14 +405,14 @@ export const generateCalls = async (referendumIndex: BN) => {
     logger.info("maxValue", maxValue)
     config.median = median
     logger.info("median", median)
-
+    const denom = await getDenom();
     let selectedIndexArray = [];
     for (const vote of mappedVotes) {
         let chance;
         let selectedIndex;
         let zeroOrOne;
         let counter = 0;
-        let chances = [];
+        let chances = {};
         if (vote.meetsRequirements) {
             for (const option of config.options) {
                 if (counter < config.options.length - 1) {
@@ -457,25 +453,25 @@ export const generateCalls = async (referendumIndex: BN) => {
                 }
 
                 if (counter === config.options.length - 1) {
-                    chances.push(100 - chance)
+                    chances[option.rarity] = 100 - chance
                     if (selectedIndex == null) {
                         selectedIndex = counter
                     }
                 }
                 else {
-                    chances.push(chance)
+                    chances[option.rarity] = chance
                 }
                 counter++;
             }
             distribution.push({
                 wallet: vote.address.toString(),
-                amountConsidered: vote.lockedWithConviction.toString(),
+                amountConsidered: (vote.lockedWithConviction / denom).toString(),
                 chances,
                 selectedIndex,
                 dragonEquipped: vote.dragonEquipped,
                 meetsRequirements: vote.meetsRequirements,
-                quizCorrect: null,
-                identity: null,
+                quizCorrect: vote.quizCorrect,
+                identityScore: null,
             })
             selectedIndexArray.push(selectedIndex)
         }
@@ -485,13 +481,13 @@ export const generateCalls = async (referendumIndex: BN) => {
             chances.push(100)
             distribution.push({
                 wallet: vote.address.toString(),
-                amountConsidered: vote.lockedWithConviction.toString(),
+                amountConsidered: (vote.lockedWithConviction / denom).toString(),
                 chances,
                 selectedIndex: commonIndex,
                 dragonEquipped: vote.dragonEquipped,
                 meetsRequirements: vote.meetsRequirements,
-                quizCorrect: null,
-                identity: null,
+                quizCorrect: vote.quizCorrect,
+                identityScore: null,
             })
             selectedIndexArray.push(commonIndex)
         }
@@ -531,100 +527,76 @@ export const generateCalls = async (referendumIndex: BN) => {
     logger.info("collectionID Item: ", itemCollectionId)
 
     const metadataCids = []
+    const attributes = []
     for (const option of config.options) {
-        const rarityAttribute = {
-            type: "string",
-            value: option.rarity,
-        }
-        const supplyAttribute = {
-            type: "number",
-            value: uniqs[config.options.indexOf(option).toString()],
-        }
-        const artistAttribute = {
-            type: "string",
-            value: option.artist,
-        }
-        const creativeDirectorAttribute = {
-            type: "string",
-            value: option.creativeDirector,
-        }
-        const refIndexAttribute = {
-            type: "string",
-            value: referendumIndex.toString(),
-        }
-        const nameAttribute = {
-            type: "string",
-            value: option.itemName,
-        }
-        const typeOfVoteDirectAttribute = {
-            type: "string",
-            value: "direct",
-        }
-        const typeOfVoteDelegatedAttribute = {
-            type: "string",
-            value: "delegated",
-        }
+        const attributesDirect = [
+            {
+                name: "rarity",
+                value: option.rarity
+            },
+            {
+                name: "totalSupply",
+                value: uniqs[config.options.indexOf(option).toString()]
+            },
+            {
+                name: "artist",
+                value: option.artist
+            },
+            {
+                name: "creativeDirector",
+                value: option.creativeDirector
+            },
+            {
+                name: "name",
+                value: option.itemName
+            },
+            {
+                name: "typeOfVote",
+                value: "direct"
+            }
+        ]
 
         const metadataCidDirect = await pinSingleMetadataWithoutFile(
             pinata,
             `Referendum ${referendumIndex}`,
             {
                 description: option.text,
-                properties: {
-                    "rarity": {
-                        ...rarityAttribute
-                    },
-                    "total_supply": {
-                        ...supplyAttribute
-                    },
-                    "artist": {
-                        ...artistAttribute
-                    },
-                    "creative_director": {
-                        ...creativeDirectorAttribute
-                    },
-                    "referendum_index": {
-                        ...refIndexAttribute
-                    },
-                    "name": {
-                        ...nameAttribute
-                    },
-                    "type_of_vote": {
-                        ...typeOfVoteDirectAttribute
-                    }
-                }
             }
         );
         option.metadataCidDirect = metadataCidDirect
+
+        const attributesDelegated = [
+            {
+                name: "rarity",
+                value: option.rarity
+            },
+            {
+                name: "totalSupply",
+                value: uniqs[config.options.indexOf(option).toString()]
+            },
+            {
+                name: "artist",
+                value: option.artist
+            },
+            {
+                name: "creativeDirector",
+                value: option.creativeDirector
+            },
+            {
+                name: "name",
+                value: option.itemName
+            },
+            {
+                name: "typeOfVote",
+                value: "delegated"
+            }
+        ]
 
         const metadataCidDelegated = await pinSingleMetadataWithoutFile(
             pinata,
             `Referendum ${referendumIndex}`,
             {
                 description: option.text,
-                properties: {
-                    "rarity": {
-                        ...rarityAttribute
-                    },
-                    "total_supply": {
-                        ...supplyAttribute
-                    },
-                    "artist": {
-                        ...artistAttribute
-                    },
-                    "creative_director": {
-                        ...creativeDirectorAttribute
-                    },
-                    "referendum_index": {
-                        ...refIndexAttribute
-                    },
-                    "name": {
-                        ...nameAttribute
-                    },
-                    "type_of_vote": {
-                        ...typeOfVoteDelegatedAttribute
-                    }
-                }
             }
         );
         option.metadataCidDelegated = metadataCidDelegated
@@ -635,137 +607,10 @@ export const generateCalls = async (referendumIndex: BN) => {
         }
 
         metadataCids.push([metadataCidDirect, metadataCidDelegated])
+        attributes.push([attributesDirect, attributesDelegated])
         // weights.push(option.probability)
     }
     logger.info("metadataCids", metadataCids);
-
-    let resourceCids = []
-    for (const option of config.options) {
-        let optionResourceCids = []
-        for (let i = 0; i < option.resources.length; i++) {
-            const resource = option.resources[i]
-            let mainCid = await pinSingleFileFromDir(pinata,
-                "/assets/frame/referenda",
-                resource.main,
-                resource.name)
-            let thumbCid = await pinSingleFileFromDir(pinata,
-                "/assets/frame/referenda",
-                resource.thumb,
-                resource.name + "_thumb")
-            option.resources[i].mainCid = "ipfs://ipfs/" + mainCid
-            option.resources[i].thumbCid = "ipfs://ipfs/" + thumbCid
-            optionResourceCids.push([mainCid, thumbCid])
-        }
-        resourceCids.push(optionResourceCids)
-    }
-
-    logger.info("resourceCids", resourceCids);
-
-    let resourceMetadataCids = []
-    for (const option of config.options) {
-        let optionResourceMetadataCids = []
-        for (let i = 0; i < option.resources.length; i++) {
-            const resource = option.resources[i]
-            const rarityAttribute = {
-                type: "string",
-                value: resource.rarity,
-            }
-            const supplyAttribute = {
-                type: "number",
-                value: uniqs[config.options.indexOf(option).toString()],
-            }
-            const artistAttribute = {
-                type: "string",
-                value: resource.artist,
-            }
-            const creativeDirectorAttribute = {
-                type: "string",
-                value: resource.creativeDirector,
-            }
-            const refIndexAttribute = {
-                type: "string",
-                value: referendumIndex.toString(),
-            }
-            const nameAttribute = {
-                type: "string",
-                value: resource.itemName,
-            }
-            const typeOfVoteDirectAttribute = {
-                type: "string",
-                value: "direct",
-            }
-            const typeOfVoteDelegatedAttribute = {
-                type: "string",
-                value: "delegated",
-            }
-            const metadataResourceDirect = await pinSingleMetadataWithoutFile(
-                pinata,
-                `Referendum ${referendumIndex}`,
-                {
-                    description: resource.text,
-                    properties: {
-                        "rarity": {
-                            ...rarityAttribute
-                        },
-                        "total_supply": {
-                            ...supplyAttribute
-                        },
-                        "artist": {
-                            ...artistAttribute
-                        },
-                        "creative_director": {
-                            ...creativeDirectorAttribute
-                        },
-                        "referendum_index": {
-                            ...refIndexAttribute
-                        },
-                        "name": {
-                            ...nameAttribute
-                        },
-                        "type_of_vote": {
-                            ...typeOfVoteDirectAttribute
-                        }
-                    }
-                }
-            );
-            option.resources[i].metadataCidDirect = metadataResourceDirect
-
-            const metadataResourceDelegated = await pinSingleMetadataWithoutFile(
-                pinata,
-                `Referendum ${referendumIndex}`,
-                {
-                    description: resource.text,
-                    properties: {
-                        "rarity": {
-                            ...rarityAttribute
-                        },
-                        "total_supply": {
-                            ...supplyAttribute
-                        },
-                        "artist": {
-                            ...artistAttribute
-                        },
-                        "creative_director": {
-                            ...creativeDirectorAttribute
-                        },
-                        "referendum_index": {
-                            ...refIndexAttribute
-                        },
-                        "name": {
-                            ...nameAttribute
-                        },
-                        "type_of_vote": {
-                            ...typeOfVoteDelegatedAttribute
-                        }
-                    }
-                }
-            );
-            option.resources[i].metadataCidDelegated = metadataResourceDelegated
-
-            optionResourceMetadataCids.push([metadataResourceDirect, metadataResourceDelegated])
-        }
-        resourceMetadataCids.push(optionResourceMetadataCids)
-    }
 
     if (settings.isTest) {
         fs.writeFile(`assets/frame/sendoutConfig/${referendumIndex}.json`, JSON.stringify(config), (err) => {
@@ -774,16 +619,9 @@ export const generateCalls = async (referendumIndex: BN) => {
         })
     }
 
-
-    logger.info("resourceMetadataCids", resourceMetadataCids);
-
-
-    for (let i = 0; i < 2; i++) {
-        const mintRemarks: string[] = [];
+    for (let i = 0; i < mappedVotes.length; i++) {
         let usedMetadataCids: string[] = [];
-        let usedResourceMetadataCids: string[] = [];
         let selectedOptions = [];
-        let count = 0;
 
         const vote = mappedVotes[i]
         const selectedOption = config.options[selectedIndexArray[i]];
@@ -792,27 +630,37 @@ export const generateCalls = async (referendumIndex: BN) => {
 
         let metadataCid = vote.isDelegating ? selectedMetadata[1] : selectedMetadata[0]
         const randRoyaltyInRange = Math.floor(rng() * (selectedOption.maxRoyalty - selectedOption.minRoyalty + 1) + selectedOption.minRoyalty)
-        // const itemRoyaltyProperty = {
-        //     type: "royalty",
-        //     value: {
-        //         receiver: encodeAddress(account.address, parseInt(settings.network.prefix)),
-        //         royaltyPercentFloat: vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty
-        //     }
-        // }
         if (!metadataCid) {
             logger.error(`metadataCid is null. exiting.`)
             return;
         }
         usedMetadataCids.push(metadataCid);
-
-        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet)))
-        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, false)))
-        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty)))
-        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc")))
-        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString())))
+        if (vote.address.toString() == "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic") {
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, false)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc")))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", distribution[i].amountConsidered)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "voteDirection", vote.voteDirection)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "aye", vote.balance.aye || 0)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay || 0)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "abstain", vote.balance.abstain || 0)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "delegatedConvictionBalance", vote.delegatedConvictionBalance || 0)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", distribution[i].chances.epic)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "identityScore", distribution[i].identityScore)))
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex.toString())))
+            for (const attribute of vote.isDelegating ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
+                txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value)))
+            }
+            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString())))
+        }
     }
     const batchtx = apiStatemine.tx.utility.batch(txs).toHex()
-    fs.writeFile(`assets/output/${referendumIndex}.json`, JSON.stringify(batchtx), (err) => {
+    fs.writeFile(`assets/output/${referendumIndex}.json`, batchtx, (err) => {
         // In case of a error throw err.
         if (err) throw err;
     })
@@ -837,11 +685,11 @@ export const generateCalls = async (referendumIndex: BN) => {
             }
         }
     }
-    const finalCall = apiKusama.tx.xcmPallet.send(dest, message)
-    fs.writeFile(`assets/output/1.json`, JSON.stringify(finalCall), (err) => {
-        // In case of a error throw err.
-        if (err) throw err;
-    })
+    // const finalCall = apiKusama.tx.xcmPallet.send(dest, message)
+    // fs.writeFile(`assets/output/1.json`, JSON.stringify(finalCall), (err) => {
+    //     // In case of a error throw err.
+    //     if (err) throw err;
+    // })
 
     let distributionAndConfigRemarks = []
     logger.info("Writing Distribution and Config to Chain")
