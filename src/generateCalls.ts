@@ -2,7 +2,7 @@ import seedrandom from "seedrandom";
 // import { params } from "../config.js";
 import { BN } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
-import { pinSingleFileFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
+import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
 import { ConvictionVote, VoteConvictionDragon } from "../types.js";
 import { getApiKusama, getApiStatemine, getDecimal, initAccount } from "../tools/substrateUtils.js";
@@ -14,6 +14,7 @@ import { getSettings } from "../tools/settings.js";
 import pinataSDK from "@pinata/sdk";
 import { getApiAt, getConvictionVoting, getDenom } from "./chainData.js";
 import { GraphQLClient } from 'graphql-request';
+import { MultiAddress } from "@polkadot/types/interfaces/types.js";
 
 const getLocks = async (votes: ConvictionVote[], endBlock: number) => {
     const api = await getApiAt(endBlock)
@@ -135,7 +136,7 @@ const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonu
         n = n * (1 + (quizBonus / 100))
     }
 
-    return n
+    return n.toFixed(2)
 }
 
 const getMinMaxMedian = (voteAmounts, criticalValue) => {
@@ -268,15 +269,17 @@ export const generateCalls = async (referendumIndex: BN) => {
       }
   `;
 
-    interface IndexerBlock {
+    interface SquidStatus {
         height: number;
     }
 
     let indexerBlock;
+    // Instantiate the GraphQL client
+    const client = new GraphQLClient('https://squid.subsquid.io/referenda-dashboard/v/0/graphql');
     // Fetch the data using the query
     (async () => {
         try {
-            indexerBlock = (await client.request<{ indexerBlock: IndexerBlock }>(queryQuizSubmissions)).indexerBlock.height;
+            indexerBlock = (await client.request<{ squidStatus: SquidStatus }>(queryIndexerBlock)).squidStatus.height;
         } catch (error) {
             logger.error(error)
         }
@@ -304,8 +307,7 @@ export const generateCalls = async (referendumIndex: BN) => {
   }
 `;
 
-    // Instantiate the GraphQL client
-    const client = new GraphQLClient('https://squid.subsquid.io/referenda-dashboard/v/0/graphql');
+
 
     interface QuizSubmission {
         blockNumber: number;
@@ -421,7 +423,7 @@ export const generateCalls = async (referendumIndex: BN) => {
                             minValue,
                             median,
                             option.minProbability,
-                            option.sweetspotProbability,
+                            (option.maxProbability + option.minProbability) / 2,
                             3,
                             config.babyBonus,
                             config.toddlerBonus,
@@ -435,7 +437,7 @@ export const generateCalls = async (referendumIndex: BN) => {
                         chance = await calculateLuck(vote.lockedWithConviction.toString(),
                             median,
                             maxValue,
-                            option.sweetspotProbability,
+                            (option.maxProbability + option.minProbability) / 2,
                             option.maxProbability,
                             0.4,
                             config.babyBonus,
@@ -471,14 +473,13 @@ export const generateCalls = async (referendumIndex: BN) => {
                 dragonEquipped: vote.dragonEquipped,
                 meetsRequirements: vote.meetsRequirements,
                 quizCorrect: vote.quizCorrect,
-                identityScore: null,
+                identityScore: "0",
             })
             selectedIndexArray.push(selectedIndex)
         }
         else {
             const commonIndex = config.options.length - 1
-            const chances = new Array(commonIndex).fill(0)
-            chances.push(100)
+            const chances = {"epic": 0, "rare": 0, "common": 100};
             distribution.push({
                 wallet: vote.address.toString(),
                 amountConsidered: (vote.lockedWithConviction / denom).toString(),
@@ -487,7 +488,7 @@ export const generateCalls = async (referendumIndex: BN) => {
                 dragonEquipped: vote.dragonEquipped,
                 meetsRequirements: vote.meetsRequirements,
                 quizCorrect: vote.quizCorrect,
-                identityScore: null,
+                identityScore: "0",
             })
             selectedIndexArray.push(commonIndex)
         }
@@ -509,16 +510,22 @@ export const generateCalls = async (referendumIndex: BN) => {
     //create collection if required
     config.newCollectionMetadataCid = ""
     let txs = [];
-    const proxyWallet = "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc";
+    const proxyWallet = "D3iNikJw3cPq6SasyQCy3k4Y77ZeecgdweTWoSegomHznG3";
     const proxyWalletSignature = {
         system: {
             Signed: proxyWallet
         }
     }
+    const proxyWalletAdmin = {
+        Id: proxyWallet
+    }
     if (config.createNewCollection) {
-        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.create(config.newCollectionSymbol, proxyWallet)))
-        config.newCollectionMetadataCid = await createNewCollection(pinata, account.address, config);
-        txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setCollectionMetadata(config.newCollectionSymbol, config.newCollectionMetadataCid, false)))
+        txs.push(apiStatemine.tx.uniques.create(config.newCollectionSymbol, proxyWallet))
+        config.newCollectionMetadataCid = await createNewCollection(pinata, config);
+        txs.push(apiStatemine.tx.uniques.setCollectionMetadata(config.newCollectionSymbol, config.newCollectionMetadataCid, true))
+        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.create(config.newCollectionSymbol, proxyWallet)))
+        // config.newCollectionMetadataCid = await createNewCollection(pinata, account.address, config);
+        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setCollectionMetadata(config.newCollectionSymbol, config.newCollectionMetadataCid, false)))
     }
     else {
         // use a default collection
@@ -555,12 +562,13 @@ export const generateCalls = async (referendumIndex: BN) => {
                 value: "direct"
             }
         ]
-
-        const metadataCidDirect = await pinSingleMetadataWithoutFile(
+        const metadataCidDirect = await pinSingleMetadataFromDir(
             pinata,
+            "/assets/frame/referenda",
+            option.main,
             `Referendum ${referendumIndex}`,
             {
-                description: option.text,
+                description: option.text
             }
         );
         option.metadataCidDirect = metadataCidDirect
@@ -592,11 +600,13 @@ export const generateCalls = async (referendumIndex: BN) => {
             }
         ]
 
-        const metadataCidDelegated = await pinSingleMetadataWithoutFile(
+        const metadataCidDelegated = await pinSingleMetadataFromDir(
             pinata,
+            "/assets/frame/referenda",
+            option.main,
             `Referendum ${referendumIndex}`,
             {
-                description: option.text,
+                description: option.text
             }
         );
         option.metadataCidDelegated = metadataCidDelegated
@@ -608,7 +618,6 @@ export const generateCalls = async (referendumIndex: BN) => {
 
         metadataCids.push([metadataCidDirect, metadataCidDelegated])
         attributes.push([attributesDirect, attributesDelegated])
-        // weights.push(option.probability)
     }
     logger.info("metadataCids", metadataCids);
 
@@ -635,31 +644,55 @@ export const generateCalls = async (referendumIndex: BN) => {
             return;
         }
         usedMetadataCids.push(metadataCid);
-        if (vote.address.toString() == "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic") {
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, false)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc")))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", distribution[i].amountConsidered)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "voteDirection", vote.voteDirection)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "aye", vote.balance.aye || 0)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay || 0)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "abstain", vote.balance.abstain || 0)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "delegatedConvictionBalance", vote.delegatedConvictionBalance || 0)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", distribution[i].chances.epic)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "identityScore", distribution[i].identityScore)))
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex.toString())))
+        // if (vote.address.toString() == "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic") {
+            txs.push(apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc"))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", distribution[i].amountConsidered))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "voteDirection", vote.voteDirection))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "aye", vote.balance.aye.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "abstain", vote.balance.abstain.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "delegatedConvictionBalance", vote.delegatedConvictionBalance.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", distribution[i].chances.epic.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "wallet", vote.address.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect.toString()))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "identityScore", distribution[i].identityScore))
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex.toString()))
             for (const attribute of vote.isDelegating ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
-                txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value)))
+                txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value))
             }
-            txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString())))
-        }
+            txs.push(apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, true))
+            txs.push(apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString()))
+
+
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, true)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc")))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", distribution[i].amountConsidered)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "voteDirection", vote.voteDirection)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "aye", vote.balance.aye || 0)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay || 0)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "abstain", vote.balance.abstain || 0)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "delegatedConvictionBalance", vote.delegatedConvictionBalance || 0)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", distribution[i].chances.epic)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "identityScore", distribution[i].identityScore)))
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex.toString())))
+            // for (const attribute of vote.isDelegating ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
+            //     txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value)))
+            // }
+            // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString())))
+        // }
     }
-    const batchtx = apiStatemine.tx.utility.batch(txs).toHex()
+    const batchtx = apiStatemine.tx.utility.batchAll(txs).toHex()
     fs.writeFile(`assets/output/${referendumIndex}.json`, batchtx, (err) => {
         // In case of a error throw err.
         if (err) throw err;
