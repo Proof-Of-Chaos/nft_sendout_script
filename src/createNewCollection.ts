@@ -5,16 +5,8 @@ import { encodeAddress } from "@polkadot/util-crypto";
 import { pinSingleMetadataFromDir } from "../tools/pinataUtils.js";
 // import { getApi, getApiTest, sendAndFinalize } from "../tools/substrateUtils.js";
 
-export const createNewCollection = async (pinata, address, settings) => {
+export const createNewCollection = async (pinata, settings) => {
     try {
-        const royaltyProperty = {
-            type: "royalty",
-            value: {
-                receiver: encodeAddress(address, settings.network.prefix),
-                royaltyPercentFloat: 5
-            }
-        }
-
         const collectionMetadataCid = await pinSingleMetadataFromDir(
             pinata,
             settings.newCollectionPath,
@@ -23,11 +15,6 @@ export const createNewCollection = async (pinata, address, settings) => {
             {
                 description: settings.newCollectionDescription,
                 external_url: "https://www.proofofchaos.app/",
-                properties: {
-                    royaltyInfo: {
-                        ...royaltyProperty
-                    }
-                },
             }
         );
         return collectionMetadataCid
