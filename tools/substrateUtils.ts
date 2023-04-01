@@ -9,6 +9,7 @@ import { logger } from "./logger.js";
 import { CodecHash, EventRecord } from '@polkadot/types/interfaces';
 import { sleep } from "./utils.js";
 import BigNumber from "bignumber.js";
+import { options } from "../src/options.js";
 
 // 'wss://staging.node.rmrk.app'
 
@@ -24,31 +25,28 @@ const WS_ENDPOINTS_STATEMINE = [
   'wss://statemine-rpc.dwellir.com'
 ];
 
-const WS_ENDPOINTS_TEST = [
-  'wss://staging.node.rmrk.app'
+const WS_ENDPOINTS_ENCOINTER = [
+  'wss://encointer.api.onfinality.io/public-ws',
+  'wss://sys.ibp.network/encointer-kusama',
+  'wss://sys.dotters.network/encointer-kusama',
+  'wss://kusama.api.enointer.org'
 ];
 
 const MAX_RETRIES = 15;
 const WS_DISCONNECT_TIMEOUT_SECONDS = 20;
 const RETRY_DELAY_SECONDS = 20;
 
-interface ISendTxReturnType {
-  success: boolean;
-  hash?: CodecHash;
-  included: EventRecord[];
-  finalized: EventRecord[];
-  block: number;
-}
-
 let wsProviderKusama: WsProvider;
 let polkadotApiKusama: ApiPromise;
-let wsProviderKusamaTest: WsProvider;
-let polkadotApiKusamaTest: ApiPromise;
 let healthCheckInProgressKusama = false;
 
 let wsProviderStatemine: WsProvider;
 let polkadotApiStatemine: ApiPromise;
 let healthCheckInProgressStatemine = false;
+
+let wsProviderEncointer: WsProvider;
+let polkadotApiEncointer: ApiPromise;
+let healthCheckInProgressEncointer = false;
 
 /**
  *
@@ -100,6 +98,34 @@ const providerHealthCheckKusama = async (wsEndpoints: string[]) => {
     await wsProviderStatemine.disconnect();
 
     healthCheckInProgressStatemine = false;
+    throw new Error(
+      `rpc endpoint ${primaryEndpoint} still disconnected after ${WS_DISCONNECT_TIMEOUT_SECONDS} seconds.`,
+    );
+  }
+};
+
+/**
+ *
+ * @param wsEndpoints - array of rpc ws endpoints. In the order of their priority
+ */
+const providerHealthCheckEncointer = async (wsEndpoints: string[]) => {
+  const [primaryEndpoint, secondaryEndpoint, ...otherEndpoints] = wsEndpoints;
+  logger.info(
+    `Performing ${WS_DISCONNECT_TIMEOUT_SECONDS} seconds health check for WS Provider fro rpc ${primaryEndpoint}.`,
+  );
+  healthCheckInProgressEncointer = true;
+  await sleep(WS_DISCONNECT_TIMEOUT_SECONDS * 1000);
+  if (wsProviderEncointer.isConnected) {
+    logger.info(`All good. Connected back to ${primaryEndpoint}`);
+    healthCheckInProgressEncointer = false;
+    return true;
+  } else {
+    logger.info(
+      `rpc endpoint ${primaryEndpoint} still disconnected after ${WS_DISCONNECT_TIMEOUT_SECONDS} seconds. Disconnecting from ${primaryEndpoint} and switching to a backup rpc endpoint ${secondaryEndpoint}`,
+    );
+    await wsProviderEncointer.disconnect();
+
+    healthCheckInProgressEncointer = false;
     throw new Error(
       `rpc endpoint ${primaryEndpoint} still disconnected after ${WS_DISCONNECT_TIMEOUT_SECONDS} seconds.`,
     );
@@ -180,6 +206,43 @@ const getProviderKusama = async (wsEndpoints: string[]) => {
   });
 };
 
+/**
+ *
+ * @param wsEndpoints - array of rpc ws endpoints. In the order of their priority
+ */
+const getProviderEncointer = async (wsEndpoints: string[]) => {
+  const [primaryEndpoint, ...otherEndpoints] = wsEndpoints;
+  return await new Promise<WsProvider | undefined>((resolve, reject) => {
+    wsProviderEncointer = new WsProvider(primaryEndpoint);
+    wsProviderEncointer.on('disconnected', async () => {
+      logger.info(`WS provider for rpc ${primaryEndpoint} disconnected!`);
+      if (!healthCheckInProgressEncointer) {
+        try {
+          await providerHealthCheckEncointer(wsEndpoints);
+          resolve(wsProviderEncointer);
+        } catch (error: any) {
+          reject(error);
+        }
+      }
+    });
+    wsProviderEncointer.on('connected', () => {
+      logger.info(`WS provider for rpc ${primaryEndpoint} connected`);
+      resolve(wsProviderEncointer);
+    });
+    wsProviderEncointer.on('error', async () => {
+      logger.info(`Error thrown for rpc ${primaryEndpoint}`);
+      if (!healthCheckInProgressEncointer) {
+        try {
+          await providerHealthCheckEncointer(wsEndpoints);
+          resolve(wsProviderEncointer);
+        } catch (error: any) {
+          reject(error);
+        }
+      }
+    });
+  });
+};
+
 
 /**
  *
@@ -230,24 +293,24 @@ export const getApiStatemine = async (
   }
 };
 
-export const getApiTest = async (
-  wsEndpoints: string[] = WS_ENDPOINTS_TEST,
+export const getApiEncointer = async (
+  wsEndpoints: string[] = WS_ENDPOINTS_ENCOINTER,
   retry = 0,
 ): Promise<ApiPromise> => {
-  if (wsProviderKusamaTest && polkadotApiKusamaTest && polkadotApiKusamaTest.isConnected) return polkadotApiKusamaTest;
+  if (wsProviderEncointer && polkadotApiEncointer && polkadotApiEncointer.isConnected) return polkadotApiEncointer;
   const [primaryEndpoint, secondaryEndpoint, ...otherEndpoints] = wsEndpoints;
 
   try {
     const provider = await getProviderKusama(wsEndpoints);
-    polkadotApiKusamaTest = await ApiPromise.create({ provider });
-    await polkadotApiKusamaTest.isReady;
-    return polkadotApiKusamaTest;
+    polkadotApiEncointer = await ApiPromise.create({ ...options(), provider });
+    await polkadotApiEncointer.isReady;
+    return polkadotApiEncointer;
   } catch (error: any) {
     if (retry < MAX_RETRIES) {
       // If we have reached maximum number of retries on the primaryEndpoint, let's move it to the end of array and try the secondary endpoint
-      return await getApiTest([secondaryEndpoint, ...otherEndpoints, primaryEndpoint], retry + 1);
+      return await getApiEncointer([secondaryEndpoint, ...otherEndpoints, primaryEndpoint], retry + 1);
     } else {
-      return polkadotApiKusamaTest;
+      return polkadotApiEncointer;
     }
   }
 };

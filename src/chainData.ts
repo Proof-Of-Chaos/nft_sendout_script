@@ -1,4 +1,4 @@
-import { getApiKusama } from "../tools/substrateUtils.js";
+import { getApiEncointer, getApiKusama, getApiStatemine } from "../tools/substrateUtils.js";
 import { BN } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import {
@@ -53,14 +53,40 @@ const getIdentity = async (account: string): Promise<string | null> => {
     return null;
 };
 
-export const getApiAt = async (blockNumber: number): Promise<any> => {
-    const api = await getApiKusama();
-    const hash = await getBlockHash(blockNumber);
+export const getApiAt = async (network: string, blockNumber: number): Promise<any> => {
+    let api;
+    switch (network) {
+        case "kusama":
+            api = await getApiKusama();
+            break;
+        case "encointer":
+            api = await getApiEncointer();
+            break;
+        case "statemine":
+            api = await getApiStatemine();
+            break;
+        default:
+            break;
+    }
+    const hash = await getBlockHash(network, blockNumber);
     return await api.at(hash);
 };
 
-const getBlockHash = async (blockNumber: number): Promise<string> => {
-    const api = await getApiKusama();
+const getBlockHash = async (network: string, blockNumber: number): Promise<string> => {
+    let api;
+    switch (network) {
+        case "kusama":
+            api = await getApiKusama();
+            break;
+        case "encointer":
+            api = await getApiEncointer();
+            break;
+        case "statemine":
+            api = await getApiStatemine();
+            break;
+        default:
+            break;
+    }
     return (await api.rpc.chain.getBlockHash(blockNumber)).toString();
 };
 
@@ -145,7 +171,7 @@ const getOpenGovReferendum = async (referendumIndex: number) => {
             status = "TimedOut";
         }
 
-        const apiAt = await getApiAt(confirmationBlockNumber - 1);
+        const apiAt = await getApiAt("kusama", confirmationBlockNumber - 1);
         // Get the info at the last block before it closed.
         const referendumInfo = await apiAt.query.referenda.referendumInfoFor(
             referendumIndex
@@ -776,7 +802,7 @@ export const getConvictionVoting = async (referendumIndex: number) => {
     // FINISHED REFERENDA
     // Query the delegations for finished referenda at previous block heights
     // for (const [finishedRefIndex, referendum] of finishedReferenda.entries()) {
-    const apiAt = await getApiAt(referendum.confirmationBlockNumber - 1);
+    const apiAt = await getApiAt("kusama", referendum.confirmationBlockNumber - 1);
 
     const votingForAtEnd = await apiAt.query.convictionVoting.votingFor.entries();
 
