@@ -1,6 +1,6 @@
 import seedrandom from "seedrandom";
 // import { params } from "../config.js";
-import { BN } from '@polkadot/util';
+import { BN, u8aToU8a } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
@@ -96,18 +96,36 @@ const getLatestEncointerCeremony = async (): Promise<number> => {
     return parseInt(latestCeremonyIndex.toString());
 }
 
+const getReputationLifetime = async (): Promise<number> => {
+    const api = await getApiEncointer()
+    const reputationLifetime = await api.query.encointerCeremonies.reputationLifetime();
+    return parseInt(reputationLifetime.toString());
+}
+
 const getCeremonyAttendants = async (community: EncointerCommunity, ceremonyIndex: number) => {
     const api = await getApiEncointer();
     const communityIdentifier = api.registry.createType('CommunityIdentifier', {
-        geohash: api.registry.createType('GeoHash', community.geoHash),
-        digest: api.registry.createType('CidDigest', community.digest),
+        geohash: api.registry.createType('GeoHash', u8aToU8a(community.geoHash)),
+        digest: api.registry.createType('CidDigest', u8aToU8a(community.digest)),
     });
     const communityIdentifierWithCeremonyIndex = [
         communityIdentifier,
         ceremonyIndex
     ];
-    const participants = await api.query.encointerCeremonies.participantReputation(communityIdentifierWithCeremonyIndex, null);
-    return participants
+    const participants = await api.query.encointerCeremonies.participantReputation.entries(communityIdentifierWithCeremonyIndex);
+    // for (const participant of participants){
+    //     console.log(participant.toString())
+    // }
+    const participantAddresses = participants.reduce((walletAddresses, currentValue, index) => {
+        if (
+          (currentValue[1].toHuman() === 'VerifiedLinked' || currentValue[1].toHuman() === 'VerifiedUnlinked')
+        ) {
+          walletAddresses.push(participants[index][0].toHuman()[1]);
+        }
+        return walletAddresses;
+      }, []);
+    
+    return participantAddresses
 }
 
 interface EncointerCommunity {
@@ -371,15 +389,26 @@ export const generateCalls = async (referendumIndex: BN) => {
     // const encointerBlock = await getEncointerBlockNumberFromKusama(referendum.confirmationBlockNumber)
     // console.log(encointerBlock)
     const communities: EncointerCommunity[] = await getCurrentEncointerCommunities(referendum.confirmationBlockNumber)
-    const nextCeremony = await getLatestEncointerCeremony()
+    const currentCeremonyIndex = await getLatestEncointerCeremony()
+    const reputationLifetime = await getReputationLifetime()
 
+    const lowerIndex = Math.max(0, currentCeremonyIndex - reputationLifetime);
     let attendants = []
     //for each community get latest 5 ceremony attendants
     for (const community of communities) {
-        for (let index = nextCeremony - 6; index < nextCeremony; index++) {
-            await getCeremonyAttendants(community, index)
+        for (let cIndex = lowerIndex; cIndex < currentCeremonyIndex; cIndex++) {
+            const unformattedAttendants = await getCeremonyAttendants(community, cIndex)
+            attendants.push(unformattedAttendants)
         }
     }
+    const arrayOfReputables = attendants.flat();
+
+    const countPerWallet = arrayOfReputables.reduce((elementCounts, element) => {
+        elementCounts[element] = (elementCounts[element] || 0) + 1;
+        return elementCounts;
+      }, {});
+
+    //apply encointer bonus
 
     let bonusFile = await getDragonBonusFile(referendumIndex);
     if (bonusFile === "") {
