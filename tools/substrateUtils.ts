@@ -301,7 +301,7 @@ export const getApiEncointer = async (
   const [primaryEndpoint, secondaryEndpoint, ...otherEndpoints] = wsEndpoints;
 
   try {
-    const provider = await getProviderKusama(wsEndpoints);
+    const provider = await getProviderEncointer(wsEndpoints);
     polkadotApiEncointer = await ApiPromise.create({ ...options(), provider });
     await polkadotApiEncointer.isReady;
     return polkadotApiEncointer;
