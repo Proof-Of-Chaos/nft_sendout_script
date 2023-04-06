@@ -104,4 +104,45 @@ export type OpenGovReferendum = {
     //alarm
 };
 
+export interface SquidStatus {
+    height: number;
+}
 
+export interface EncointerMetadata {
+    name: string;
+    symbol: string;
+    assets: string;
+    theme: string | null;
+    url: string | null;
+}
+
+export interface EncointerCommunity {
+    name: string;
+    symbol: string;
+    geoHash: string;
+    digest: string;
+}
+
+export interface ParaInclusions {
+    backedCandidates: Array<{
+        candidate: {
+            descriptor: {
+                paraId: number;
+                paraHead: string;
+            };
+        };
+    }>;
+}
+
+export interface QuizSubmission {
+    blockNumber: number;
+    quizId: string;
+    timestamp: string;
+    version: string;
+    wallet: string;
+    answers: Answer[];
+}
+
+interface Answer {
+    isCorrect: boolean;
+}

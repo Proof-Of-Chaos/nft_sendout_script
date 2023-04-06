@@ -4,7 +4,7 @@ import { BN, u8aToU8a } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
-import { ConvictionVote, VoteConvictionDragon } from "../types.js";
+import { ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, SquidStatus, VoteConvictionDragon } from "../types.js";
 import { getApiEncointer, getApiKusama, getApiStatemine, getBlockIndexer, getDecimal, initAccount } from "../tools/substrateUtils.js";
 import { getDragonBonusFile, getConfigFile, sleep } from "../tools/utils.js";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
@@ -128,24 +128,6 @@ const getCeremonyAttendants = async (community: EncointerCommunity, ceremonyInde
     return participantAddresses
 }
 
-interface EncointerCommunity {
-    name: string;
-    symbol: string;
-    geoHash: string;
-    digest: string;
-}
-
-interface ParaInclusions {
-    backedCandidates: Array<{
-        candidate: {
-            descriptor: {
-                paraId: number;
-                paraHead: string;
-            };
-        };
-    }>;
-}
-
 async function getEncointerBlockNumberFromKusama(kusamaBlockNumber: number) {
     const kusamaApi = await getApiKusama();
     const encointerApi = await getApiEncointer();
@@ -175,14 +157,6 @@ async function getEncointerBlockNumberFromKusama(kusamaBlockNumber: number) {
     const encointerBlockHeader = await encointerApi.rpc.chain.getHeader(encointerBlockHeaderHash);
     const encointerBlockNumber = encointerBlockHeader.number.toNumber();
     return encointerBlockNumber;
-}
-
-interface EncointerMetadata {
-    name: string;
-    symbol: string;
-    assets: string;
-    theme: string | null;
-    url: string | null;
 }
 
 const getCurrentEncointerCommunities = async (block: number): Promise<EncointerCommunity[]> => {
@@ -415,10 +389,6 @@ export const generateCalls = async (referendumIndex: BN) => {
       }
   `;
 
-    interface SquidStatus {
-        height: number;
-    }
-
     let indexerBlock;
     // Instantiate the GraphQL client
     const client = new GraphQLClient('https://squid.subsquid.io/referenda-dashboard/v/0/graphql');
@@ -452,19 +422,6 @@ export const generateCalls = async (referendumIndex: BN) => {
       }
   }
 `;
-
-    interface QuizSubmission {
-        blockNumber: number;
-        quizId: string;
-        timestamp: string;
-        version: string;
-        wallet: string;
-        answers: Answer[];
-    }
-
-    interface Answer {
-        isCorrect: boolean;
-    }
     let quizSubmissions = [];
     // Fetch the data using the query
     (async () => {
