@@ -118,13 +118,13 @@ const getCeremonyAttendants = async (community: EncointerCommunity, ceremonyInde
     // }
     const participantAddresses = participants.reduce((walletAddresses, currentValue, index) => {
         if (
-          (currentValue[1].toHuman() === 'VerifiedLinked' || currentValue[1].toHuman() === 'VerifiedUnlinked')
+            (currentValue[1].toHuman() === 'VerifiedLinked' || currentValue[1].toHuman() === 'VerifiedUnlinked')
         ) {
-          walletAddresses.push(participants[index][0].toHuman()[1]);
+            walletAddresses.push(participants[index][0].toHuman()[1]);
         }
         return walletAddresses;
-      }, []);
-    
+    }, []);
+
     return participantAddresses
 }
 
@@ -262,7 +262,7 @@ const getCeremonyCount = async (walletAddress: string, numCeremonies: number, bl
 }
 
 
-const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonus, toddlerBonus, adolescentBonus, adultBonus, quizBonus, dragonEquipped, quizCorrect) => {
+const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonus, toddlerBonus, adolescentBonus, adultBonus, quizBonus, encointerBonus, dragonEquipped, quizCorrect, encointerScore) => {
     n = await getDecimal(n);
     minOut = parseInt(minOut);
     maxOut = parseInt(maxOut);
@@ -304,6 +304,24 @@ const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonu
 
     if (quizCorrect) {
         n = n * (1 + (quizBonus / 100))
+    }
+
+    const maxEncointerScore = 5;
+    const base = 2; // Change this value to adjust the exponential factor
+
+    let bonus: number;
+
+    if (encointerScore) {
+        if (encointerScore < 0 || encointerScore > 5) {
+            throw new Error('Score must be between 0 and 5');
+        }
+        if (encointerScore === maxEncointerScore) {
+            bonus = encointerBonus / 100 * Math.pow(base, maxEncointerScore - encointerScore);
+            n = n * (1 + bonus)
+        } else {
+            bonus = encointerBonus / 100 * Math.pow(base, maxEncointerScore - encointerScore - 1);
+            n = n * (1 + bonus)
+        }
     }
 
     return n.toFixed(2)
@@ -371,8 +389,6 @@ export const generateCalls = async (referendumIndex: BN) => {
     // let votes;
     let votesWithDragon: VoteConvictionDragon[];
 
-
-
     let configFile = await getConfigFile(referendumIndex);
     if (configFile === "") {
         return;
@@ -406,7 +422,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     const countPerWallet = arrayOfReputables.reduce((elementCounts, element) => {
         elementCounts[element] = (elementCounts[element] || 0) + 1;
         return elementCounts;
-      }, {});
+    }, {});
 
     //apply encointer bonus
 
@@ -498,8 +514,6 @@ export const generateCalls = async (referendumIndex: BN) => {
   }
 `;
 
-
-
     interface QuizSubmission {
         blockNumber: number;
         quizId: string;
@@ -552,10 +566,14 @@ export const generateCalls = async (referendumIndex: BN) => {
         return { ...vote, quizCorrect }
     })
 
-
-    //check kilt credentials
-    //check if kusama address has a linked kilt did
-    //
+    //loop over votes and add a encointer score
+    const votesWithDragonAndQuizAndEncointer = votesWithDragonAndQuiz.map((vote) => {
+        const encointerScore = countPerWallet[vote.address];
+        // if (encointerScore) {
+        //     console.log(vote.address, encointerScore)
+        // }
+        return { ...vote, encointerScore: encointerScore ? encointerScore : 0 }
+    })
 
     // if (settings.isTest) {
     //     const votesAddresses = votes.map(vote => {
@@ -567,7 +585,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     //     })
     // }
 
-    const mappedVotes = await checkVotesMeetingRequirements(votesWithDragonAndQuiz, totalIssuance.toString(), config)
+    const mappedVotes = await checkVotesMeetingRequirements(votesWithDragonAndQuizAndEncointer, totalIssuance.toString(), config)
 
     const votesMeetingRequirements = mappedVotes.filter(vote => {
         return vote.meetsRequirements
@@ -621,8 +639,10 @@ export const generateCalls = async (referendumIndex: BN) => {
                             config.adolescentBonus,
                             config.adultBonus,
                             config.quizBonus,
+                            config.encointerBonus,
                             vote.dragonEquipped,
-                            vote.quizCorrect)
+                            vote.quizCorrect,
+                            vote.encointerScore)
                     }
                     else {
                         chance = await calculateLuck(vote.lockedWithConviction.toString(),
@@ -636,8 +656,10 @@ export const generateCalls = async (referendumIndex: BN) => {
                             config.adolescentBonus,
                             config.adultBonus,
                             config.quizBonus,
+                            config.encointerBonus,
                             vote.dragonEquipped,
-                            vote.quizCorrect)
+                            vote.quizCorrect,
+                            vote.encointerScore)
                     }
                     zeroOrOne = getRandom(rng, [chance / 100, (100 - chance) / 100]);
                     if (zeroOrOne === 0 && selectedIndex == null) {
@@ -664,7 +686,7 @@ export const generateCalls = async (referendumIndex: BN) => {
                 dragonEquipped: vote.dragonEquipped,
                 meetsRequirements: vote.meetsRequirements,
                 quizCorrect: vote.quizCorrect,
-                identityScore: "0",
+                encointerScore: vote.encointerScore
             })
             selectedIndexArray.push(selectedIndex)
         }
@@ -679,7 +701,7 @@ export const generateCalls = async (referendumIndex: BN) => {
                 dragonEquipped: vote.dragonEquipped,
                 meetsRequirements: vote.meetsRequirements,
                 quizCorrect: vote.quizCorrect,
-                identityScore: "0",
+                encointerScore: vote.encointerScore
             })
             selectedIndexArray.push(commonIndex)
         }
@@ -851,7 +873,7 @@ export const generateCalls = async (referendumIndex: BN) => {
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "wallet", vote.address.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "identityScore", distribution[i].identityScore))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "encointerScore", distribution[i].encointerScore))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex.toString()))
         for (const attribute of vote.isDelegating ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
             txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value))
