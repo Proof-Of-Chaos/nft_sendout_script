@@ -90,20 +90,20 @@ const getRandom = (rng, weights) => {
     return lastIndex;
 };
 
-const getLatestEncointerCeremony = async (): Promise<number> => {
-    const api = await getApiEncointer()
+const getLatestEncointerCeremony = async (block: number): Promise<number> => {
+    const api = await getApiAt("encointer", block)
     const latestCeremonyIndex = await api.query.encointerScheduler.currentCeremonyIndex();
     return parseInt(latestCeremonyIndex.toString());
 }
 
-const getReputationLifetime = async (): Promise<number> => {
-    const api = await getApiEncointer()
+const getReputationLifetime = async (block: number): Promise<number> => {
+    const api = await getApiAt("encointer", block)
     const reputationLifetime = await api.query.encointerCeremonies.reputationLifetime();
     return parseInt(reputationLifetime.toString());
 }
 
-const getCeremonyAttendants = async (community: EncointerCommunity, ceremonyIndex: number) => {
-    const api = await getApiEncointer();
+const getCeremonyAttendants = async (community: EncointerCommunity, ceremonyIndex: number, block: number) => {
+    const api = await getApiAt("encointer", block)
     const communityIdentifier = api.registry.createType('CommunityIdentifier', {
         geohash: api.registry.createType('GeoHash', u8aToU8a(community.geoHash)),
         digest: api.registry.createType('CidDigest', u8aToU8a(community.digest)),
@@ -147,7 +147,6 @@ interface ParaInclusions {
 }
 
 async function getEncointerBlockNumberFromKusama(kusamaBlockNumber: number) {
-    console.log(kusamaBlockNumber)
     const kusamaApi = await getApiKusama();
     const encointerApi = await getApiEncointer();
     const blockHash = await kusamaApi.rpc.chain.getBlockHash(kusamaBlockNumber);
@@ -159,15 +158,12 @@ async function getEncointerBlockNumberFromKusama(kusamaBlockNumber: number) {
     if (!paraInherentExtrinsic) {
         return null;
     }
-
-    // console.log(paraInherentExtrinsic.args[0].toHuman())
-    // Convert the paraInclusion argument into a JSON object
     const paraInclusions = (paraInherentExtrinsic.args[0].toJSON() as unknown) as ParaInclusions;
     const backedCandidates = paraInclusions.backedCandidates;
 
     // Extract the Encointer block number
     // Replace 'encointerParaId' with the actual Encointer parachain ID
-    const encointerParaId = 2000;
+    const encointerParaId = 1001;
     let encointerBlockHeaderHash = null;
 
     for (const candidate of backedCandidates) {
@@ -176,37 +172,8 @@ async function getEncointerBlockNumberFromKusama(kusamaBlockNumber: number) {
             break;
         }
     }
-    console.log(encointerBlockHeaderHash);
     const encointerBlockHeader = await encointerApi.rpc.chain.getHeader(encointerBlockHeaderHash);
     const encointerBlockNumber = encointerBlockHeader.number.toNumber();
-    console.log(encointerBlockNumber);
-    return encointerBlockNumber;
-}
-
-const getEncointerBlockFromKusamaBlock = async (kusamaBlockNumber: number): Promise<number> => {
-    const kusamaApi = await getApiKusama();
-    const encointerApi = await getApiEncointer();
-
-    // Get the timestamp for the Kusama block
-    const blockHash = await kusamaApi.rpc.chain.getBlockHash(kusamaBlockNumber);
-    const block = (await kusamaApi.rpc.chain.getBlock(blockHash)).block;
-    const timestamp = getBlockIndexer(block).blockTime
-
-    // Search for the nearest Encointer block with a timestamp that is equal to or earlier than the Kusama block timestamp
-    let encointerBlockNumber = 0;
-    let encointerTimestamp = 0;
-    const blockCount = await encointerApi.query.system.number();
-    for (let i = 1; i <= blockCount.toNumber(); i++) {
-        const hash = await encointerApi.rpc.chain.getBlockHash(i);
-        const block = (await encointerApi.rpc.chain.getBlock(hash)).block;
-        const blockTimestamp = getBlockIndexer(block).blockTime
-
-        if (blockTimestamp <= timestamp && blockTimestamp > encointerTimestamp) {
-            encointerBlockNumber = i;
-            encointerTimestamp = blockTimestamp;
-        }
-    }
-
     return encointerBlockNumber;
 }
 
@@ -218,8 +185,8 @@ interface EncointerMetadata {
     url: string | null;
 }
 
-const getCurrentEncointerCommunities = async (blockHeight: number): Promise<EncointerCommunity[]> => {
-    const api = await getApiEncointer()
+const getCurrentEncointerCommunities = async (block: number): Promise<EncointerCommunity[]> => {
+    const api = await getApiAt("encointer", block)
     const communityMetadata = await api.query.encointerCommunities.communityMetadata.entries();
     const communities: EncointerCommunity[] = communityMetadata.map(([key, value]) => {
         const decodedKey = key.toHuman();
@@ -232,33 +199,6 @@ const getCurrentEncointerCommunities = async (blockHeight: number): Promise<Enco
         }
     });
     return communities;
-}
-
-
-
-
-const getCeremonyCount = async (walletAddress: string, numCeremonies: number, blockHeight: number): Promise<void> => {
-    // Get API connection at blockHeight
-    const api = await getApiAt("encointer", blockHeight)
-    // // Set up the Encointer API
-    // const encointer = new EncointerJs(api);
-
-    // // Retrieve the ceremony registry for the current network
-    // const registry = await encointer.getCeremonyRegistry();
-
-    // // Retrieve the list of ceremony records for the specified wallet address
-    // const ceremonyRecords = await registry.getCeremonyRecordsFor(walletAddress);
-
-    // // Extract the number of ceremonies attended from the most recent numCeremonies records
-    // const numAttended = ceremonyRecords
-    //     .slice(0, numCeremonies)
-    //     .filter(record => record.attendance.some(addr => addr === walletAddress))
-    //     .length;
-
-    // // Log the result to the console
-    // if (numAttended > 0) {
-    //     console.log(`The wallet ${walletAddress} has attended ${numAttended} out of the last ${numCeremonies} Kusama Encointer ceremonies.`);
-    // }
 }
 
 
@@ -402,18 +342,17 @@ export const generateCalls = async (referendumIndex: BN) => {
 
     const voteLocks = await getLocks(votes, referendum.confirmationBlockNumber)
 
-    // const encointerBlock = await getEncointerBlockNumberFromKusama(referendum.confirmationBlockNumber)
-    // console.log(encointerBlock)
-    const communities: EncointerCommunity[] = await getCurrentEncointerCommunities(referendum.confirmationBlockNumber)
-    const currentCeremonyIndex = await getLatestEncointerCeremony()
-    const reputationLifetime = await getReputationLifetime()
+    const encointerBlock = await getEncointerBlockNumberFromKusama(referendum.confirmationBlockNumber)
+    const communities: EncointerCommunity[] = await getCurrentEncointerCommunities(encointerBlock)
+    const currentCeremonyIndex = await getLatestEncointerCeremony(encointerBlock)
+    const reputationLifetime = await getReputationLifetime(encointerBlock)
 
     const lowerIndex = Math.max(0, currentCeremonyIndex - reputationLifetime);
     let attendants = []
     //for each community get latest 5 ceremony attendants
     for (const community of communities) {
         for (let cIndex = lowerIndex; cIndex < currentCeremonyIndex; cIndex++) {
-            const unformattedAttendants = await getCeremonyAttendants(community, cIndex)
+            const unformattedAttendants = await getCeremonyAttendants(community, cIndex, encointerBlock)
             attendants.push(unformattedAttendants)
         }
     }
@@ -569,9 +508,9 @@ export const generateCalls = async (referendumIndex: BN) => {
     //loop over votes and add a encointer score
     const votesWithDragonAndQuizAndEncointer = votesWithDragonAndQuiz.map((vote) => {
         const encointerScore = countPerWallet[vote.address];
-        // if (encointerScore) {
-        //     console.log(vote.address, encointerScore)
-        // }
+        if (encointerScore) {
+            console.log(vote.address, encointerScore)
+        }
         return { ...vote, encointerScore: encointerScore ? encointerScore : 0 }
     })
 
