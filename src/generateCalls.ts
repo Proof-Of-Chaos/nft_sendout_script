@@ -4,7 +4,7 @@ import { BN, u8aToU8a } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
-import { ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, SquidStatus, VoteConvictionDragon } from "../types.js";
+import { Config, ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, SquidStatus, VoteConviction, VoteConvictionDragon, VoteConvictionDragonQuiz, VoteConvictionDragonQuizEncointer, VoteConvictionRequirements } from "../types.js";
 import { getApiEncointer, getApiKusama, getApiStatemine, getBlockIndexer, getDecimal, initAccount } from "../tools/substrateUtils.js";
 import { getDragonBonusFile, getConfigFile, sleep } from "../tools/utils.js";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
@@ -12,69 +12,75 @@ import { createNewCollection } from "./createNewCollection.js";
 import { useAccountLocksImpl } from "./locks.js";
 import { getSettings } from "../tools/settings.js";
 import pinataSDK from "@pinata/sdk";
-import { getApiAt, getConvictionVoting, getDenom } from "./chainData.js";
+import { getApiAt, getConvictionVoting } from "./chainData.js";
 import { GraphQLClient } from 'graphql-request';
 import { MultiAddress } from "@polkadot/types/interfaces/types.js";
 
-const getLocks = async (votes: ConvictionVote[], endBlock: number) => {
-    const api = await getApiAt("kusama", endBlock)
+/**
+ * Retrieve account locks for the given votes and endBlock.
+ * @param votes Array of ConvictionVote objects.
+ * @param endBlock The block number to calculate locked balances.
+ * @returns Array of VoteWithLock objects containing lockedWithConviction property.
+ */
+const retrieveAccountLocks = async (votes: ConvictionVote[], endBlock: number): Promise<VoteConviction[]> => {
+    const api = await getApiAt("kusama", endBlock);
     const LOCKS = [1, 10, 20, 30, 40, 50, 60];
     const LOCKPERIODS = [0, 1, 2, 4, 8, 16, 32];
-    const sevenDaysBlocks = api.consts.convictionVoting.voteLockingPeriod
+    const sevenDaysBlocks = api.consts.convictionVoting.voteLockingPeriod;
 
-    const endBlockBN = new BN(endBlock)
+    const endBlockBN = new BN(endBlock);
     const promises = votes.map(async (vote) => {
-        let maxLockedWithConviction = new BN(0);
-        // api, vote.account, trackId
-        const userVotes = await useAccountLocksImpl(api, 'referenda', 'convictionVoting', vote.address.toString())
-        let userLockedBalancesWithConviction: BN[] = []
-        userVotes.map((userVote) => {
-            if (userVote.endBlock.sub(endBlockBN).gte(new BN(0)) || userVote.endBlock.eqn(0)) {
-                const lockPeriods = userVote.endBlock.eqn(0) ? 0 : Math.floor((userVote.endBlock.sub(endBlockBN)).muln(10).div(sevenDaysBlocks).toNumber() / 10)
-                let matchingPeriod = 0
-                for (let i = 0; i < LOCKPERIODS.length; i++) {
-                    matchingPeriod = lockPeriods >= LOCKPERIODS[i] ? i : matchingPeriod
-                }
-                const lockedBalanceWithConviction = (userVote.total.muln(LOCKS[matchingPeriod])).div(new BN(10))
-                userLockedBalancesWithConviction.push(lockedBalanceWithConviction)
-            }
+        const userVotes = await useAccountLocksImpl(api, 'referenda', 'convictionVoting', vote.address.toString());
 
-        })
+        const userLockedBalancesWithConviction = userVotes
+            .filter((userVote) => userVote.endBlock.sub(endBlockBN).gte(new BN(0)) || userVote.endBlock.eqn(0))
+            .map((userVote) => {
+                const lockPeriods = userVote.endBlock.eqn(0) ? 0 : Math.floor((userVote.endBlock.sub(endBlockBN)).muln(10).div(sevenDaysBlocks).toNumber() / 10);
+                const matchingPeriod = LOCKPERIODS.reduce((acc, curr, index) => (lockPeriods >= curr ? index : acc), 0);
+                return userVote.total.muln(LOCKS[matchingPeriod]).div(new BN(10));
+            });
 
-        //take max lockedBalanceWithConviction
-        for (let i = 0; i < userLockedBalancesWithConviction.length; ++i) {
-            maxLockedWithConviction = BN.max(userLockedBalancesWithConviction[i], maxLockedWithConviction)
-        }
-        return { ...vote, lockedWithConviction: maxLockedWithConviction }
-    })
-    votes = await Promise.all(promises);
-    return votes;
-}
+        const maxLockedWithConviction = userLockedBalancesWithConviction.length > 0
+            ? userLockedBalancesWithConviction.reduce((max, current) => BN.max(max, current))
+            : new BN(0);
 
-const checkVotesMeetingRequirements = async (votes: VoteConvictionDragon[], totalIssuance: string, config): Promise<any[]> => {
+        return { ...vote, lockedWithConviction: maxLockedWithConviction };
+    });
+
+    return await Promise.all(promises);
+};
+
+/**
+ * Check if votes meet the specified requirements.
+ * @param votes Array of VoteConvictionDragon objects.
+ * @param totalIssuance Total issuance as a string.
+ * @param config Configuration object with min, max, directOnly, and first properties.
+ * @returns Array of VoteCheckResult objects containing meetsRequirements property.
+ */
+const checkVotesMeetingRequirements = async (
+    votes: VoteConvictionDragonQuizEncointer[],
+    totalIssuance: string,
+    config: Config
+): Promise<VoteConvictionRequirements[]> => {
     const minVote = BN.max(new BN(config.min), new BN("0"));
     const maxVote = BN.min(new BN(config.max), new BN(totalIssuance));
-    logger.info("min:", minVote.toString());
-    // logger.info("minHuman:", await amountToHumanString(minVote.toString()))
-    config.min = await getDecimal(minVote.toString())
-    logger.info("max:", maxVote.toString());
-    // logger.info("maxHuman:", await amountToHumanString(maxVote.toString()))
-    config.max = await getDecimal(maxVote.toString())
-    let filtered = [];
-    for (let i = 0; i < votes.length; i++) {
-        if (votes[i].lockedWithConviction.lt(minVote)
-            || votes[i].lockedWithConviction.gt(maxVote)
-            || (config.directOnly && votes[i].voteType == "Delegating")
+
+    config.min = await getDecimal(minVote.toString());
+    config.max = await getDecimal(maxVote.toString());
+
+    const filtered: VoteConvictionRequirements[] = votes.map((vote, i) => {
+        const meetsRequirements = !(
+            vote.lockedWithConviction.lt(minVote)
+            || vote.lockedWithConviction.gt(maxVote)
+            || (config.directOnly && vote.voteType === "Delegating")
             || (config.first !== null && i > config.first)
-        ) {
-            filtered.push({ ...votes[i], meetsRequirements: false })
-        }
-        else {
-            filtered.push({ ...votes[i], meetsRequirements: true })
-        }
-    }
-    return filtered
-}
+        );
+
+        return { ...vote, meetsRequirements };
+    });
+
+    return filtered;
+};
 
 const getRandom = (rng, weights) => {
     var num = rng(),
@@ -314,7 +320,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     const { referendum, totalIssuance, votes } = await getConvictionVoting(99);
     logger.info("Number of votes: ", votes.length)
 
-    const voteLocks = await getLocks(votes, referendum.confirmationBlockNumber)
+    const voteLocks = await retrieveAccountLocks(votes, referendum.confirmationBlockNumber)
 
     const encointerBlock = await getEncointerBlockNumberFromKusama(referendum.confirmationBlockNumber)
     const communities: EncointerCommunity[] = await getCurrentEncointerCommunities(encointerBlock)
@@ -433,7 +439,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     })();
 
     //loop over votes and add a quiz correct number to each
-    const votesWithDragonAndQuiz = votesWithDragon.map((vote) => {
+    const votesWithDragonAndQuiz: VoteConvictionDragonQuiz [] = votesWithDragon.map((vote) => {
         const walletSubmissions = quizSubmissions.filter(submission => submission.wallet === vote.address);
 
         if (walletSubmissions.length == 0) {
@@ -463,7 +469,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     })
 
     //loop over votes and add a encointer score
-    const votesWithDragonAndQuizAndEncointer = votesWithDragonAndQuiz.map((vote) => {
+    const votesWithDragonAndQuizAndEncointer: VoteConvictionDragonQuizEncointer [] = votesWithDragonAndQuiz.map((vote) => {
         const encointerScore = countPerWallet[vote.address];
         if (encointerScore) {
             console.log(vote.address, encointerScore)
@@ -481,7 +487,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     //     })
     // }
 
-    const mappedVotes = await checkVotesMeetingRequirements(votesWithDragonAndQuizAndEncointer, totalIssuance.toString(), config)
+    const mappedVotes: VoteConvictionRequirements [] = await checkVotesMeetingRequirements(votesWithDragonAndQuizAndEncointer, totalIssuance.toString(), config)
 
     const votesMeetingRequirements = mappedVotes.filter(vote => {
         return vote.meetsRequirements
@@ -512,7 +518,6 @@ export const generateCalls = async (referendumIndex: BN) => {
     logger.info("maxValue", maxValue)
     config.median = median
     logger.info("median", median)
-    const denom = await getDenom();
     let selectedIndexArray = [];
     for (const vote of mappedVotes) {
         let chance;
@@ -576,7 +581,7 @@ export const generateCalls = async (referendumIndex: BN) => {
             }
             distribution.push({
                 wallet: vote.address.toString(),
-                amountConsidered: (vote.lockedWithConviction / denom).toString(),
+                amountConsidered: await getDecimal(vote.lockedWithConviction.toString()),
                 chances,
                 selectedIndex,
                 dragonEquipped: vote.dragonEquipped,
@@ -591,7 +596,7 @@ export const generateCalls = async (referendumIndex: BN) => {
             const chances = { "epic": 0, "rare": 0, "common": 100 };
             distribution.push({
                 wallet: vote.address.toString(),
-                amountConsidered: (vote.lockedWithConviction / denom).toString(),
+                amountConsidered: await getDecimal(vote.lockedWithConviction.toString()),
                 chances,
                 selectedIndex: commonIndex,
                 dragonEquipped: vote.dragonEquipped,
@@ -746,7 +751,7 @@ export const generateCalls = async (referendumIndex: BN) => {
         selectedOptions.push(selectedOption);
         const selectedMetadata = metadataCids[selectedIndexArray[i]];
 
-        let metadataCid = vote.isDelegating ? selectedMetadata[1] : selectedMetadata[0]
+        let metadataCid = vote.voteType == "Delegating" ? selectedMetadata[1] : selectedMetadata[0]
         const randRoyaltyInRange = Math.floor(rng() * (selectedOption.maxRoyalty - selectedOption.minRoyalty + 1) + selectedOption.minRoyalty)
         if (!metadataCid) {
             logger.error(`metadataCid is null. exiting.`)
@@ -771,7 +776,7 @@ export const generateCalls = async (referendumIndex: BN) => {
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "encointerScore", distribution[i].encointerScore))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex.toString()))
-        for (const attribute of vote.isDelegating ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
+        for (const attribute of vote.voteType == "Delegating" ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
             txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value))
         }
         txs.push(apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, true))

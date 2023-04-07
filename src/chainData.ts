@@ -11,13 +11,8 @@ import {
 // Returns the denomination of the chain. Used for formatting planck denomianted amounts
 export const getDenom = async (): Promise<number> => {
     const api = await getApiKusama();
-    if (!api.isConnected) {
-        logger.warn(`{Chaindata::API::Warn} API is not connected, returning...`);
-        return;
-    }
-    const chainType = await api.rpc.system.chain();
-    const denom =
-        chainType.toString() == "Polkadot" ? 10000000000 : 1000000000000;
+    const base = new BN(10);
+    const denom = base.pow(new BN(api.registry.chainDecimals)).toNumber()
     return denom;
 };
 

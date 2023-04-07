@@ -2,15 +2,23 @@ import { DeriveReferendumVote } from "@polkadot/api-derive/types";
 import { BN } from '@polkadot/util';
 
 export interface VoteConviction extends ConvictionVote {
-    lockedWithConviction?: BN
+    lockedWithConviction: BN;
 }
 
 export interface VoteConvictionDragon extends VoteConviction {
-    dragonEquipped: string
+    dragonEquipped: string;
 }
 
-export interface VoteConvictionRequirements extends VoteConvictionDragon {
-    meetsRequirements: boolean
+export interface VoteConvictionDragonQuiz extends VoteConvictionDragon {
+    quizCorrect: number;
+}
+
+export interface VoteConvictionDragonQuizEncointer extends VoteConvictionDragonQuiz {
+    encointerScore: number;
+}
+
+export interface VoteConvictionRequirements extends VoteConvictionDragonQuizEncointer {
+    meetsRequirements: boolean;
 }
 
 export type PalletReferenda = 'referenda' | 'rankedPolls' | 'fellowshipReferenda';
@@ -146,3 +154,10 @@ export interface QuizSubmission {
 interface Answer {
     isCorrect: boolean;
 }
+  
+  export interface Config {
+    min: number;
+    max: number;
+    directOnly: boolean;
+    first: number | null;
+  }

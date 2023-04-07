@@ -8,8 +8,8 @@ import { Block, RuntimeDispatchInfo } from "@polkadot/types/interfaces";
 import { logger } from "./logger.js";
 import { CodecHash, EventRecord } from '@polkadot/types/interfaces';
 import { sleep } from "./utils.js";
-import BigNumber from "bignumber.js";
 import { options } from "../src/options.js";
+import { BN } from '@polkadot/util';
 
 // 'wss://staging.node.rmrk.app'
 
@@ -355,149 +355,8 @@ export const getBlockIndexer = (block: Block) => {
   };
 }
 
-
-
-
-
-
-// /**
-//  *
-//  * @param tx - polkadot.js api tx
-//  * @param account - Account keypair
-//  * @param resolvedOnFinalizedOnly - If you don't want to wait for promise to resolve only when the block is finalized,
-//  * it can resolve as soon as tx is added to a block. This doesn't guarantee that transaction block will be included in finalised chain.
-//  * true by default
-//  * @param retry - retry count in case of failure.
-//  */
-// export const sendAndFinalize = async (
-//   tx: SubmittableExtrinsic<'promise', ISubmittableResult>,
-//   account: KeyringPair,
-//   resolvedOnFinalizedOnly = true,
-//   retry = 0,
-// ): Promise<ISendTxReturnType> => {
-//   return new Promise(async (resolve, reject) => {
-//     const api = params.settings.isTest ? await getApiTest() : await getApi() ;
-
-//     const returnObject: ISendTxReturnType = { success: false, hash: undefined, included: [], finalized: [], block: 0 }
-
-//     try {
-//       const unsubscribe = await tx.signAndSend(
-//         account,
-//         { nonce: -1 },
-//         async ({ events = [], status, dispatchError }) => {
-//           returnObject.success = !dispatchError;
-//           returnObject.included = [...events];
-//           returnObject.hash = status.hash;
-
-//           const rejectPromise = (error: any) => {
-//             logger.error(`Error sending tx`, error);
-//             logger.info(`tx for the error above`, tx.toHuman());
-//             unsubscribe();
-//             reject(error);
-//           }
-
-//           if (status.isInBlock) {
-//             logger.info(
-//               `📀 Transaction ${tx.meta.name} included at blockHash ${status.asInBlock} [success = ${!dispatchError}]`,
-//             );
-
-//             // Get block number that this tx got into, to return back to user
-//             const signedBlock = await api.rpc.chain.getBlock(status.asInBlock);
-//             returnObject.block = signedBlock.block.header.number.toNumber();
-
-//             // If we don't care about waiting for this tx to get into a finalized block, we can return early.
-//             if (!resolvedOnFinalizedOnly && !dispatchError) {
-//               unsubscribe();
-//               resolve(returnObject);
-//             }
-//           } else if (status.isBroadcast) {
-//             logger.info(`🚀 Transaction broadcasted.`);
-//           } else if (status.isFinalized) {
-//             logger.info(
-//               `💯 Transaction ${tx.meta.name}(..) Finalized at blockHash ${status.asFinalized}`,
-//             );
-//             if (returnObject.block === 0) {
-//               const signedBlock = await api.rpc.chain.getBlock(status.asFinalized);
-//               returnObject.block = signedBlock.block.header.number.toNumber();
-//             }
-//             unsubscribe();
-//             resolve(returnObject);
-//           } else if (status.isReady) {
-//             // let's not be too noisy..
-//           } else if (status.isInvalid) {
-//             rejectPromise(new Error(`Extrinsic isInvalid`))
-//           } else {
-//             logger.info(`🤷 Other status ${status}`);
-//           }
-//         },
-//       );
-//     } catch (error: any) {
-//       logger.info(
-//         `Error sending tx. Error: "${error.message}". TX: ${JSON.stringify(tx.toHuman())}`,
-//       );
-//       if (retry < MAX_RETRIES) {
-//         logger.info(`sendAndFinalize Retry #${retry} of ${MAX_RETRIES}`);
-//         await sleep(RETRY_DELAY_SECONDS * 1000);
-//         const result = await sendAndFinalize(tx, account, resolvedOnFinalizedOnly, retry + 1);
-//         resolve(result);
-//       } else {
-//         logger.error(`Error initiating tx signAndSend`, error);
-//         reject(error);
-//       }
-//     }
-//   });
-// };
-
-// export const getTransactionCost = async (
-//   toSendRemarks: string[]): Promise<RuntimeDispatchInfo> => {
-//   try {
-//     //get mint and transfer cost
-//     const remarks = toSendRemarks;
-//     const txs = [];
-//     const api = params.settings.isTest ? await getApiTest() : await getApi() ;
-//     for (const remark of remarks) {
-//       txs.push(api.tx.system.remark(remark));
-//     }
-//     const info = await api.tx.utility
-//       .batchAll(txs)
-//       .paymentInfo(params.account.address);
-//     return info;
-
-//   }
-//   catch (error) {
-//     logger.error(error)
-//   }
-// };
-
-// export const sendBatchTransactions = async (remarks: string[]): Promise<{
-//   block?: number;
-//   success: boolean;
-//   hash?: string;
-//   fee?: string;
-//   topupRequired?: boolean;
-// }> => {
-//   // const info = await getTransactionCost(
-//   //   remarks
-//   // );
-//   // logger.info("total expected cost: ", info.partialFee.toHuman())
-//   const txs = [];
-//   const api = params.settings.isTest ? await getApiTest() : await getApi() ;
-//   for (const remark of remarks) {
-//     txs.push(api.tx.system.remark(remark));
-//   }
-//   try {
-//     const batch = api.tx.utility.batchAll(txs);
-//     const { block, hash, success } = await sendAndFinalize(batch, params.account);
-//     return { block, success, hash: hash.toString(), fee: null }; //info.partialFee.toHuman()
-//   }
-//   catch (error) {
-//     //write error to logger
-//     logger.error(error)
-//     return { success: false };
-//   }
-// };
-
 export const getDecimal = async (bigNum: string) => {
   const api = await getApiKusama()
-  return new BigNumber(bigNum).dividedBy(new BigNumber("1e" + api.registry.chainDecimals)).toNumber()
+  const base = new BN(10);
+  return new BN(bigNum).div(base.pow(new BN(api.registry.chainDecimals))).toNumber()
 }
