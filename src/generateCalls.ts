@@ -4,17 +4,18 @@ import { BN, u8aToU8a } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
-import { Config, ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, RNG, SquidStatus, VoteConviction, VoteConvictionDragon, VoteConvictionDragonQuiz, VoteConvictionDragonQuizEncointer, VoteConvictionRequirements } from "../types.js";
+import { Config, ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, RNG, SquidStatus, VoteConviction, VoteConvictionDragon, VoteConvictionDragonQuiz, VoteConvictionDragonQuizEncointer, VoteConvictionRequirements, Option, Uniqs, ProcessMetadataResult, FetchReputableVotersParams, Bonuses } from "../types.js";
 import { getApiEncointer, getApiKusama, getApiStatemine, getBlockIndexer, getDecimal, initAccount } from "../tools/substrateUtils.js";
 import { getDragonBonusFile, getConfigFile, sleep } from "../tools/utils.js";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import { createNewCollection } from "./createNewCollection.js";
 import { useAccountLocksImpl } from "./locks.js";
 import { getSettings } from "../tools/settings.js";
-import pinataSDK from "@pinata/sdk";
+import pinataSDK, { PinataClient } from "@pinata/sdk";
 import { getApiAt, getConvictionVoting } from "./chainData.js";
 import { GraphQLClient } from 'graphql-request';
 import { MultiAddress } from "@polkadot/types/interfaces/types.js";
+import { ApiPromise } from "@polkadot/api";
 
 /**
  * Retrieve account locks for the given votes and endBlock.
@@ -170,10 +171,10 @@ const getCeremonyAttendants = async (
  * @param kusamaBlockNumber - The Kusama block number.
  * @returns The Encointer block number as a number or null if not found.
  */
-const getEncointerBlockNumberFromKusama = async (kusamaBlockNumber: number): Promise<number | null> => {
+const getEncointerBlockNumberFromKusama = async (kusamaBlock: number): Promise<number | null> => {
     const kusamaApi = await getApiKusama();
     const encointerApi = await getApiEncointer();
-    const blockHash = await kusamaApi.rpc.chain.getBlockHash(kusamaBlockNumber);
+    const blockHash = await kusamaApi.rpc.chain.getBlockHash(kusamaBlock);
     const block = await kusamaApi.rpc.chain.getBlock(blockHash);
     const paraInherentExtrinsic = block.block.extrinsics.find(
         (extrinsic) => extrinsic.method.section === 'paraInherent' && extrinsic.method.method === 'enter'
@@ -363,62 +364,116 @@ const getMinMaxMedian = (voteAmounts: number[], criticalValue: number): { minVal
     return { minValue, maxValue, median };
 }
 
-export const generateCalls = async (referendumIndex: BN) => {
-    await cryptoWaitReady()
-    const settings = getSettings();
-    const account = initAccount();
-    let apiKusama = await getApiKusama();
-    let apiStatemine = await getApiStatemine();
+// Function to generate attributes for direct and delegated options
+const generateAttributes = (option: Option, typeOfVote: string, totalSupplyOfOption: number): { name: string; value: string | number }[] => {
+    return [
+        { name: "rarity", value: option.rarity },
+        { name: "totalSupply", value: totalSupplyOfOption },
+        { name: "artist", value: option.artist },
+        { name: "creativeDirector", value: option.creativeDirector },
+        { name: "name", value: option.itemName },
+        { name: "typeOfVote", value: typeOfVote }
+    ];
+}
 
-    const info = await apiKusama.query.referenda.referendumInfoFor(referendumIndex);
-    let blockNumber: BN;
-    try {
-        blockNumber = info.unwrap().asApproved[0] || info.unwrap().asRejected[0] || info.unwrap().asKilled[0] || info.unwrap().asCancelled[0]
+// Function to process metadata for each option
+const processMetadataForOptions = async (config: Config,
+    pinata: ReturnType<typeof pinataSDK>,
+    referendumIndex: BN,
+    uniqs: Uniqs): Promise<ProcessMetadataResult> => {
+    const metadataCids = [];
+    const attributes = [];
+
+    for (const option of config.options) {
+        const attributesDirect = generateAttributes(option, "direct", uniqs[config.options.indexOf(option).toString()]);
+        const metadataCidDirect = await pinSingleMetadataFromDir(pinata, "/assets/frame/referenda", option.main, `Referendum ${referendumIndex}`, { description: option.text });
+        option.metadataCidDirect = metadataCidDirect;
+
+        const attributesDelegated = generateAttributes(option, "delegated", uniqs[config.options.indexOf(option).toString()]);
+        const metadataCidDelegated = await pinSingleMetadataFromDir(pinata, "/assets/frame/referenda", option.main, `Referendum ${referendumIndex}`, { description: option.text });
+        option.metadataCidDelegated = metadataCidDelegated;
+
+        if (!metadataCidDirect || !metadataCidDelegated) {
+            logger.error(`one of metadataCids is null: dir: ${metadataCidDirect} del: ${metadataCidDelegated}. exiting.`);
+            return;
+        }
+
+        metadataCids.push([metadataCidDirect, metadataCidDelegated]);
+        attributes.push([attributesDirect, attributesDelegated]);
     }
-    catch (e) {
-        logger.error(`Referendum is still ongoing: ${e}`);
-        return;
+    return { metadataCids, attributes };
+}
+
+// Function to create transactions for each mapped vote
+const createTransactionsForVotes = (apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, distribution, rng, referendumIndex, proxyWallet) => {
+    const txs = [];
+
+    for (let i = 0; i < mappedVotes.length; i++) {
+        let usedMetadataCids: string[] = [];
+        let selectedOptions = [];
+
+        const vote = mappedVotes[i]
+        const selectedOption = config.options[selectedIndexArray[i]];
+        selectedOptions.push(selectedOption);
+        const selectedMetadata = metadataCids[selectedIndexArray[i]];
+
+        let metadataCid = vote.voteType == "Delegating" ? selectedMetadata[1] : selectedMetadata[0]
+        const randRoyaltyInRange = Math.floor(rng() * (selectedOption.maxRoyalty - selectedOption.minRoyalty + 1) + selectedOption.minRoyalty)
+        if (!metadataCid) {
+            logger.error(`metadataCid is null. exiting.`)
+            return;
+        }
+        usedMetadataCids.push(metadataCid);
+        // if (vote.address.toString() == "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic") {
+        txs.push(apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc"))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", distribution[i].amountConsidered))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "voteDirection", vote.voteDirection))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "aye", vote.balance.aye.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "abstain", vote.balance.abstain.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "delegatedConvictionBalance", vote.delegatedConvictionBalance.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", distribution[i].chances.epic.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "wallet", vote.address.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "encointerScore", distribution[i].encointerScore))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex))
+        for (const attribute of vote.voteType == "Delegating" ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
+            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value))
+        }
+        txs.push(apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, true))
+        txs.push(apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString()))
     }
 
-    //setup pinata
-    const pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET);
-    try {
-        const result = await pinata.testAuthentication();
-        logger.info(result);
-    }
-    catch (err) {
-        //handle error here
-        logger.info(err);
-    }
+    return txs;
+}
 
-    // let votes;
-    let votesWithDragon: VoteConvictionDragon[];
+const fetchReputableVoters = async (params: FetchReputableVotersParams): Promise<{ countPerWallet: Record<string, number> }> => {
+    const {
+        confirmationBlockNumber,
+        getEncointerBlockNumberFromKusama,
+        getCurrentEncointerCommunities,
+        getLatestEncointerCeremony,
+        getReputationLifetime,
+        getCeremonyAttendants
+    } = params;
 
-    let configFile = await getConfigFile(referendumIndex);
-    if (configFile === "") {
-        return;
-    }
-    let config = await JSON.parse(configFile);
-    const rng = seedrandom(referendumIndex.toString() + config.seed);
-
-
-    const { referendum, totalIssuance, votes } = await getConvictionVoting(99);
-    logger.info("Number of votes: ", votes.length)
-
-    const voteLocks = await retrieveAccountLocks(votes, referendum.confirmationBlockNumber)
-
-    const encointerBlock = await getEncointerBlockNumberFromKusama(referendum.confirmationBlockNumber)
-    const communities: EncointerCommunity[] = await getCurrentEncointerCommunities(encointerBlock)
-    const currentCeremonyIndex = await getLatestEncointerCeremony(encointerBlock)
-    const reputationLifetime = await getReputationLifetime(encointerBlock)
+    const encointerBlock = await getEncointerBlockNumberFromKusama(confirmationBlockNumber);
+    const communities: EncointerCommunity[] = await getCurrentEncointerCommunities(encointerBlock);
+    const currentCeremonyIndex = await getLatestEncointerCeremony(encointerBlock);
+    const reputationLifetime = await getReputationLifetime(encointerBlock);
 
     const lowerIndex = Math.max(0, currentCeremonyIndex - reputationLifetime);
-    let attendants = []
-    //for each community get latest 5 ceremony attendants
+    let attendants = [];
+    // for each community get latest 5 ceremony attendants
     for (const community of communities) {
         for (let cIndex = lowerIndex; cIndex < currentCeremonyIndex; cIndex++) {
-            const unformattedAttendants = await getCeremonyAttendants(community, cIndex, encointerBlock)
-            attendants.push(unformattedAttendants)
+            const unformattedAttendants = await getCeremonyAttendants(community, cIndex, encointerBlock);
+            attendants.push(unformattedAttendants);
         }
     }
     const arrayOfReputables = attendants.flat();
@@ -428,8 +483,165 @@ export const generateCalls = async (referendumIndex: BN) => {
         return elementCounts;
     }, {});
 
-    //apply encointer bonus
+    return { countPerWallet };
+};
 
+const getWalletsByDragonAge = (bonuses: Bonuses): Record<string, string[]> => {
+    const dragonAges = ["babies", "toddlers", "adolescents", "adults"];
+    const walletsByDragonAge: Record<string, string[]> = {};
+
+    for (const age of dragonAges) {
+        walletsByDragonAge[age] = bonuses[age].map(({ wallet }) => wallet);
+    }
+
+    return walletsByDragonAge;
+};
+
+const addDragonEquippedToVotes = (voteLocks: VoteConviction[], walletsByDragonAge: Record<string, string[]>): VoteConvictionDragon[] => {
+    return voteLocks.map((vote) => {
+        let dragonEquipped: string;
+
+        if (walletsByDragonAge.adults.includes(vote.address.toString())) {
+            dragonEquipped = "Adult";
+        } else if (walletsByDragonAge.adolescents.includes(vote.address.toString())) {
+            dragonEquipped = "Adolescent";
+        } else if (walletsByDragonAge.toddlers.includes(vote.address.toString())) {
+            dragonEquipped = "Toddler";
+        } else if (walletsByDragonAge.babies.includes(vote.address.toString())) {
+            dragonEquipped = "Baby";
+        } else {
+            dragonEquipped = "No";
+        }
+
+        return { ...vote, dragonEquipped };
+    });
+};
+
+const createGraphQLClient = (url: string): GraphQLClient => {
+    return new GraphQLClient(url);
+};
+
+const fetchQuizSubmissions = async (client: GraphQLClient, referendumIndex: string): Promise<QuizSubmission[]> => {
+    const queryQuizSubmissions = `
+    query {
+      quizSubmissions(where: {governanceVersion_eq: 2, referendumIndex_eq: ${referendumIndex}}) {
+          blockNumber,
+          quizId,
+          timestamp,
+          version,
+          wallet,
+          answers {
+              isCorrect
+          }
+        }
+    }
+  `;
+
+    try {
+        const response = await client.request<{ quizSubmissions: QuizSubmission[] }>(queryQuizSubmissions);
+        return response.quizSubmissions;
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+};
+
+const addQuizCorrectToVotes = (votesWithDragon: VoteConvictionDragon[], quizSubmissions: QuizSubmission[]): VoteConvictionDragonQuiz[] => {
+    return votesWithDragon.map((vote) => {
+        const walletSubmissions = quizSubmissions.filter(
+            (submission) => submission.wallet === vote.address
+        );
+
+        if (walletSubmissions.length == 0) {
+            return { ...vote, quizCorrect: 0 };
+        }
+
+        const latestSubmission = walletSubmissions.reduce((latest, submission) => {
+            return submission.blockNumber > latest.blockNumber ? submission : latest;
+        }, walletSubmissions[0]);
+
+        const someAnswersMissingCorrect = latestSubmission.answers.some(
+            (answer) => answer.isCorrect === null || answer.isCorrect === undefined
+        );
+
+        if (someAnswersMissingCorrect) {
+            console.log("Some answers are missing correct answer");
+            return { ...vote, quizCorrect: 0 };
+        }
+
+        const allAnswersCorrect = latestSubmission.answers.every(
+            (answer) => answer.isCorrect
+        );
+
+        const quizCorrect = allAnswersCorrect ? 1 : 0;
+
+        return { ...vote, quizCorrect };
+    });
+};
+
+const addEncointerScoreToVotes = (votesWithDragonAndQuiz: VoteConvictionDragonQuiz[], countPerWallet: Record<string, number>): VoteConvictionDragonQuizEncointer[] => {
+    return votesWithDragonAndQuiz.map((vote) => {
+        const encointerScore = countPerWallet[vote.address];
+        return { ...vote, encointerScore: encointerScore ? encointerScore : 0 };
+    });
+};
+
+const getBlockNumber = async (apiKusama: ApiPromise, referendumIndex: BN): Promise<BN | null> => {
+    try {
+        const info = await apiKusama.query.referenda.referendumInfoFor(referendumIndex);
+        return info.unwrap().asApproved[0] || info.unwrap().asRejected[0] || info.unwrap().asKilled[0] || info.unwrap().asCancelled[0];
+    } catch (e) {
+        logger.error(`Referendum is still ongoing: ${e}`);
+        return null;
+    }
+}
+
+const setupPinata = async (): Promise<PinataClient | null> => {
+    const pinata = pinataSDK(process.env.PINATA_API, process.env.PINATA_SECRET);
+    try {
+        const result = await pinata.testAuthentication();
+        logger.info(result);
+        return pinata;
+    } catch (err) {
+        logger.info(err);
+        return null;
+    }
+}
+
+export const generateCalls = async (referendumIndex: BN) => {
+    await cryptoWaitReady()
+    const settings = getSettings();
+    let apiKusama = await getApiKusama();
+    let apiStatemine = await getApiStatemine();
+    const rng = seedrandom(referendumIndex.toString()); //add secret seed?
+
+    const blockNumber = await getBlockNumber(apiKusama, referendumIndex);
+    if (!blockNumber) return;
+
+    const pinata = await setupPinata();
+    if (!pinata) return;
+
+    let configFile = await getConfigFile(referendumIndex);
+    if (configFile === "") {
+        return;
+    }
+    let config = await JSON.parse(configFile);
+
+    const { referendum, totalIssuance, votes } = await getConvictionVoting(99);
+    logger.info("Number of votes: ", votes.length)
+
+    const voteLocks = await retrieveAccountLocks(votes, referendum.confirmationBlockNumber)
+
+    const { countPerWallet } = await fetchReputableVoters({
+        confirmationBlockNumber: referendum.confirmationBlockNumber,
+        getEncointerBlockNumberFromKusama: getEncointerBlockNumberFromKusama,
+        getCurrentEncointerCommunities: getCurrentEncointerCommunities,
+        getLatestEncointerCeremony: getLatestEncointerCeremony,
+        getReputationLifetime: getReputationLifetime,
+        getCeremonyAttendants: getCeremonyAttendants
+    });
+
+    //apply encointer bonus
     let bonusFile = await getDragonBonusFile(referendumIndex);
     if (bonusFile === "") {
         return;
@@ -440,127 +652,16 @@ export const generateCalls = async (referendumIndex: BN) => {
         logger.info(`Wrong Block in Bonus File. Exiting.`);
         return;
     }
-    const babyDragons = bonuses.babies;
-    const toddlerDragons = bonuses.toddlers;
-    const adolescentDragons = bonuses.adolescents;
-    const adultDragons = bonuses.adults;
-    const babyWallets = babyDragons.map(({ wallet }) => wallet);
-    const toddlerWallets = toddlerDragons.map(({ wallet }) => wallet);
-    const adolescentWallets = adolescentDragons.map(({ wallet }) => wallet);
-    const adultWallets = adultDragons.map(({ wallet }) => wallet);
 
-    votesWithDragon = voteLocks.map((vote) => {
-        let dragonEquipped
-        if (adultWallets.includes(vote.address.toString())) {
-            dragonEquipped = "Adult"
-        }
-        else if (adolescentWallets.includes(vote.address.toString())) {
-            dragonEquipped = "Adolescent"
-        }
-        else if (toddlerWallets.includes(vote.address.toString())) {
-            dragonEquipped = "Toddler"
-        }
-        else if (babyWallets.includes(vote.address.toString())) {
-            dragonEquipped = "Baby"
-        }
-        else {
-            dragonEquipped = "No"
-        }
-        return { ...vote, dragonEquipped }
-    })
+    const walletsByDragonAge = getWalletsByDragonAge(bonuses);
+    const votesWithDragon = addDragonEquippedToVotes(voteLocks, walletsByDragonAge);
 
+    const client = createGraphQLClient("https://squid.subsquid.io/referenda-dashboard/v/0/graphql");
+    const quizSubmissions = await fetchQuizSubmissions(client, referendum.index.toString());
 
-    //check quizzes
-    //make sure indexer is up to date
-    const queryIndexerBlock = `
-    query {
-        squidStatus {
-          height
-        }
-      }
-  `;
+    const votesWithDragonAndQuiz = addQuizCorrectToVotes(votesWithDragon, quizSubmissions);
+    const votesWithDragonAndQuizAndEncointer = addEncointerScoreToVotes(votesWithDragonAndQuiz, countPerWallet);
 
-    let indexerBlock;
-    // Instantiate the GraphQL client
-    const client = new GraphQLClient('https://squid.subsquid.io/referenda-dashboard/v/0/graphql');
-    // Fetch the data using the query
-    (async () => {
-        try {
-            indexerBlock = (await client.request<{ squidStatus: SquidStatus }>(queryIndexerBlock)).squidStatus.height;
-        } catch (error) {
-            logger.error(error)
-        }
-    })();
-
-    if (indexerBlock < blockNumber) {
-        //indexer has not caught up to end block yet
-        logger.info("Indexer has not caught up to endBlock of Referendum and is possibly stuck")
-        return
-    }
-
-    // Define the GraphQL query
-    const queryQuizSubmissions = `
-  query {
-    quizSubmissions(where: {governanceVersion_eq: 2, referendumIndex_eq: 34}) {
-        blockNumber,
-        quizId,
-        timestamp,
-        version,
-        wallet,
-        answers {
-            isCorrect
-        }
-      }
-  }
-`;
-    let quizSubmissions = [];
-    // Fetch the data using the query
-    (async () => {
-        try {
-            quizSubmissions = (await client.request<{ quizSubmissions: QuizSubmission[] }>(queryQuizSubmissions)).quizSubmissions;
-        } catch (error) {
-            logger.error(error)
-        }
-    })();
-
-    //loop over votes and add a quiz correct number to each
-    const votesWithDragonAndQuiz: VoteConvictionDragonQuiz[] = votesWithDragon.map((vote) => {
-        const walletSubmissions = quizSubmissions.filter(submission => submission.wallet === vote.address);
-
-        if (walletSubmissions.length == 0) {
-            return { ...vote, quizCorrect: 0 }
-        }
-        // Get the latest submission
-        const latestSubmission = walletSubmissions.reduce((latest, submission) => {
-            return submission.blockNumber > latest.blockNumber ? submission : latest;
-        }, walletSubmissions[0]);
-
-        // Loop over the answers array and check if each answer is correct
-        const someAnswersMissingCorrect = latestSubmission.answers.some(answer => answer.isCorrect === null || answer.isCorrect === undefined);
-
-        // If any answers are incorrect, throw an error
-        if (someAnswersMissingCorrect) {
-            logger.info("Some answers are missing correct answer");
-            return;
-        }
-
-        // Loop over the answers array and check if each answer is correct
-        const allAnswersCorrect = latestSubmission.answers.every(answer => answer.isCorrect);
-
-        // Return 1 if all answers are correct, otherwise return 0
-        const quizCorrect = allAnswersCorrect ? 1 : 0;
-
-        return { ...vote, quizCorrect }
-    })
-
-    //loop over votes and add a encointer score
-    const votesWithDragonAndQuizAndEncointer: VoteConvictionDragonQuizEncointer[] = votesWithDragonAndQuiz.map((vote) => {
-        const encointerScore = countPerWallet[vote.address];
-        if (encointerScore) {
-            console.log(vote.address, encointerScore)
-        }
-        return { ...vote, encointerScore: encointerScore ? encointerScore : 0 }
-    })
 
     // if (settings.isTest) {
     //     const votesAddresses = votes.map(vote => {
@@ -732,92 +833,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     }
     logger.info("collectionID Item: ", itemCollectionId)
 
-    const metadataCids = []
-    const attributes = []
-    for (const option of config.options) {
-        const attributesDirect = [
-            {
-                name: "rarity",
-                value: option.rarity
-            },
-            {
-                name: "totalSupply",
-                value: uniqs[config.options.indexOf(option).toString()]
-            },
-            {
-                name: "artist",
-                value: option.artist
-            },
-            {
-                name: "creativeDirector",
-                value: option.creativeDirector
-            },
-            {
-                name: "name",
-                value: option.itemName
-            },
-            {
-                name: "typeOfVote",
-                value: "direct"
-            }
-        ]
-        const metadataCidDirect = await pinSingleMetadataFromDir(
-            pinata,
-            "/assets/frame/referenda",
-            option.main,
-            `Referendum ${referendumIndex}`,
-            {
-                description: option.text
-            }
-        );
-        option.metadataCidDirect = metadataCidDirect
-
-        const attributesDelegated = [
-            {
-                name: "rarity",
-                value: option.rarity
-            },
-            {
-                name: "totalSupply",
-                value: uniqs[config.options.indexOf(option).toString()]
-            },
-            {
-                name: "artist",
-                value: option.artist
-            },
-            {
-                name: "creativeDirector",
-                value: option.creativeDirector
-            },
-            {
-                name: "name",
-                value: option.itemName
-            },
-            {
-                name: "typeOfVote",
-                value: "delegated"
-            }
-        ]
-
-        const metadataCidDelegated = await pinSingleMetadataFromDir(
-            pinata,
-            "/assets/frame/referenda",
-            option.main,
-            `Referendum ${referendumIndex}`,
-            {
-                description: option.text
-            }
-        );
-        option.metadataCidDelegated = metadataCidDelegated
-
-        if (!metadataCidDirect || !metadataCidDelegated) {
-            logger.error(`one of metadataCids is null: dir: ${metadataCidDirect} del: ${metadataCidDelegated}. exiting.`)
-            return;
-        }
-
-        metadataCids.push([metadataCidDirect, metadataCidDelegated])
-        attributes.push([attributesDirect, attributesDelegated])
-    }
+    const { metadataCids, attributes } = await processMetadataForOptions(config, pinata, referendumIndex, uniqs);
     logger.info("metadataCids", metadataCids);
 
     if (settings.isTest) {
@@ -826,72 +842,9 @@ export const generateCalls = async (referendumIndex: BN) => {
             if (err) throw err;
         })
     }
-
-    for (let i = 0; i < mappedVotes.length; i++) {
-        let usedMetadataCids: string[] = [];
-        let selectedOptions = [];
-
-        const vote = mappedVotes[i]
-        const selectedOption = config.options[selectedIndexArray[i]];
-        selectedOptions.push(selectedOption);
-        const selectedMetadata = metadataCids[selectedIndexArray[i]];
-
-        let metadataCid = vote.voteType == "Delegating" ? selectedMetadata[1] : selectedMetadata[0]
-        const randRoyaltyInRange = Math.floor(rng() * (selectedOption.maxRoyalty - selectedOption.minRoyalty + 1) + selectedOption.minRoyalty)
-        if (!metadataCid) {
-            logger.error(`metadataCid is null. exiting.`)
-            return;
-        }
-        usedMetadataCids.push(metadataCid);
-        // if (vote.address.toString() == "FF4KRpru9a1r2nfWeLmZRk6N8z165btsWYaWvqaVgR6qVic") {
-        txs.push(apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc"))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", distribution[i].amountConsidered))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "voteDirection", vote.voteDirection))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "aye", vote.balance.aye.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "abstain", vote.balance.abstain.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "delegatedConvictionBalance", vote.delegatedConvictionBalance.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", distribution[i].chances.epic.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "wallet", vote.address.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "encointerScore", distribution[i].encointerScore))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex.toString()))
-        for (const attribute of vote.voteType == "Delegating" ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
-            txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value))
-        }
-        txs.push(apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, true))
-        txs.push(apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString()))
-
-
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setMetadata(config.newCollectionSymbol, i, metadataCid, true)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc")))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", distribution[i].amountConsidered)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "voteDirection", vote.voteDirection)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "aye", vote.balance.aye || 0)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay || 0)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "abstain", vote.balance.abstain || 0)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "delegatedConvictionBalance", vote.delegatedConvictionBalance || 0)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", distribution[i].chances.epic)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "identityScore", distribution[i].identityScore)))
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex.toString())))
-        // for (const attribute of vote.isDelegating ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
-        //     txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value)))
-        // }
-        // txs.push(apiStatemine.tx.utility.dispatchAs(proxyWalletSignature, apiStatemine.tx.uniques.transfer(config.newCollectionSymbol, i, vote.address.toString())))
-        // }
-    }
-    const batchtx = apiStatemine.tx.utility.batchAll(txs).toHex()
+    // Create transactions for each mapped vote
+    txs.push(...createTransactionsForVotes(apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, distribution, rng, referendumIndex.toString(), proxyWallet));
+    const batchtx = apiStatemine.tx.utility.batchAll(txs).toHex();
     fs.writeFile(`assets/output/${referendumIndex}.json`, batchtx, (err) => {
         // In case of a error throw err.
         if (err) throw err;

@@ -1,4 +1,5 @@
 import { DeriveReferendumVote } from "@polkadot/api-derive/types";
+import { Bytes } from "@polkadot/types";
 import { BN } from '@polkadot/util';
 
 export interface VoteConviction extends ConvictionVote {
@@ -155,11 +156,61 @@ interface Answer {
     isCorrect: boolean;
 }
 
+export interface Option {
+    rarity: string;
+    artist: string;
+    creativeDirector: string;
+    itemName: string;
+    main: string;
+    text: string;
+    metadataCidDirect?: string;
+    metadataCidDelegated?: string;
+}
+
+export interface Uniqs { [key: string]: number };
+
+interface Attribute {
+    name:
+    | "rarity"
+    | "totalSupply"
+    | "artist"
+    | "creativeDirector"
+    | "name"
+    | "typeOfVote";
+    value: string | Uint8Array | Bytes;
+}
+
+export interface ProcessMetadataResult {
+    metadataCids: [string, string][];
+    attributes: [Attribute[], Attribute[]][];
+}
+
 export interface Config {
     min: number;
     max: number;
     directOnly: boolean;
     first: number | null;
+    options: Option[];
 }
 
 export type RNG = () => number;
+
+export interface FetchReputableVotersParams {
+    confirmationBlockNumber: number;
+    getEncointerBlockNumberFromKusama: (kusamaBlock: number) => Promise<number>;
+    getCurrentEncointerCommunities: (block: number) => Promise<EncointerCommunity[]>;
+    getLatestEncointerCeremony: (block: number) => Promise<number>;
+    getReputationLifetime: (block: number) => Promise<number>;
+    getCeremonyAttendants: (community: EncointerCommunity, cIndex: number, encointerBlock: number) => Promise<any[]>;
+}
+
+export interface DragonBonus {
+    wallet: string;
+}
+
+export interface Bonuses {
+    babies: DragonBonus[];
+    toddlers: DragonBonus[];
+    adolescents: DragonBonus[];
+    adults: DragonBonus[];
+}
