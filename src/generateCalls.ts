@@ -4,7 +4,7 @@ import { BN, u8aToU8a } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
-import { Config, ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, SquidStatus, VoteConviction, VoteConvictionDragon, VoteConvictionDragonQuiz, VoteConvictionDragonQuizEncointer, VoteConvictionRequirements } from "../types.js";
+import { Config, ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, RNG, SquidStatus, VoteConviction, VoteConvictionDragon, VoteConvictionDragonQuiz, VoteConvictionDragonQuizEncointer, VoteConvictionRequirements } from "../types.js";
 import { getApiEncointer, getApiKusama, getApiStatemine, getBlockIndexer, getDecimal, initAccount } from "../tools/substrateUtils.js";
 import { getDragonBonusFile, getConfigFile, sleep } from "../tools/utils.js";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
@@ -82,46 +82,77 @@ const checkVotesMeetingRequirements = async (
     return filtered;
 };
 
-const getRandom = (rng, weights) => {
-    var num = rng(),
-        s = 0,
-        lastIndex = weights.length - 1;
-    for (var i = 0; i < lastIndex; ++i) {
-        s += weights[i];
-        if (num < s) {
+/**
+ * Returns a random index based on the given weights.
+ * @param rng - A random number generator function.
+ * @param weights - An array of weights corresponding to each index.
+ * @returns A randomly selected index, with a higher probability for indices with higher weights.
+ */
+const getRandom = (rng: RNG, weights: number[]): number => {
+    // Generate a random number using the provided rng function
+    const num = rng();
+    let sum = 0;
+    const lastIndex = weights.length - 1;
+
+    // Iterate through the weights array
+    for (let i = 0; i < lastIndex; ++i) {
+        // Update the sum with the current weight
+        sum += weights[i];
+
+        // If the random number is less than the sum, return the current index
+        if (num < sum) {
             return i;
         }
     }
 
+    // If none of the previous conditions were met, return the last index
     return lastIndex;
 };
 
+/**
+ * Retrieves the latest Encointer ceremony index.
+ * @param block - The block number to query at.
+ * @returns The latest ceremony index as a number.
+ */
 const getLatestEncointerCeremony = async (block: number): Promise<number> => {
-    const api = await getApiAt("encointer", block)
+    const api = await getApiAt("encointer", block);
     const latestCeremonyIndex = await api.query.encointerScheduler.currentCeremonyIndex();
     return parseInt(latestCeremonyIndex.toString());
-}
+};
 
+/**
+ * Retrieves the reputation lifetime value from the Encointer chain.
+ * @param block - The block number to query at.
+ * @returns The reputation lifetime value as a number.
+ */
 const getReputationLifetime = async (block: number): Promise<number> => {
-    const api = await getApiAt("encointer", block)
+    const api = await getApiAt("encointer", block);
     const reputationLifetime = await api.query.encointerCeremonies.reputationLifetime();
     return parseInt(reputationLifetime.toString());
-}
+};
 
-const getCeremonyAttendants = async (community: EncointerCommunity, ceremonyIndex: number, block: number) => {
-    const api = await getApiAt("encointer", block)
+/**
+ * Retrieves the ceremony attendants for a given community and ceremony index.
+ * @param community - The Encointer community object.
+ * @param ceremonyIndex - The index of the ceremony to query.
+ * @param block - The block number to query at.
+ * @returns An array of participant addresses as strings.
+ */
+const getCeremonyAttendants = async (
+    community: EncointerCommunity,
+    ceremonyIndex: number,
+    block: number,
+): Promise<string[]> => {
+    const api = await getApiAt("encointer", block);
     const communityIdentifier = api.registry.createType('CommunityIdentifier', {
         geohash: api.registry.createType('GeoHash', u8aToU8a(community.geoHash)),
         digest: api.registry.createType('CidDigest', u8aToU8a(community.digest)),
     });
     const communityIdentifierWithCeremonyIndex = [
         communityIdentifier,
-        ceremonyIndex
+        ceremonyIndex,
     ];
     const participants = await api.query.encointerCeremonies.participantReputation.entries(communityIdentifierWithCeremonyIndex);
-    // for (const participant of participants){
-    //     console.log(participant.toString())
-    // }
     const participantAddresses = participants.reduce((walletAddresses, currentValue, index) => {
         if (
             (currentValue[1].toHuman() === 'VerifiedLinked' || currentValue[1].toHuman() === 'VerifiedUnlinked')
@@ -131,10 +162,15 @@ const getCeremonyAttendants = async (community: EncointerCommunity, ceremonyInde
         return walletAddresses;
     }, []);
 
-    return participantAddresses
-}
+    return participantAddresses;
+};
 
-async function getEncointerBlockNumberFromKusama(kusamaBlockNumber: number) {
+/**
+ * Retrieves the Encointer block number corresponding to a given Kusama block number.
+ * @param kusamaBlockNumber - The Kusama block number.
+ * @returns The Encointer block number as a number or null if not found.
+ */
+const getEncointerBlockNumberFromKusama = async (kusamaBlockNumber: number): Promise<number | null> => {
     const kusamaApi = await getApiKusama();
     const encointerApi = await getApiEncointer();
     const blockHash = await kusamaApi.rpc.chain.getBlockHash(kusamaBlockNumber);
@@ -149,8 +185,6 @@ async function getEncointerBlockNumberFromKusama(kusamaBlockNumber: number) {
     const paraInclusions = (paraInherentExtrinsic.args[0].toJSON() as unknown) as ParaInclusions;
     const backedCandidates = paraInclusions.backedCandidates;
 
-    // Extract the Encointer block number
-    // Replace 'encointerParaId' with the actual Encointer parachain ID
     const encointerParaId = 1001;
     let encointerBlockHeaderHash = null;
 
@@ -165,9 +199,20 @@ async function getEncointerBlockNumberFromKusama(kusamaBlockNumber: number) {
     return encointerBlockNumber;
 }
 
+/**
+ * Get the current list of Encointer communities at a specific block.
+ *
+ * @param block - The block number to query the communities.
+ * @returns - A Promise that resolves to an array of EncointerCommunity objects.
+ */
 const getCurrentEncointerCommunities = async (block: number): Promise<EncointerCommunity[]> => {
-    const api = await getApiAt("encointer", block)
+    // Get the Encointer API instance at the specified block
+    const api = await getApiAt("encointer", block);
+
+    // Query the Encointer communities' metadata
     const communityMetadata = await api.query.encointerCommunities.communityMetadata.entries();
+
+    // Map the metadata to an array of EncointerCommunity objects
     const communities: EncointerCommunity[] = communityMetadata.map(([key, value]) => {
         const decodedKey = key.toHuman();
         const metadata: EncointerMetadata = JSON.parse(JSON.stringify(value.toHuman()));
@@ -178,52 +223,87 @@ const getCurrentEncointerCommunities = async (block: number): Promise<EncointerC
             symbol: metadata.symbol
         }
     });
+
+    // Return the array of EncointerCommunity objects
     return communities;
 }
 
-
-const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonus, toddlerBonus, adolescentBonus, adultBonus, quizBonus, encointerBonus, dragonEquipped, quizCorrect, encointerScore) => {
-    n = await getDecimal(n);
-    minOut = parseInt(minOut);
-    maxOut = parseInt(maxOut);
+/**
+ * Calculate luck value based on various factors.
+ *
+ * @param n - The initial luck value.
+ * @param minIn - The minimum input value.
+ * @param maxIn - The maximum input value.
+ * @param minOut - The minimum output value.
+ * @param maxOut - The maximum output value.
+ * @param exponent - The exponent value for scaling.
+ * @param babyBonus - The bonus for baby dragons.
+ * @param toddlerBonus - The bonus for toddler dragons.
+ * @param adolescentBonus - The bonus for adolescent dragons.
+ * @param adultBonus - The bonus for adult dragons.
+ * @param quizBonus - The bonus for quiz correctness.
+ * @param encointerBonus - The bonus for encointer score.
+ * @param dragonEquipped - The type of dragon equipped.
+ * @param quizCorrect - Whether the quiz was answered correctly.
+ * @param encointerScore - The encointer score.
+ * @returns - A Promise that resolves to the calculated luck value.
+ */
+const calculateLuck = async (
+    voteAmountWithConviction: string,
+    minIn: number,
+    maxIn: number,
+    minOut: number,
+    maxOut: number,
+    exponent: number,
+    babyBonus: number,
+    toddlerBonus: number,
+    adolescentBonus: number,
+    adultBonus: number,
+    quizBonus: number,
+    encointerBonus: number,
+    dragonEquipped: string,
+    quizCorrect: number,
+    encointerScore: number
+): Promise<string> => {
+    let n = await getDecimal(voteAmountWithConviction);
+    minOut = parseInt(minOut.toString());
+    maxOut = parseInt(maxOut.toString());
     if (n > maxIn) {
         n = maxOut;
-    }
-    else if (n < minIn) {
+    } else if (n < minIn) {
         n = minOut;
-    }
-    else {
-        // unscale input
-        n -= minIn
-        n /= maxIn - minIn
-        n = Math.pow(n, exponent)
-        // scale output
-        n *= maxOut - minOut
-        n += minOut
+    } else {
+        // Unscale input
+        n -= minIn;
+        n /= maxIn - minIn;
+        n = Math.pow(n, exponent);
 
+        // Scale output
+        n *= maxOut - minOut;
+        n += minOut;
     }
 
-    //check if dragon bonus
+    // Check if dragon bonus
     switch (dragonEquipped) {
-        case "Adult":
-            n = n * (1 + (adultBonus / 100))
-            break
-        case "Adolescent":
-            n = n * (1 + (adolescentBonus / 100))
-            break
-        case "Toddler":
-            n = n * (1 + (toddlerBonus / 100))
-            break
-        case "Baby":
-            n = n * (1 + (babyBonus / 100))
-            break
-        case "No":
-            //no change
-            break
+        case 'Adult':
+            n = n * (1 + adultBonus / 100);
+            break;
+        case 'Adolescent':
+            n = n * (1 + adolescentBonus / 100);
+            break;
+        case 'Toddler':
+            n = n * (1 + toddlerBonus / 100);
+            break;
+        case 'Baby':
+            n = n * (1 + babyBonus / 100);
+            break;
+        case 'No':
+            // No change
+            break;
     }
 
     if (quizCorrect) {
-        n = n * (1 + (quizBonus / 100))
+        n = n * (1 + quizBonus / 100);
     }
 
     const maxEncointerScore = 5;
@@ -236,28 +316,33 @@ const calculateLuck = async (n, minIn, maxIn, minOut, maxOut, exponent, babyBonu
             throw new Error('Score must be between 0 and 5');
         }
         if (encointerScore === maxEncointerScore) {
-            bonus = encointerBonus / 100 * Math.pow(base, maxEncointerScore - encointerScore);
-            n = n * (1 + bonus)
+            bonus = (encointerBonus / 100) * Math.pow(base, maxEncointerScore - encointerScore);
+            n = n * (1 + bonus);
         } else {
-            bonus = encointerBonus / 100 * Math.pow(base, maxEncointerScore - encointerScore - 1);
-            n = n * (1 + bonus)
+            bonus = (encointerBonus / 100) * Math.pow(base, maxEncointerScore - encointerScore - 1);
+            n = n * (1 + bonus);
         }
     }
-
-    return n.toFixed(2)
+    return n.toFixed(2);
 }
 
-const getMinMaxMedian = (voteAmounts, criticalValue) => {
-    if (voteAmounts.length < 4)
-        return voteAmounts;
-    voteAmounts = voteAmounts.filter(vote => {
-        return vote > criticalValue
-    })
+/**
+ * Calculate the minimum, maximum, and median values of an array of vote amounts, considering only those above a critical value.
+ * @param voteAmounts An array of vote amounts.
+ * @param criticalValue The critical value to filter the vote amounts.
+ * @returns An object containing the minimum, maximum, and median values.
+ */
+const getMinMaxMedian = (voteAmounts: number[], criticalValue: number): { minValue: number; maxValue: number; median: number } => {
+    if (voteAmounts.length < 4) {
+        return { minValue: Math.min(...voteAmounts), maxValue: Math.max(...voteAmounts), median: voteAmounts[Math.floor(voteAmounts.length / 2)] };
+    }
+
+    const filteredVotes = voteAmounts.filter(vote => vote > criticalValue);
 
     let values, q1, q3, iqr, maxValue, minValue, median;
 
-    values = voteAmounts.slice().sort((a, b) => a - b);//copy array fast and sort
-    if ((values.length / 4) % 1 === 0) {//find quartiles
+    values = filteredVotes.slice().sort((a, b) => a - b); // Copy array and sort
+    if ((values.length / 4) % 1 === 0) { // Find quartiles
         q1 = 1 / 2 * (values[(values.length / 4)] + values[(values.length / 4) + 1]);
         q3 = 1 / 2 * (values[(values.length * (3 / 4))] + values[(values.length * (3 / 4)) + 1]);
     } else {
@@ -265,16 +350,16 @@ const getMinMaxMedian = (voteAmounts, criticalValue) => {
         q3 = values[Math.ceil(values.length * (3 / 4) + 1)];
     }
 
-    if ((values.length / 2) % 1 === 0) {//find quartiles
+    if ((values.length / 2) % 1 === 0) { // Find median
         median = 1 / 2 * (values[(values.length / 2)] + values[(values.length / 2) + 1]);
     } else {
         median = values[Math.floor(values.length / 2 + 1)];
     }
-    logger.info("q1", q1);
-    logger.info("q3", q3);
+
     iqr = q3 - q1;
     maxValue = q3 + iqr * 1.5;
     minValue = Math.max(q1 - iqr * 1.5, 0);
+
     return { minValue, maxValue, median };
 }
 
@@ -439,7 +524,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     })();
 
     //loop over votes and add a quiz correct number to each
-    const votesWithDragonAndQuiz: VoteConvictionDragonQuiz [] = votesWithDragon.map((vote) => {
+    const votesWithDragonAndQuiz: VoteConvictionDragonQuiz[] = votesWithDragon.map((vote) => {
         const walletSubmissions = quizSubmissions.filter(submission => submission.wallet === vote.address);
 
         if (walletSubmissions.length == 0) {
@@ -469,7 +554,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     })
 
     //loop over votes and add a encointer score
-    const votesWithDragonAndQuizAndEncointer: VoteConvictionDragonQuizEncointer [] = votesWithDragonAndQuiz.map((vote) => {
+    const votesWithDragonAndQuizAndEncointer: VoteConvictionDragonQuizEncointer[] = votesWithDragonAndQuiz.map((vote) => {
         const encointerScore = countPerWallet[vote.address];
         if (encointerScore) {
             console.log(vote.address, encointerScore)
@@ -487,7 +572,7 @@ export const generateCalls = async (referendumIndex: BN) => {
     //     })
     // }
 
-    const mappedVotes: VoteConvictionRequirements [] = await checkVotesMeetingRequirements(votesWithDragonAndQuizAndEncointer, totalIssuance.toString(), config)
+    const mappedVotes: VoteConvictionRequirements[] = await checkVotesMeetingRequirements(votesWithDragonAndQuizAndEncointer, totalIssuance.toString(), config)
 
     const votesMeetingRequirements = mappedVotes.filter(vote => {
         return vote.meetsRequirements

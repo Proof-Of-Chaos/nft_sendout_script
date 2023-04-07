@@ -154,10 +154,12 @@ export interface QuizSubmission {
 interface Answer {
     isCorrect: boolean;
 }
-  
-  export interface Config {
+
+export interface Config {
     min: number;
     max: number;
     directOnly: boolean;
     first: number | null;
-  }
+}
+
+export type RNG = () => number;
