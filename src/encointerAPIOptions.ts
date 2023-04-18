@@ -1,8 +1,8 @@
-import {ApiOptions} from '@polkadot/api/types';
+import { ApiOptions } from '@polkadot/api/types';
 
 import encointer from '@encointer/types';
 
-export function options (opts: ApiOptions = {}): ApiOptions {
+export function options(opts: ApiOptions = {}): ApiOptions {
   const {
     types = {},
     rpc = {},

@@ -8,7 +8,7 @@ import { Block, RuntimeDispatchInfo } from "@polkadot/types/interfaces";
 import { logger } from "./logger.js";
 import { CodecHash, EventRecord } from '@polkadot/types/interfaces';
 import { sleep } from "./utils.js";
-import { options } from "../src/options.js";
+import { options } from "../src/encointerAPIOptions.js";
 import { BN } from '@polkadot/util';
 
 // 'wss://staging.node.rmrk.app'
@@ -360,3 +360,48 @@ export const getDecimal = async (bigNum: string) => {
   const base = new BN(10);
   return new BN(bigNum).div(base.pow(new BN(api.registry.chainDecimals))).toNumber()
 }
+
+// Returns the denomination of the chain. Used for formatting planck denomianted amounts
+export const getDenom = async (): Promise<number> => {
+  const api = await getApiKusama();
+  const base = new BN(10);
+  const denom = base.pow(new BN(api.registry.chainDecimals)).toNumber()
+  return denom;
+};
+
+export const getApiAt = async (network: string, blockNumber: number): Promise<any> => {
+  let api;
+  switch (network) {
+      case "kusama":
+          api = await getApiKusama();
+          break;
+      case "encointer":
+          api = await getApiEncointer();
+          break;
+      case "statemine":
+          api = await getApiStatemine();
+          break;
+      default:
+          break;
+  }
+  const hash = await getBlockHash(network, blockNumber);
+  return await api.at(hash);
+};
+
+const getBlockHash = async (network: string, blockNumber: number): Promise<string> => {
+  let api;
+  switch (network) {
+      case "kusama":
+          api = await getApiKusama();
+          break;
+      case "encointer":
+          api = await getApiEncointer();
+          break;
+      case "statemine":
+          api = await getApiStatemine();
+          break;
+      default:
+          break;
+  }
+  return (await api.rpc.chain.getBlockHash(blockNumber)).toString();
+};
