@@ -263,7 +263,8 @@ const calculateLuck = async (
     encointerBonus: number,
     dragonEquipped: string,
     quizCorrect: number,
-    encointerScore: number
+    encointerScore: number,
+    reputationLifetime: number
 ): Promise<string> => {
     let n = await getDecimal(voteAmountWithConviction);
     minOut = parseInt(minOut.toString());
@@ -306,14 +307,14 @@ const calculateLuck = async (
         n = n * (1 + quizBonus / 100);
     }
 
-    const maxEncointerScore = 5;
+    const maxEncointerScore = reputationLifetime;
     const base = 2; // Change this value to adjust the exponential factor
 
     let bonus: number;
 
     if (encointerScore) {
-        if (encointerScore < 0 || encointerScore > 5) {
-            throw new Error('Score must be between 0 and 5');
+        if (encointerScore < 0 || encointerScore > reputationLifetime) {
+            throw new Error(`Score must be between 0 and ${reputationLifetime}`);
         }
         if (encointerScore === maxEncointerScore) {
             bonus = (encointerBonus / 100) * Math.pow(base, maxEncointerScore - encointerScore);
@@ -451,7 +452,7 @@ const createTransactionsForVotes = (apiStatemine, config, metadataCids, attribut
     return txs;
 }
 
-const fetchReputableVoters = async (params: FetchReputableVotersParams): Promise<{ countPerWallet: Record<string, number> }> => {
+const fetchReputableVoters = async (params: FetchReputableVotersParams): Promise<{ countPerWallet: Record<string, number>, reputationLifetime: number }> => {
     const {
         confirmationBlockNumber,
         getEncointerBlockNumberFromKusama,
@@ -482,7 +483,7 @@ const fetchReputableVoters = async (params: FetchReputableVotersParams): Promise
         return elementCounts;
     }, {});
 
-    return { countPerWallet };
+    return { countPerWallet, reputationLifetime };
 };
 
 const getWalletsByDragonAge = (bonuses: Bonuses): Record<string, string[]> => {
@@ -625,7 +626,7 @@ export const generateCalls = async (config: RewardConfiguration) => {
 
     const voteLocks = await retrieveAccountLocks(votes, referendum.confirmationBlockNumber)
 
-    const { countPerWallet } = await fetchReputableVoters({
+    const { countPerWallet, reputationLifetime } = await fetchReputableVoters({
         confirmationBlockNumber: referendum.confirmationBlockNumber,
         getEncointerBlockNumberFromKusama: getEncointerBlockNumberFromKusama,
         getCurrentEncointerCommunities: getCurrentEncointerCommunities,
@@ -711,7 +712,8 @@ export const generateCalls = async (config: RewardConfiguration) => {
                             config.encointerBonus,
                             vote.dragonEquipped,
                             vote.quizCorrect,
-                            vote.encointerScore)
+                            vote.encointerScore,
+                            reputationLifetime)
                     }
                     else {
                         chance = await calculateLuck(vote.lockedWithConviction.toString(),
@@ -728,7 +730,8 @@ export const generateCalls = async (config: RewardConfiguration) => {
                             config.encointerBonus,
                             vote.dragonEquipped,
                             vote.quizCorrect,
-                            vote.encointerScore)
+                            vote.encointerScore,
+                            reputationLifetime)
                     }
                     zeroOrOne = getRandom(rng, [chance / 100, (100 - chance) / 100]);
                     if (zeroOrOne === 0 && selectedIndex == null) {
