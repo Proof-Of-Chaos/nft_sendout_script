@@ -405,7 +405,7 @@ const processMetadataForOptions = async (config: RewardConfiguration,
 }
 
 // Function to create transactions for each mapped vote
-const createTransactionsForVotes = async (apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, distribution, rng, referendumIndex, proxyWallet) => {
+const createTransactionsForVotes = async (apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, chances, rng, referendumIndex, proxyWallet) => {
     const txs = [];
 
     for (let i = 0; i < mappedVotes.length; i++) {
@@ -434,9 +434,9 @@ const createTransactionsForVotes = async (apiStatemine, config, metadataCids, at
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "abstain", vote.balance.abstain.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "delegatedConvictionBalance", vote.delegatedConvictionBalance.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", distribution[i].chances.epic.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtEpic", chances[i].epic.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", chances[i].rare.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", chances[i].common.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "wallet", vote.address.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", vote.dragonEquipped))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", vote.quizCorrect.toString()))
