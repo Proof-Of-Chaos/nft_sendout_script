@@ -4,13 +4,12 @@ import { BN, u8aToU8a } from '@polkadot/util';
 import { logger } from "../tools/logger.js";
 import { pinSingleFileFromDir, pinSingleMetadataFromDir, pinSingleMetadataWithoutFile } from "../tools/pinataUtils.js";
 import fs from 'fs';
-import { Config, ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, RNG, SquidStatus, VoteConviction, VoteConvictionDragon, VoteConvictionDragonQuiz, VoteConvictionDragonQuizEncointer, VoteConvictionRequirements, Option, Uniqs, ProcessMetadataResult, FetchReputableVotersParams, Bonuses } from "../types.js";
+import { ConvictionVote, EncointerCommunity, EncointerMetadata, ParaInclusions, QuizSubmission, RNG, SquidStatus, VoteConviction, VoteConvictionDragon, VoteConvictionDragonQuiz, VoteConvictionDragonQuizEncointer, VoteConvictionRequirements, Uniqs, ProcessMetadataResult, FetchReputableVotersParams, Bonuses, RewardConfiguration, RewardOption } from "../types.js";
 import { getApiEncointer, getApiKusama, getApiStatemine, getBlockIndexer, getDecimal, initAccount } from "../tools/substrateUtils.js";
-import { getDragonBonusFile, getConfigFile, sleep } from "../tools/utils.js";
+import { getDragonBonusFile, sleep } from "../tools/utils.js";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import { createNewCollection } from "./createNewCollection.js";
 import { useAccountLocksImpl } from "./locks.js";
-import { getSettings } from "../tools/settings.js";
 import pinataSDK, { PinataClient } from "@pinata/sdk";
 import { getApiAt, getConvictionVoting } from "./chainData.js";
 import { GraphQLClient } from 'graphql-request';
@@ -61,13 +60,13 @@ const retrieveAccountLocks = async (votes: ConvictionVote[], endBlock: number): 
 const checkVotesMeetingRequirements = async (
     votes: VoteConvictionDragonQuizEncointer[],
     totalIssuance: string,
-    config: Config
+    config: RewardConfiguration
 ): Promise<VoteConvictionRequirements[]> => {
     const minVote = BN.max(new BN(config.min), new BN("0"));
     const maxVote = BN.min(new BN(config.max), new BN(totalIssuance));
 
-    config.min = await getDecimal(minVote.toString());
-    config.max = await getDecimal(maxVote.toString());
+    config.minVote = await getDecimal(minVote.toString());
+    config.maxVote = await getDecimal(maxVote.toString());
 
     const filtered: VoteConvictionRequirements[] = votes.map((vote, i) => {
         const meetsRequirements = !(
@@ -365,7 +364,7 @@ const getMinMaxMedian = (voteAmounts: number[], criticalValue: number): { minVal
 }
 
 // Function to generate attributes for direct and delegated options
-const generateAttributes = (option: Option, typeOfVote: string, totalSupplyOfOption: number): { name: string; value: string | number }[] => {
+const generateAttributes = (option: RewardOption, typeOfVote: string, totalSupplyOfOption: number): { name: string; value: string | number }[] => {
     return [
         { name: "rarity", value: option.rarity },
         { name: "totalSupply", value: totalSupplyOfOption },
@@ -377,7 +376,7 @@ const generateAttributes = (option: Option, typeOfVote: string, totalSupplyOfOpt
 }
 
 // Function to process metadata for each option
-const processMetadataForOptions = async (config: Config,
+const processMetadataForOptions = async (config: RewardConfiguration,
     pinata: ReturnType<typeof pinataSDK>,
     referendumIndex: BN,
     uniqs: Uniqs): Promise<ProcessMetadataResult> => {
@@ -608,9 +607,9 @@ const setupPinata = async (): Promise<PinataClient | null> => {
     }
 }
 
-export const generateCalls = async (referendumIndex: BN) => {
-    await cryptoWaitReady()
-    const settings = getSettings();
+export const generateCalls = async (config: RewardConfiguration) => {
+    await cryptoWaitReady();
+    const referendumIndex = new BN(config.refIndex);    
     let apiKusama = await getApiKusama();
     let apiStatemine = await getApiStatemine();
     const rng = seedrandom(referendumIndex.toString()); //add secret seed?
@@ -620,12 +619,6 @@ export const generateCalls = async (referendumIndex: BN) => {
 
     const pinata = await setupPinata();
     if (!pinata) return;
-
-    let configFile = await getConfigFile(referendumIndex);
-    if (configFile === "") {
-        return;
-    }
-    let config = await JSON.parse(configFile);
 
     const { referendum, totalIssuance, votes } = await getConvictionVoting(99);
     logger.info("Number of votes: ", votes.length)
@@ -661,17 +654,6 @@ export const generateCalls = async (referendumIndex: BN) => {
 
     const votesWithDragonAndQuiz = addQuizCorrectToVotes(votesWithDragon, quizSubmissions);
     const votesWithDragonAndQuizAndEncointer = addEncointerScoreToVotes(votesWithDragonAndQuiz, countPerWallet);
-
-
-    // if (settings.isTest) {
-    //     const votesAddresses = votes.map(vote => {
-    //         return vote.address.toString()
-    //     })
-    //     fs.writeFile(`assets/frame/votes/${referendumIndex}.json`, JSON.stringify(votes), (err) => {
-    //         // In case of a error throw err.
-    //         if (err) throw err;
-    //     })
-    // }
 
     const mappedVotes: VoteConvictionRequirements[] = await checkVotesMeetingRequirements(votesWithDragonAndQuizAndEncointer, totalIssuance.toString(), config)
 
@@ -836,12 +818,6 @@ export const generateCalls = async (referendumIndex: BN) => {
     const { metadataCids, attributes } = await processMetadataForOptions(config, pinata, referendumIndex, uniqs);
     logger.info("metadataCids", metadataCids);
 
-    if (settings.isTest) {
-        fs.writeFile(`assets/frame/sendoutConfig/${referendumIndex}.json`, JSON.stringify(config), (err) => {
-            // In case of a error throw err.
-            if (err) throw err;
-        })
-    }
     // Create transactions for each mapped vote
     txs.push(...createTransactionsForVotes(apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, distribution, rng, referendumIndex.toString(), proxyWallet));
     const batchtx = apiStatemine.tx.utility.batchAll(txs).toHex();

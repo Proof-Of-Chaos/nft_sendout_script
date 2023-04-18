@@ -156,17 +156,6 @@ interface Answer {
     isCorrect: boolean;
 }
 
-export interface Option {
-    rarity: string;
-    artist: string;
-    creativeDirector: string;
-    itemName: string;
-    main: string;
-    text: string;
-    metadataCidDirect?: string;
-    metadataCidDelegated?: string;
-}
-
 export interface Uniqs { [key: string]: number };
 
 interface Attribute {
@@ -185,13 +174,6 @@ export interface ProcessMetadataResult {
     attributes: [Attribute[], Attribute[]][];
 }
 
-export interface Config {
-    min: number;
-    max: number;
-    directOnly: boolean;
-    first: number | null;
-    options: Option[];
-}
 
 export type RNG = () => number;
 
@@ -213,4 +195,53 @@ export interface Bonuses {
     toddlers: DragonBonus[];
     adolescents: DragonBonus[];
     adults: DragonBonus[];
+}
+
+export interface RewardConfiguration {
+    refIndex: string;
+    min: string;
+    max: string;
+    first: number | null;
+    blockCutOff: number | null;
+    directOnly: boolean;
+    createNewCollection: boolean;
+    newCollectionSymbol: number;
+    newCollectionPath: string;
+    newCollectionFile: string;
+    newCollectionName: string;
+    newCollectionDescription: string;
+    babyBonus: number;
+    toddlerBonus: number;
+    adolescentBonus: number;
+    adultBonus: null;
+    quizBonus: number;
+    identityBonus: null;
+    encointerBonus: number;
+    minAmount: number;
+    defaultRoyalty: number;
+    options: RewardOption[];
+    minValue?: number | null;
+    maxValue?: number | null;
+    median?: number | null;
+    minVote?: number | null;
+    maxVote?: number | null;
+    newCollectionMetadataCid?: string | null;
+}
+
+export interface RewardOption {
+    maxProbability: number | null;
+    minProbability: number | null;
+    transferable: number;
+    symbol: string;
+    text: string;
+    artist: string;
+    creativeDirector: string;
+    main: string;
+    thumb: string;
+    rarity: string;
+    itemName: string;
+    minRoyalty: number;
+    maxRoyalty: number;
+    metadataCidDirect?: string;
+    metadataCidDelegated?: string;
 }
