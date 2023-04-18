@@ -405,7 +405,7 @@ const processMetadataForOptions = async (config: RewardConfiguration,
 }
 
 // Function to create transactions for each mapped vote
-const createTransactionsForVotes = (apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, distribution, rng, referendumIndex, proxyWallet) => {
+const createTransactionsForVotes = async (apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, distribution, rng, referendumIndex, proxyWallet) => {
     const txs = [];
 
     for (let i = 0; i < mappedVotes.length; i++) {
@@ -428,7 +428,7 @@ const createTransactionsForVotes = (apiStatemine, config, metadataCids, attribut
         txs.push(apiStatemine.tx.uniques.mint(config.newCollectionSymbol, i, proxyWallet))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyPercentFloat", vote.meetsRequirements ? randRoyaltyInRange : config.defaultRoyalty))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "royaltyReceiver", "DhvRNnnsyykGpmaa9GMjK9H4DeeQojd5V5qCTWd1GoYwnTc"))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", distribution[i].amountConsidered))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "amountLockedInGovernance", await getDecimal(vote.lockedWithConviction.toString())))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "voteDirection", vote.voteDirection))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "aye", vote.balance.aye.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "nay", vote.balance.nay.toString()))
@@ -438,10 +438,11 @@ const createTransactionsForVotes = (apiStatemine, config, metadataCids, attribut
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtRare", distribution[i].chances.rare.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "chanceAtCommon", distribution[i].chances.common.toString()))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "wallet", vote.address.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", distribution[i].dragonEquipped))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", distribution[i].quizCorrect.toString()))
-        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "encointerScore", distribution[i].encointerScore))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "dragonEquipped", vote.dragonEquipped))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "quizCorrect", vote.quizCorrect.toString()))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "encointerScore", vote.encointerScore))
         txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "referendumIndex", referendumIndex))
+        txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, "meetsRequirements", vote.meetsRequirements))
         for (const attribute of vote.voteType == "Delegating" ? attributes[selectedIndexArray[i]][1] : attributes[selectedIndexArray[i]][0]) {
             txs.push(apiStatemine.tx.uniques.setAttribute(config.newCollectionSymbol, i, attribute.name, attribute.value))
         }
@@ -610,7 +611,7 @@ const setupPinata = async (): Promise<PinataClient | null> => {
 
 export const generateCalls = async (config: RewardConfiguration) => {
     await cryptoWaitReady();
-    const referendumIndex = new BN(config.refIndex);    
+    const referendumIndex = new BN(config.refIndex);
     let apiKusama = await getApiKusama();
     let apiStatemine = await getApiStatemine();
     const rng = seedrandom(referendumIndex.toString()); //add secret seed?
@@ -670,7 +671,7 @@ export const generateCalls = async (config: RewardConfiguration) => {
 
     logger.info(`${votesNotMeetingRequirements.length} votes not meeting the requirements.`)
 
-    let distribution = [];
+    let allChances = [];
     const minVote = votesMeetingRequirements.reduce((prev, curr) => prev.lockedWithConviction.lt(curr.lockedWithConviction) ? prev : curr);
     const maxVote = votesMeetingRequirements.reduce((prev, curr) => prev.lockedWithConviction.gt(curr.lockedWithConviction) ? prev : curr);
     logger.info("minVote", minVote.lockedWithConviction.toString())
@@ -750,31 +751,13 @@ export const generateCalls = async (config: RewardConfiguration) => {
                 }
                 counter++;
             }
-            distribution.push({
-                wallet: vote.address.toString(),
-                amountConsidered: await getDecimal(vote.lockedWithConviction.toString()),
-                chances,
-                selectedIndex,
-                dragonEquipped: vote.dragonEquipped,
-                meetsRequirements: vote.meetsRequirements,
-                quizCorrect: vote.quizCorrect,
-                encointerScore: vote.encointerScore
-            })
+            allChances.push(chances)
             selectedIndexArray.push(selectedIndex)
         }
         else {
             const commonIndex = config.options.length - 1
             const chances = { "epic": 0, "rare": 0, "common": 100 };
-            distribution.push({
-                wallet: vote.address.toString(),
-                amountConsidered: await getDecimal(vote.lockedWithConviction.toString()),
-                chances,
-                selectedIndex: commonIndex,
-                dragonEquipped: vote.dragonEquipped,
-                meetsRequirements: vote.meetsRequirements,
-                quizCorrect: vote.quizCorrect,
-                encointerScore: vote.encointerScore
-            })
+            allChances.push(chances)
             selectedIndexArray.push(commonIndex)
         }
     }
@@ -784,12 +767,6 @@ export const generateCalls = async (config: RewardConfiguration) => {
     }, {});
 
     logger.info(uniqs)
-
-    fs.writeFile(`assets/frame/luck/${referendumIndex}.json`, JSON.stringify(distribution), (err) => {
-
-        // In case of a error throw err.
-        if (err) throw err;
-    })
 
     let itemCollectionId;
     //create collection if required
@@ -822,7 +799,7 @@ export const generateCalls = async (config: RewardConfiguration) => {
     logger.info("metadataCids", metadataCids);
 
     // Create transactions for each mapped vote
-    txs.push(...createTransactionsForVotes(apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, distribution, rng, referendumIndex.toString(), proxyWallet));
+    txs.push(...await createTransactionsForVotes(apiStatemine, config, metadataCids, attributes, selectedIndexArray, mappedVotes, allChances, rng, referendumIndex.toString(), proxyWallet));
     const batchtx = apiStatemine.tx.utility.batchAll(txs).toHex();
     fs.writeFile(`assets/output/${referendumIndex}.json`, batchtx, (err) => {
         // In case of a error throw err.
